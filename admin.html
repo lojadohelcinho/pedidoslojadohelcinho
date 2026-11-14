@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Loja do Helcinho</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -31,10 +27,9 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col md:flex-row">
 
-    <!-- MENU LATERAL ESQUERDO (SIDEBAR) -->
+    <!-- MENU LATERAL ESQUERDO -->
     <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
         <div>
-            <!-- Topo do Menu -->
             <div class="p-5 border-b border-rosegold/20 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
                     <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
@@ -45,7 +40,6 @@
                 </div>
             </div>
 
-            <!-- Links de Navegação -->
             <nav class="p-3 space-y-1">
                 <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
                     <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
@@ -74,7 +68,6 @@
             </nav>
         </div>
 
-        <!-- Rodapé do Menu -->
         <div class="p-4 border-t border-rosegold/20">
             <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
                 <i class="fa-solid fa-store"></i> Ver a Loja Online
@@ -89,7 +82,7 @@
         <section id="tab-produtos" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> Cadastrar / Editar Produto</h2>
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
                     <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200">Limpar Formulário</button>
                 </div>
                 
@@ -228,7 +221,7 @@
             </div>
         </section>
 
-        <!-- ABA 6: RELATÓRIO DE VENDAS MENSAIS -->
+        <!-- ABA 6: RELATÓRIO -->
         <section id="tab-relatorios" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatório de Vendas Mensais</h2>
@@ -245,7 +238,7 @@
             </div>
         </section>
 
-        <!-- ABA 7: PRODUTO MAIS VENDIDO -->
+        <!-- ABA 7: MAIS VENDIDOS -->
         <section id="tab-mais-vendidos" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-fire text-orange-600 mr-2"></i> Ranking de Produtos Mais Vendidos</h2>
@@ -264,7 +257,7 @@
             </div>
         </section>
 
-        <!-- ABA 8: CONFIGURAR WHATSAPP -->
+        <!-- ABA 8: WHATSAPP -->
         <section id="tab-config" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar Número do WhatsApp</h2>
@@ -277,7 +270,7 @@
 
     </main>
 
-    <!-- SCRIPT DE GERENCIAMENTO COM SUPABASE E FALLBACK LOCAL -->
+    <!-- SCRIPT DO PAINEL ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -335,10 +328,11 @@
                 if (!cat) return alert('Digite o nome da nova categoria!');
             }
 
+            const productId = document.getElementById('product-id').value;
             const imgBase64 = document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500';
 
-            const product = {
-                id: Date.now(),
+            const productData = {
+                id: productId ? Number(productId) : Date.now(),
                 nome: document.getElementById('nome').value,
                 categoria: cat,
                 descricao: document.getElementById('descricao').value,
@@ -349,66 +343,85 @@
                 ativo: true
             };
 
-            try {
-                if (supabaseClient) {
-                    const { error } = await supabaseClient.from('produtos').insert([product]);
-                    if (error) throw error;
-                }
-            } catch (err) {
-                console.warn("Salvando localmente devido a falha na nuvem:", err.message);
-            }
-
-            // Salva também no LocalStorage para garantir funcionamento imediato
+            // Atualiza localStorage para sincronização instantânea
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            localProducts.push(product);
+            if (productId) {
+                localProducts = localProducts.map(p => p.id == productId ? productData : p);
+            } else {
+                localProducts.push(productData);
+            }
             localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
 
-            alert('Produto cadastrado com sucesso!');
+            // Tenta salvar no Supabase
+            if (supabaseClient) {
+                try {
+                    if (productId) {
+                        await supabaseClient.from('produtos').update(productData).eq('id', productId);
+                    } else {
+                        await supabaseClient.from('produtos').insert([productData]);
+                    }
+                } catch(err) { console.warn("Supabase offline, salvo localmente."); }
+            }
+
+            alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             resetProductForm();
             loadEstoque();
         }
 
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
-            try {
-                if (supabaseClient) {
-                    const { data, error } = await supabaseClient.from('produtos').select('*');
-                    if (!error && data && data.length > 0) {
+            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('produtos').select('*');
+                    if (data && data.length > 0) {
                         products = data;
-                    } else {
-                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
                     }
-                } else {
-                    products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-                }
+                } catch(e) {}
+            }
 
-                if (products.length === 0) {
-                    listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
-                    return;
-                }
+            if (products.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
+                return;
+            }
 
-                listEl.innerHTML = products.map(p => `
-                    <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20">
-                        <div class="flex items-center gap-3">
-                            <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
-                            <div>
-                                <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria})</h4>
-                                <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="toggleStatus(${p.id}, ${p.ativo !== false})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.ativo !== false ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}">${p.ativo !== false ? 'Desativar' : 'Ativar'}</button>
-                            <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+            listEl.innerHTML = products.map(p => `
+                <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20">
+                    <div class="flex items-center gap-3">
+                        <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria})</h4>
+                            <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
                         </div>
                     </div>
-                `).join('');
-            } catch (err) {
-                listEl.innerHTML = '<p class="text-xs text-red-500">Erro ao carregar estoque.</p>';
-            }
+                    <div class="flex gap-2">
+                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-200"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button onclick="toggleStatus(${p.id}, ${p.ativo !== false})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.ativo !== false ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}">${p.ativo !== false ? 'Desativar' : 'Ativar'}</button>
+                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editProduct(id) {
+            const p = products.find(item => item.id == id);
+            if (!p) return;
+            document.getElementById('product-id').value = p.id;
+            document.getElementById('nome').value = p.nome;
+            document.getElementById('categoria').value = p.categoria;
+            document.getElementById('descricao').value = p.descricao;
+            document.getElementById('preco').value = p.preco;
+            document.getElementById('preco_antigo').value = p.preco_antigo || '';
+            document.getElementById('desconto').value = p.desconto || '';
+            document.getElementById('imagem-base64').value = p.imagem;
+            document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
+            switchTab('produtos');
         }
 
         async function toggleStatus(id, currentStatus) {
-            products = products.map(p => p.id === id ? { ...p, ativo: !currentStatus } : p);
+            products = products.map(p => p.id == id ? { ...p, ativo: !currentStatus } : p);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
             if (supabaseClient) {
                 try { await supabaseClient.from('produtos').update({ ativo: !currentStatus }).eq('id', id); } catch(e){}
@@ -418,7 +431,7 @@
 
         async function deleteProduct(id) {
             if (!confirm('Deseja excluir este produto?')) return;
-            products = products.filter(p => p.id !== id);
+            products = products.filter(p => p.id != id);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
             if (supabaseClient) {
                 try { await supabaseClient.from('produtos').delete().eq('id', id); } catch(e){}
@@ -428,17 +441,16 @@
 
         function resetProductForm() {
             document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
             document.getElementById('imagem-base64').value = '';
+            document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
             document.getElementById('new-category-box').classList.add('hidden');
         }
 
+        // Funções de Clientes, Crediário e Calculadora
         function saveClient(e) {
             e.preventDefault();
-            const cliente = {
-                nome: document.getElementById('cli-nome').value,
-                whatsapp: document.getElementById('cli-zap').value,
-                endereco: document.getElementById('cli-end').value
-            };
+            const cliente = { nome: document.getElementById('cli-nome').value, whatsapp: document.getElementById('cli-zap').value, endereco: document.getElementById('cli-end').value };
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             clientes.push(cliente);
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
@@ -450,28 +462,16 @@
         function loadClientes() {
             const list = document.getElementById('clientes-list');
             const clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            if(clientes.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>';
-                return;
-            }
-            list.innerHTML = clientes.map(c => `
+            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map(c => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold uppercase text-marromCafe">${c.nome}</h4>
-                        <p class="text-gray-500"><i class="fa-brands fa-whatsapp text-green-600 mr-1"></i> ${c.whatsapp} | ${c.endereco}</p>
-                    </div>
+                    <div><h4 class="font-bold uppercase text-marromCafe">${c.nome}</h4><p class="text-gray-500">${c.whatsapp} | ${c.endereco}</p></div>
                 </div>
             `).join('');
         }
 
         function saveCrediario(e) {
             e.preventDefault();
-            const item = {
-                cliente: document.getElementById('cred-cliente').value,
-                produtos: document.getElementById('cred-produtos').value,
-                valor: parseFloat(document.getElementById('cred-valor').value),
-                parcelas: parseInt(document.getElementById('cred-parcelas').value)
-            };
+            const item = { cliente: document.getElementById('cred-cliente').value, produtos: document.getElementById('cred-produtos').value, valor: parseFloat(document.getElementById('cred-valor').value), parcelas: parseInt(document.getElementById('cred-parcelas').value) };
             let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
             cred.push(item);
             localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
@@ -483,51 +483,39 @@
         function loadCrediario() {
             const list = document.getElementById('crediario-list');
             const cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            if(cred.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>';
-                return;
-            }
-            list.innerHTML = cred.map(c => `
+            list.innerHTML = cred.length === 0 ? '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>' : cred.map(c => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold uppercase text-marromCafe">${c.cliente}</h4>
-                        <p class="text-gray-600">Produtos: ${c.produtos}</p>
-                        <p class="text-verdePetroleo font-bold mt-1">Total: R$ ${c.valor.toFixed(2).replace('.', ',')} (${c.parcelas}x de R$ ${(c.valor/c.parcelas).toFixed(2).replace('.', ',')})</p>
-                    </div>
+                    <div><h4 class="font-bold uppercase text-marromCafe">${c.cliente}</h4><p class="text-gray-600">Produtos: ${c.produtos}</p><p class="text-verdePetroleo font-bold">Total: R$ ${c.valor.toFixed(2).replace('.', ',')} (${c.parcelas}x)</p></div>
                 </div>
             `).join('');
         }
 
         async function loadCalcSelect() {
             const select = document.getElementById('calc-produto');
+            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             select.innerHTML = '<option value="">Selecione um produto...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
 
         function loadProductForCalc() {
             const id = document.getElementById('calc-produto').value;
             const prod = products.find(p => p.id == id);
-            if(prod) {
-                document.getElementById('calc-custo').value = (prod.preco * 0.4).toFixed(2);
-            }
+            if(prod) document.getElementById('calc-custo').value = (prod.preco * 0.4).toFixed(2);
         }
 
         function calcularPrecoIdeal() {
             const custo = parseFloat(document.getElementById('calc-custo').value) || 0;
             const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
             const extras = parseFloat(document.getElementById('calc-extras').value) || 0;
-
             const precoSugerido = (custo + extras) * (1 + (margem / 100));
             const lucroRs = precoSugerido - (custo + extras);
-
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${precoSugerido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('calc-lucro-rs').textContent = `Lucro estimado por unidade: R$ ${lucroRs.toFixed(2).replace('.', ',')}`;
+            document.getElementById('calc-lucro-rs').textContent = `Lucro estimado: R$ ${lucroRs.toFixed(2).replace('.', ',')}`;
         }
 
         document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
         function saveWhatsApp() {
-            const num = document.getElementById('whatsapp-input').value;
-            localStorage.setItem('helcinho_whatsapp', num);
+            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
             alert('Número de WhatsApp atualizado com sucesso!');
         }
 
