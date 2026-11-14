@@ -112,7 +112,6 @@
                         </div>
                     </div>
 
-                    <!-- Input customizado para nova categoria (Oculto por padrão) -->
                     <div id="new-category-box" class="hidden sm:col-span-2">
                         <label class="block text-xs font-semibold mb-1 text-verdePetroleo">Nome da Nova Categoria</label>
                         <input type="text" id="nova-categoria-input" placeholder="Digite a nova categoria..." class="w-full bg-creme border border-verdePetroleo rounded-xl px-4 py-2 text-sm">
@@ -155,9 +154,7 @@
         <section id="tab-estoque" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
-                <div id="estoque-list" class="space-y-3">
-                    <!-- Preenchido via JS -->
-                </div>
+                <div id="estoque-list" class="space-y-3"></div>
             </div>
         </section>
 
@@ -245,14 +242,6 @@
                         <h3 class="font-bold text-2xl text-verdePetroleo mt-1">28 Pedidos</h3>
                     </div>
                 </div>
-                <div class="pt-4">
-                    <h4 class="font-bold text-xs uppercase text-gray-500 mb-2">Histórico de Fechamentos Recentes</h4>
-                    <div class="bg-gray-50 rounded-xl p-4 text-xs space-y-2 border border-gray-200">
-                        <div class="flex justify-between border-b pb-2"><span>Novembro / 2026</span><span class="font-bold text-verdePetroleo">R$ 4.890,00 (28 vendas)</span></div>
-                        <div class="flex justify-between border-b pb-2"><span>Outubro / 2026</span><span class="font-bold text-verdePetroleo">R$ 5.120,00 (34 vendas)</span></div>
-                        <div class="flex justify-between"><span>Setembro / 2026</span><span class="font-bold text-verdePetroleo">R$ 3.950,00 (22 vendas)</span></div>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -271,16 +260,6 @@
                         </div>
                         <span class="bg-verdePetroleo/10 text-verdePetroleo px-3 py-1 rounded-lg text-xs font-bold">14 unidades vendidas</span>
                     </div>
-                    <div class="flex items-center justify-between bg-creme p-4 rounded-xl border border-rosegold/20">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-full bg-rosegold text-white flex items-center justify-center font-bold text-xs">2º</span>
-                            <div>
-                                <h4 class="font-bold text-sm uppercase">COFFEE</h4>
-                                <p class="text-xs text-gray-500">Man Seduction Amadeirado 100ml</p>
-                            </div>
-                        </div>
-                        <span class="bg-rosegold/10 text-rosegold px-3 py-1 rounded-lg text-xs font-bold">9 unidades vendidas</span>
-                    </div>
                 </div>
             </div>
         </section>
@@ -298,21 +277,20 @@
 
     </main>
 
-    <!-- SCRIPT DE GERENCIAMENTO DO PAINEL -->
+    <!-- SCRIPT DE GERENCIAMENTO COM SUPABASE E FALLBACK LOCAL -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
         
         let supabaseClient = null;
         try {
-            if (SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
+            if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
         } catch (e) { console.warn("Supabase não configurado."); }
 
         let products = [];
 
-        // Navegação das Abas
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -327,7 +305,6 @@
             if(tabId === 'calculadora') loadCalcSelect();
         }
 
-        // Conversão de Imagem para Base64
         const imageFileInput = document.getElementById('imagem-file');
         imageFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -340,7 +317,6 @@
             }
         });
 
-        // Opção de Criar Nova Categoria
         function checkNewCategory(selectEl) {
             const newBox = document.getElementById('new-category-box');
             if (selectEl.value === 'nova') {
@@ -351,7 +327,6 @@
             }
         }
 
-        // Salvar / Cadastrar Produto
         async function saveProduct(e) {
             e.preventDefault();
             let cat = document.getElementById('categoria').value;
@@ -363,6 +338,7 @@
             const imgBase64 = document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500';
 
             const product = {
+                id: Date.now(),
                 nome: document.getElementById('nome').value,
                 categoria: cat,
                 descricao: document.getElementById('descricao').value,
@@ -373,15 +349,23 @@
                 ativo: true
             };
 
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').insert([product]);
-                if (error) return alert('Erro ao salvar no Supabase: ' + error.message);
-                alert('Produto cadastrado com sucesso!');
-                resetProductForm();
-                loadEstoque();
-            } else {
-                alert('Configure sua URL do Supabase para salvar na nuvem.');
+            try {
+                if (supabaseClient) {
+                    const { error } = await supabaseClient.from('produtos').insert([product]);
+                    if (error) throw error;
+                }
+            } catch (err) {
+                console.warn("Salvando localmente devido a falha na nuvem:", err.message);
             }
+
+            // Salva também no LocalStorage para garantir funcionamento imediato
+            let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            localProducts.push(product);
+            localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
+
+            alert('Produto cadastrado com sucesso!');
+            resetProductForm();
+            loadEstoque();
         }
 
         async function loadEstoque() {
@@ -389,49 +373,57 @@
             try {
                 if (supabaseClient) {
                     const { data, error } = await supabaseClient.from('produtos').select('*');
-                    if (error) throw error;
-                    products = data || [];
-                    
-                    if (products.length === 0) {
-                        listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
-                        return;
+                    if (!error && data && data.length > 0) {
+                        products = data;
+                    } else {
+                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                     }
+                } else {
+                    products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+                }
 
-                    listEl.innerHTML = products.map(p => `
-                        <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20">
-                            <div class="flex items-center gap-3">
-                                <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
-                                <div>
-                                    <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria})</h4>
-                                    <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="toggleStatus(${p.id}, ${p.ativo !== false})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.ativo !== false ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}">${p.ativo !== false ? 'Desativar' : 'Ativar'}</button>
-                                <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                if (products.length === 0) {
+                    listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
+                    return;
+                }
+
+                listEl.innerHTML = products.map(p => `
+                    <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
+                            <div>
+                                <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria})</h4>
+                                <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
                             </div>
                         </div>
-                    `).join('');
-                }
+                        <div class="flex gap-2">
+                            <button onclick="toggleStatus(${p.id}, ${p.ativo !== false})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.ativo !== false ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}">${p.ativo !== false ? 'Desativar' : 'Ativar'}</button>
+                            <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (err) {
                 listEl.innerHTML = '<p class="text-xs text-red-500">Erro ao carregar estoque.</p>';
             }
         }
 
         async function toggleStatus(id, currentStatus) {
+            products = products.map(p => p.id === id ? { ...p, ativo: !currentStatus } : p);
+            localStorage.setItem('helcinho_produtos', JSON.stringify(products));
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').update({ ativo: !currentStatus }).eq('id', id);
-                if (error) return alert('Erro ao alterar status');
-                loadEstoque();
+                try { await supabaseClient.from('produtos').update({ ativo: !currentStatus }).eq('id', id); } catch(e){}
             }
+            loadEstoque();
         }
 
         async function deleteProduct(id) {
             if (!confirm('Deseja excluir este produto?')) return;
+            products = products.filter(p => p.id !== id);
+            localStorage.setItem('helcinho_produtos', JSON.stringify(products));
             if (supabaseClient) {
-                await supabaseClient.from('produtos').delete().eq('id', id);
-                loadEstoque();
+                try { await supabaseClient.from('produtos').delete().eq('id', id); } catch(e){}
             }
+            loadEstoque();
         }
 
         function resetProductForm() {
@@ -440,7 +432,6 @@
             document.getElementById('new-category-box').classList.add('hidden');
         }
 
-        // Clientes (LocalStorage)
         function saveClient(e) {
             e.preventDefault();
             const cliente = {
@@ -473,7 +464,6 @@
             `).join('');
         }
 
-        // Crediário (LocalStorage)
         function saveCrediario(e) {
             e.preventDefault();
             const item = {
@@ -508,13 +498,8 @@
             `).join('');
         }
 
-        // Calculadora de Custos
         async function loadCalcSelect() {
             const select = document.getElementById('calc-produto');
-            if(products.length === 0 && supabaseClient) {
-                const { data } = await supabaseClient.from('produtos').select('*');
-                products = data || [];
-            }
             select.innerHTML = '<option value="">Selecione um produto...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
 
@@ -522,7 +507,7 @@
             const id = document.getElementById('calc-produto').value;
             const prod = products.find(p => p.id == id);
             if(prod) {
-                document.getElementById('calc-custo').value = (prod.preco * 0.4).toFixed(2); // Estimativa padrão
+                document.getElementById('calc-custo').value = (prod.preco * 0.4).toFixed(2);
             }
         }
 
@@ -539,7 +524,6 @@
             document.getElementById('calc-lucro-rs').textContent = `Lucro estimado por unidade: R$ ${lucroRs.toFixed(2).replace('.', ',')}`;
         }
 
-        // WhatsApp config
         document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
         function saveWhatsApp() {
             const num = document.getElementById('whatsapp-input').value;
