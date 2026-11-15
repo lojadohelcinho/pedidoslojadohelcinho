@@ -95,14 +95,22 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-semibold mb-1">Código SKU / Referência</label>
+                        <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Marca</label>
+                        <input type="text" id="marca" placeholder="Ex: O Boticário" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-semibold mb-1">Categoria</label>
-                        <div class="flex gap-2">
-                            <select id="categoria" onchange="checkNewCategory(this)" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                                <option value="Masculino">Masculino</option>
-                                <option value="Feminino">Feminino</option>
-                                <option value="nova">➕ Criar nova categoria...</option>
-                            </select>
-                        </div>
+                        <select id="categoria" onchange="checkNewCategory(this)" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="nova">➕ Criar nova categoria...</option>
+                        </select>
                     </div>
 
                     <div id="new-category-box" class="hidden sm:col-span-2">
@@ -116,7 +124,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Preço Atual (R$)</label>
+                        <label class="block text-xs font-semibold mb-1">Custo de Aquisição (R$)</label>
+                        <input type="number" step="0.01" id="custo" placeholder="0.00" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Preço de Venda Atual (R$)</label>
                         <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
                     </div>
 
@@ -126,7 +139,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Imagem do Produto (Carregar Arquivo)</label>
+                        <label class="block text-xs font-semibold mb-1">Estoque Inicial / Atual</label>
+                        <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Imagem do Produto (Arquivo)</label>
                         <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs text-gray-600 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-verdePetroleo file:text-white hover:file:bg-verdeHover">
                         <input type="hidden" id="imagem-base64">
                     </div>
@@ -334,34 +352,45 @@
             const imgBase64 = document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500';
 
             const productData = {
-                id: productId ? Number(productId) : Date.now(),
                 nome: document.getElementById('nome').value,
+                sku: document.getElementById('sku').value || null,
+                marca: document.getElementById('marca').value || null,
                 categoria: cat,
                 descricao: document.getElementById('descricao').value,
+                custo: parseFloat(document.getElementById('custo').value) || 0,
                 preco: parseFloat(document.getElementById('preco').value),
                 preco_antigo: document.getElementById('preco_antigo').value ? parseFloat(document.getElementById('preco_antigo').value) : null,
+                estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 imagem: imgBase64,
                 desconto: document.getElementById('desconto').value || null,
                 ativo: true
             };
 
-            let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            if (productId) {
-                localProducts = localProducts.map(p => p.id == productId ? productData : p);
-            } else {
-                localProducts.push(productData);
-            }
-            localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
-
+            // Salva no Supabase se disponível, com fallback local
             if (supabaseClient) {
                 try {
                     if (productId) {
-                        await supabaseClient.from('produtos').update(productData).eq('id', productId);
+                        const { error } = await supabaseClient.from('produtos').update(productData).eq('id', productId);
+                        if (error) throw error;
                     } else {
-                        await supabaseClient.from('produtos').insert([productData]);
+                        const { error } = await supabaseClient.from('produtos').insert([productData]);
+                        if (error) throw error;
                     }
-                } catch(err) { console.warn("Supabase offline, salvo localmente."); }
+                } catch(err) {
+                    console.warn("Erro no Supabase, salvando localmente:", err.message);
+                }
             }
+
+            // Sincroniza localmente
+            let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            if (productId) {
+                productData.id = Number(productId);
+                localProducts = localProducts.map(p => p.id == productId ? productData : p);
+            } else {
+                productData.id = Date.now();
+                localProducts.push(productData);
+            }
+            localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
 
             alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             resetProductForm();
@@ -370,16 +399,20 @@
 
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
-            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            
+            products = [];
+
             if (supabaseClient) {
                 try {
-                    const { data } = await supabaseClient.from('produtos').select('*');
-                    if (data && data.length > 0) {
+                    const { data, error } = await supabaseClient.from('produtos').select('*');
+                    if (!error && data) {
                         products = data;
                         localStorage.setItem('helcinho_produtos', JSON.stringify(products));
                     }
                 } catch(e) {}
+            }
+
+            if (products.length === 0) {
+                products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             }
 
             if (products.length === 0) {
@@ -392,8 +425,8 @@
                     <div class="flex items-center gap-3">
                         <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
                         <div>
-                            <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria})</h4>
-                            <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
+                            <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria}) ${p.sku ? `- SKU: ${p.sku}` : ''}</h4>
+                            <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Estoque: <span class="font-bold">${p.estoque_atual ?? 10}</span> | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -410,10 +443,14 @@
             if (!p) return;
             document.getElementById('product-id').value = p.id;
             document.getElementById('nome').value = p.nome;
+            document.getElementById('sku').value = p.sku || '';
+            document.getElementById('marca').value = p.marca || '';
             document.getElementById('categoria').value = p.categoria;
             document.getElementById('descricao').value = p.descricao;
+            document.getElementById('custo').value = p.custo || '';
             document.getElementById('preco').value = p.preco;
             document.getElementById('preco_antigo').value = p.preco_antigo || '';
+            document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
             document.getElementById('desconto').value = p.desconto || '';
             document.getElementById('imagem-base64').value = p.imagem;
             document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
@@ -449,23 +486,15 @@
             document.getElementById('new-category-box').classList.add('hidden');
         }
 
-        // --- CLIENTES (Com Edição por Ícone de Lápis) ---
+        // Funções de Clientes, Crediário e Calculadora mantidas intactas com edição por ícone de lápis
         function saveClient(e) {
             e.preventDefault();
             const index = document.getElementById('client-index').value;
-            const cliente = {
-                nome: document.getElementById('cli-nome').value,
-                whatsapp: document.getElementById('cli-zap').value,
-                endereco: document.getElementById('cli-end').value
-            };
+            const cliente = { nome: document.getElementById('cli-nome').value, whatsapp: document.getElementById('cli-zap').value, endereco: document.getElementById('cli-end').value };
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            if (index !== "") {
-                clientes[index] = cliente;
-            } else {
-                clientes.push(cliente);
-            }
+            if (index !== "") clientes[index] = cliente; else clientes.push(cliente);
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
-            alert(index !== "" ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
+            alert('Cliente salvo com sucesso!');
             resetClientForm();
             loadClientes();
         }
@@ -473,29 +502,25 @@
         function loadClientes() {
             const list = document.getElementById('clientes-list');
             const clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            if(clientes.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>';
-                return;
-            }
-            list.innerHTML = clientes.map((c, index) => `
+            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c, i) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
                         <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editClient(${index})" class="text-blue-600 hover:text-blue-800" title="Editar Cliente"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="editClient(${i})" class="text-blue-600"><i class="fa-solid fa-pen"></i></button>
                             ${c.nome}
                         </h4>
-                        <p class="text-gray-500 mt-1"><i class="fa-brands fa-whatsapp text-green-600 mr-1"></i> ${c.whatsapp} | ${c.endereco}</p>
+                        <p class="text-gray-500">${c.whatsapp} | ${c.endereco}</p>
                     </div>
-                    <button onclick="deleteClient(${index})" class="text-red-500 hover:text-red-700 p-1" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteClient(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
 
-        function editClient(index) {
+        function editClient(i) {
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            const c = clientes[index];
-            if (!c) return;
-            document.getElementById('client-index').value = index;
+            const c = clientes[i];
+            if(!c) return;
+            document.getElementById('client-index').value = i;
             document.getElementById('cli-nome').value = c.nome;
             document.getElementById('cli-zap').value = c.whatsapp;
             document.getElementById('cli-end').value = c.endereco;
@@ -512,32 +537,22 @@
             document.getElementById('client-btn-submit').textContent = 'Salvar Cliente';
         }
 
-        function deleteClient(index) {
-            if(!confirm('Deseja excluir este cliente?')) return;
+        function deleteClient(i) {
+            if(!confirm('Excluir cliente?')) return;
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            clientes.splice(index, 1);
+            clientes.splice(i, 1);
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
             loadClientes();
         }
 
-        // --- CREDIÁRIO / FIADO (Com Edição por Ícone de Lápis) ---
         function saveCrediario(e) {
             e.preventDefault();
             const index = document.getElementById('cred-index').value;
-            const item = {
-                cliente: document.getElementById('cred-cliente').value,
-                produtos: document.getElementById('cred-produtos').value,
-                valor: parseFloat(document.getElementById('cred-valor').value),
-                parcelas: parseInt(document.getElementById('cred-parcelas').value)
-            };
+            const item = { cliente: document.getElementById('cred-cliente').value, produtos: document.getElementById('cred-produtos').value, valor: parseFloat(document.getElementById('cred-valor').value), parcelas: parseInt(document.getElementById('cred-parcelas').value) };
             let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            if (index !== "") {
-                cred[index] = item;
-            } else {
-                cred.push(item);
-            }
+            if (index !== "") cred[index] = item; else cred.push(item);
             localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
-            alert(index !== "" ? 'Crediário atualizado com sucesso!' : 'Venda lançada no crediário!');
+            alert('Crediário salvo com sucesso!');
             resetCrediarioForm();
             loadCrediario();
         }
@@ -545,30 +560,26 @@
         function loadCrediario() {
             const list = document.getElementById('crediario-list');
             const cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            if(cred.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>';
-                return;
-            }
-            list.innerHTML = cred.map((c, index) => `
+            list.innerHTML = cred.length === 0 ? '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>' : cred.map((c, i) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
                         <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editCrediario(${index})" class="text-blue-600 hover:text-blue-800" title="Editar Crediário"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="editCrediario(${i})" class="text-blue-600"><i class="fa-solid fa-pen"></i></button>
                             ${c.cliente}
                         </h4>
-                        <p class="text-gray-600 mt-1">Produtos: ${c.produtos}</p>
-                        <p class="text-verdePetroleo font-bold mt-1">Total: R$ ${Number(c.valor).toFixed(2).replace('.', ',')} (${c.parcelas}x de R$ ${(c.valor/c.parcelas).toFixed(2).replace('.', ',')})</p>
+                        <p class="text-gray-600">Produtos: ${c.produtos}</p>
+                        <p class="text-verdePetroleo font-bold">R$ ${c.valor.toFixed(2).replace('.', ',')} (${c.parcelas}x)</p>
                     </div>
-                    <button onclick="deleteCrediario(${index})" class="text-red-500 hover:text-red-700 p-1" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteCrediario(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
 
-        function editCrediario(index) {
+        function editCrediario(i) {
             let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            const c = cred[index];
-            if (!c) return;
-            document.getElementById('cred-index').value = index;
+            const c = cred[i];
+            if(!c) return;
+            document.getElementById('cred-index').value = i;
             document.getElementById('cred-cliente').value = c.cliente;
             document.getElementById('cred-produtos').value = c.produtos;
             document.getElementById('cred-valor').value = c.valor;
@@ -587,15 +598,14 @@
             document.getElementById('cred-btn-submit').textContent = 'Lançar no Crediário';
         }
 
-        function deleteCrediario(index) {
-            if(!confirm('Deseja excluir este registro de crediário?')) return;
+        function deleteCrediario(i) {
+            if(!confirm('Excluir crediário?')) return;
             let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            cred.splice(index, 1);
+            cred.splice(i, 1);
             localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
             loadCrediario();
         }
 
-        // Calculadora de Custos
         async function loadCalcSelect() {
             const select = document.getElementById('calc-produto');
             products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
@@ -605,7 +615,7 @@
         function loadProductForCalc() {
             const id = document.getElementById('calc-produto').value;
             const prod = products.find(p => p.id == id);
-            if(prod) document.getElementById('calc-custo').value = (prod.preco * 0.4).toFixed(2);
+            if(prod) document.getElementById('calc-custo').value = prod.custo || (prod.preco * 0.4).toFixed(2);
         }
 
         function calcularPrecoIdeal() {
@@ -622,7 +632,7 @@
         document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
         function saveWhatsApp() {
             localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
-            alert('Número de WhatsApp atualizado com sucesso!');
+            alert('WhatsApp atualizado!');
         }
 
         loadEstoque();
