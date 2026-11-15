@@ -14,874 +14,305 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        creme: '#FDF9F5',
-                        rosegold: '#D49B85',
-                        marromCafe: '#3E2723',
-                        verdePetroleo: '#008B74',
-                        verdeHover: '#006D5B'
-                    },
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
-
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner mx-auto flex items-center justify-center">
-                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
-            </div>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
-                    <input type="email" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1">Senha</label>
-                    <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
-            </form>
-            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
-        </div>
-    </div>
-
-    <!-- APLICAÇÃO PRINCIPAL -->
-    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
-        <!-- MENU LATERAL -->
-        <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
-            <div>
-                <div class="p-5 border-b border-rosegold/20 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
-                        <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-sm tracking-tight text-marromCafe uppercase">Painel Admin</h1>
-                        <p class="text-[10px] text-rosegold font-semibold">Gestão Comercial</p>
-                    </div>
-                </div>
-
-                <nav class="p-3 space-y-1">
-                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
-                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
-                    </button>
-                    <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
-                    </button>
-                    <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
-                    </button>
-                    <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-warehouse w-5 text-center"></i> Estoque & Status
-                    </button>
-                    <button onclick="switchTab('clientes')" id="btn-clientes" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-address-book w-5 text-center"></i> Cartilha de Clientes
-                    </button>
-                    <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
-                    </button>
-                    <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
-                    </button>
-                    <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
-                    </button>
-                    <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-solid fa-gear w-5 text-center text-green-600"></i> Configurações & WhatsApp
-                    </button>
-                </nav>
-            </div>
-
-            <div class="p-4 border-t border-rosegold/20 space-y-2">
-                <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
-                    <i class="fa-solid fa-store"></i> Ver a Loja Online
-                </a>
-                <button onclick="handleLogout()" class="w-full bg-red-100 text-red-700 py-2 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-red-200 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i> Sair do Sistema
-                </button>
-            </div>
-        </aside>
-
-        <!-- CONTEÚDO PRINCIPAL -->
-        <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
-            <!-- DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                        <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
-                        <h3 id="dash-total-aberto" class="text-2xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                        <p class="text-xs text-red-600 uppercase font-semibold">Total Atrasado</p>
-                        <h3 id="dash-total-atrasado" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                        <p class="text-xs text-emerald-600 uppercase font-semibold">Pedidos Novos do Site</p>
-                        <h3 id="dash-total-pedidos" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b pb-3">
-                        <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas</h2>
-                        <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
-                    </div>
-                    <div id="atrasadas-list" class="space-y-3"></div>
-                </div>
-            </section>
-
-            <!-- GESTÃO DE PEDIDOS -->
-            <section id="tab-pedidos" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-bag-shopping text-rosegold mr-2"></i> Pedidos Recebidos da Loja Online</h2>
-                    <div id="pedidos-list" class="space-y-3"></div>
-                </div>
-            </section>
-
-            <!-- PRODUTOS -->
-            <section id="tab-produtos" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
-                        <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600">Limpar</button>
-                    </div>
-                    <form id="product-form" onsubmit="saveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="hidden" id="product-id">
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Nome do Produto</label>
-                            <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Código SKU</label>
-                            <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="block text-xs font-semibold">Categoria</label>
-                                <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
-                            </div>
-                            <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                                <!-- Preenchido dinamicamente -->
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
-                            <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold mb-1">Descrição</label>
-                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
-                            <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
-                            <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
-                            <input type="hidden" id="imagem-base64">
-                        </div>
-                        <div class="sm:col-span-2 pt-2">
-                            <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto na Nuvem</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- ESTOQUE -->
-            <section id="tab-estoque" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos na Nuvem</h2>
-                    <div id="estoque-list" class="space-y-3"></div>
-                </div>
-            </section>
-
-            <!-- CARTILHA DE CLIENTES -->
-            <section id="tab-clientes" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
-                    <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input type="hidden" id="client-index" value="">
-                        <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente na Nuvem</button>
-                    </form>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe">📋 Clientes Cadastrados</h2>
-                    <div id="clientes-list" class="space-y-3"></div>
-                </div>
-            </section>
-
-            <!-- CREDIÁRIO -->
-            <section id="tab-crediario" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
-                    <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input type="hidden" id="cred-index" value="">
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Selecionar Cliente</label>
-                            <select id="cred-cliente" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                                <option value="">Selecione um cliente...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Produtos Vendidos</label>
-                            <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Valor Total (R$)</label>
-                            <input type="number" step="0.01" id="cred-valor" placeholder="0,00" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Qtd de Parcelas</label>
-                            <input type="number" id="cred-parcelas" placeholder="Ex: 3" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
-                            <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div class="flex items-end">
-                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition shadow">Gerar Parcelas na Nuvem</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
-                    <div id="crediario-list" class="space-y-4"></div>
-                </div>
-            </section>
-
-            <!-- CALCULADORA -->
-            <section id="tab-calculadora" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-calculator text-rosegold mr-2"></i> Simulador e Precificação</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Selecionar Produto</label>
-                            <select id="calc-produto" onchange="loadProductForCalc()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Custo (R$)</label>
-                            <input type="number" step="0.01" id="calc-custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Margem Desejada (%)</label>
-                            <input type="number" id="calc-margem" value="50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm">Calcular Preço Sugerido</button>
-                        </div>
-                    </div>
-                    <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border p-4 rounded-xl text-center">
-                        <h3 id="calc-preco-sugerido" class="font-bold text-xl text-verdePetroleo">R$ 0,00</h3>
-                    </div>
-                </div>
-            </section>
-
-            <!-- RELATÓRIOS & VENDAS -->
-            <section id="tab-relatorios" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-                        <div>
-                            <h2 class="font-bold text-lg text-marromCafe"><i class="fa-solid fa-chart-line text-verdePetroleo mr-2"></i> Relatórios & Inteligência Comercial</h2>
-                            <p class="text-xs text-gray-500">Análise de desempenho, faturamento, lucro e crediário com dados reais.</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="exportRelatorio('csv')" class="bg-verdePetroleo hover:bg-verdeHover text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                                <i class="fa-solid fa-file-csv"></i> CSV
-                            </button>
-                            <button onclick="exportRelatorio('pdf')" class="bg-marromCafe hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                                <i class="fa-solid fa-file-pdf"></i> PDF
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- FILTROS GERAIS -->
-                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <h3 class="font-bold text-xs uppercase text-marromCafe tracking-wider"><i class="fa-solid fa-filter mr-1"></i> Filtros de Análise</h3>
-                            <button onclick="limparFiltrosRelatorio()" class="text-[11px] text-red-600 font-semibold hover:underline">Limpar Filtros</button>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-                            <div>
-                                <label class="block font-semibold mb-1 text-gray-600">Período</label>
-                                <select id="filtro-periodo" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                                    <option value="30">Últimos 30 dias</option>
-                                    <option value="7">Últimos 7 dias</option>
-                                    <option value="hoje">Hoje</option>
-                                    <option value="ontem">Ontem</option>
-                                    <option value="mes_atual">Este mês</option>
-                                    <option value="mes_anterior">Mês anterior</option>
-                                    <option value="ano_atual">Este ano</option>
-                                    <option value="todos">Todo o período</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1 text-gray-600">Produto</label>
-                                <select id="filtro-produto" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                                    <option value="">Todos os produtos</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1 text-gray-600">Categoria</label>
-                                <select id="filtro-categoria" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                                    <option value="">Todas as categorias</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1 text-gray-600">Cliente</label>
-                                <select id="filtro-cliente" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                                    <option value="">Todos os clientes</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1 text-gray-600">Forma de Pagamento</label>
-                                <select id="filtro-pagamento" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                                    <option value="">Todas as formas</option>
-                                    <option value="Pix">Pix</option>
-                                    <option value="Dinheiro">Dinheiro</option>
-                                    <option value="Cartão">Cartão</option>
-                                    <option value="Crediário">Crediário</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ABAS INTERNAS DO RELATÓRIO -->
-                    <div class="flex gap-2 border-b pb-3 overflow-x-auto">
-                        <button onclick="switchSubTab('visao-geral')" id="subbtn-visao-geral" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm">Visão Geral</button>
-                        <button onclick="switchSubTab('produtos-ranking')" id="subbtn-produtos-ranking" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Ranking de Produtos</button>
-                        <button onclick="switchSubTab('clientes-analise')" id="subbtn-clientes-analise" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Desempenho Clientes</button>
-                        <button onclick="switchSubTab('financeiro')" id="subbtn-financeiro" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Resumo Financeiro</button>
-                        <button onclick="switchSubTab('crediario-rel')" id="subbtn-crediario-rel" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Crediário & Inadimplência</button>
-                    </div>
-
-                    <!-- CONTEÚDO DA SUB-ABA: VISÃO GERAL -->
-                    <div id="subtab-visao-geral" class="subtab-content space-y-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Faturamento Bruto</p>
-                                <h3 id="card-fat-bruto" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-emerald-700 uppercase font-semibold">Lucro Estimado</p>
-                                <h3 id="card-lucro" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Total de Vendas</p>
-                                <h3 id="card-qtd-vendas" class="text-xl font-bold text-marromCafe mt-1">0</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Ticket Médio</p>
-                                <h3 id="card-ticket" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Unidades Comercializadas</p>
-                                <h3 id="card-unidades" class="text-xl font-bold text-marromCafe mt-1">0</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-blue-700 uppercase font-semibold">Valor Recebido (Caixa)</p>
-                                <h3 id="card-recebido" class="text-xl font-bold text-blue-700 mt-1">R$ 0,00</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-amber-700 uppercase font-semibold">Contas a Receber</p>
-                                <h3 id="card-a-receber" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</h3>
-                            </div>
-                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                                <p class="text-[11px] text-red-600 uppercase font-semibold">Contas Atrasadas</p>
-                                <h3 id="card-atrasadas" class="text-xl font-bold text-red-600 mt-1">R$ 0,00</h3>
-                            </div>
-                        </div>
-
-                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-bold text-xs uppercase text-marromCafe">Evolução do Faturamento por Período</h3>
-                            </div>
-                            <div class="relative h-64 w-full">
-                                <canvas id="salesChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RANKING DE PRODUTOS -->
-                    <div id="subtab-produtos-ranking" class="subtab-content hidden space-y-4">
-                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Ranking de Produtos Mais Vendidos</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="border-b bg-creme text-marromCafe font-bold">
-                                        <th class="p-2.5">Pos</th>
-                                        <th class="p-2.5">Produto</th>
-                                        <th class="p-2.5">Categoria</th>
-                                        <th class="p-2.5 text-center">Qtd Vendida</th>
-                                        <th class="p-2.5 text-right">Faturamento</th>
-                                        <th class="p-2.5 text-right">Lucro Estimado</th>
-                                        <th class="p-2.5 text-right">Margem</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ranking-produtos-tbody">
-                                    <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando ranking...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- DESEMPENHO CLIENTES -->
-                    <div id="subtab-clientes-analise" class="subtab-content hidden space-y-4">
-                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-users text-verdePetroleo mr-2"></i> Top Clientes por Faturamento</h3>
-                        <div id="ranking-clientes-list" class="space-y-2">
-                            <p class="text-xs text-gray-400">Carregando clientes...</p>
-                        </div>
-                    </div>
-
-                    <!-- RESUMO FINANCEIRO -->
-                    <div id="subtab-financeiro" class="subtab-content hidden space-y-4">
-                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-file-invoice-dollar text-verdePetroleo mr-2"></i> Demonstrativo Financeiro</h3>
-                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-2 text-xs">
-                            <div class="flex justify-between border-b pb-2"><span>Faturamento Bruto Total:</span><span id="fin-fat" class="font-bold">R$ 0,00</span></div>
-                            <div class="flex justify-between border-b pb-2"><span>(-) Custo das Mercadorias (CMV):</span><span id="fin-cmv" class="text-red-600 font-bold">R$ 0,00</span></div>
-                            <div class="flex justify-between border-b pb-2 text-sm font-bold pt-1"><span>(=) Lucro Bruto Estimado:</span><span id="fin-lucro" class="text-emerald-700">R$ 0,00</span></div>
-                            <div class="flex justify-between border-b pb-2 pt-2"><span>Total Efetivamente Recebido (Caixa):</span><span id="fin-recebido" class="text-blue-700 font-bold">R$ 0,00</span></div>
-                            <div class="flex justify-between pb-2"><span>Total Pendente (Crediário a Receber):</span><span id="fin-pendente" class="text-amber-700 font-bold">R$ 0,00</span></div>
-                        </div>
-                    </div>
-
-                    <!-- CREDIÁRIO & INADIMPLÊNCIA -->
-                    <div id="subtab-crediario-rel" class="subtab-content hidden space-y-4">
-                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-credit-card text-red-600 mr-2"></i> Controle de Inadimplência e Crediário</h3>
-                        <div id="crediario-rel-list" class="space-y-2">
-                            <p class="text-xs text-gray-400">Carregando relatórios de crediário...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CONFIGURAÇÕES & WHATSAPP -->
-            <section id="tab-config" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-gear text-verdePetroleo mr-2"></i> Configurações do Sistema</h2>
-                    
-                    <div class="space-y-2 border-b pb-4">
-                        <label class="block text-xs font-semibold text-marromCafe">Número do WhatsApp para Pedidos (Ex: 5514999999999)</label>
-                        <div class="flex gap-3">
-                            <input type="text" id="whatsapp-input" placeholder="5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar WhatsApp na Nuvem</button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-xs font-semibold text-marromCafe">Modelo de Texto para Cobrança via WhatsApp</label>
-                        <p class="text-[11px] text-gray-500">
-                            Tags disponíveis: 
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{cliente}</code>, 
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{parcela}</code>, 
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{valor}</code>, 
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{vencimento}</code>, 
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{dias}</code>
-                        </p>
-                        <textarea id="template-cobranca" rows="5" class="w-full bg-creme border border-rosegold/30 rounded-xl p-3 text-xs focus:outline-none focus:border-verdePetroleo"></textarea>
-                        <button onclick="saveTemplateCobrar()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar Modelo na Nuvem</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN CONECTADO AO SUPABASE -->
-    <script>
+   <script>
         const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
         let supabaseClient = null;
 
         try {
-            if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
+            if (typeof supabase !== 'undefined' && SUPABASE_URL) {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn("Modo offline / localStorage ativo.");
+        }
 
         let products = [];
         let myChart = null;
 
-        async function checkAuth() {
-            if (localStorage.getItem('helcinho_logged_local') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-                return;
-            }
-
-            if (!supabaseClient) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-                return;
-            }
-
+        // Função global de navegação blindada
+        window.switchTab = function(tabId) {
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-container').classList.remove('hidden');
-                    loadDashboard();
-                    loadConfigs();
-                    loadCategoriesSelect();
-                    loadClientes();
-                    loadClientesSelect();
-                    loadEstoque();
-                } else {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('app-container').classList.add('hidden');
-                }
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
+                });
+                
+                const targetTab = document.getElementById(`tab-${tabId}`);
+                const targetBtn = document.getElementById(`btn-${tabId}`);
+                
+                if (targetTab) targetTab.classList.remove('hidden');
+                if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+                
+                if(tabId === 'dashboard') try { loadDashboard(); } catch(e){}
+                if(tabId === 'pedidos') try { loadPedidos(); } catch(e){}
+                if(tabId === 'produtos') { try { loadEstoque(); } catch(e){} try { loadCategoriesSelect(); } catch(e){} }
+                if(tabId === 'estoque') try { loadEstoque(); } catch(e){}
+                if(tabId === 'clientes') { try { loadClientes(); } catch(e){} try { loadClientesSelect(); } catch(e){} }
+                if(tabId === 'crediario') { try { loadCrediario(); } catch(e){} try { loadClientesSelect(); } catch(e){} }
+                if(tabId === 'calculadora') try { loadCalcSelect(); } catch(e){}
+                if(tabId === 'relatorios') try { loadRelatorios(); } catch(e){}
+                if(tabId === 'config') try { loadConfigs(); } catch(e){}
             } catch (err) {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('hidden');
+                console.error("Erro ao alternar aba:", err);
             }
-        }
+        };
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errEl = document.getElementById('login-error');
+        window.switchSubTab = function(subId) {
+            try {
+                document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.subtab-btn').forEach(btn => {
+                    btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+                });
+                const targetSub = document.getElementById(`subtab-${subId}`);
+                const targetSubBtn = document.getElementById(`subbtn-${subId}`);
 
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (!error) {
-                        localStorage.setItem('helcinho_logged_local', 'true');
-                        errEl.classList.add('hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-container').classList.remove('hidden');
-                        loadDashboard();
-                        loadConfigs();
-                        loadCategoriesSelect();
-                        loadClientes();
-                        loadClientesSelect();
-                        loadEstoque();
-                        return;
-                    }
-                } catch (err) {}
+                if (targetSub) targetSub.classList.remove('hidden');
+                if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+                
+                if(subId === 'produtos-ranking') renderRankingProdutos();
+                if(subId === 'clientes-analise') renderRankingClientes();
+                if(subId === 'crediario-rel') renderRelatorioCrediario();
+            } catch (err) {
+                console.error("Erro ao alternar sub-aba:", err);
             }
+        };
 
-            if (password.length >= 4) {
-                localStorage.setItem('helcinho_logged_local', 'true');
-                errEl.classList.add('hidden');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-            } else {
-                errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
-                errEl.classList.remove('hidden');
-            }
-        }
-
-        async function handleLogout() {
-            localStorage.removeItem('helcinho_logged_local');
-            if (supabaseClient) {
-                try { await supabaseClient.auth.signOut(); } catch(e) {}
-            }
-            location.reload();
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        // Inicialização com garantia de funcionamento do menu lateral
+        window.addEventListener('DOMContentLoaded', () => {
+            // Associa cliques aos botões do menu lateral via evento seguro
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
-            
-            if(tabId === 'dashboard') loadDashboard();
-            if(tabId === 'pedidos') loadPedidos();
-            if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
-            if(tabId === 'estoque') loadEstoque();
-            if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
-            if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
-            if(tabId === 'calculadora') loadCalcSelect();
-            if(tabId === 'relatorios') loadRelatorios();
-            if(tabId === 'config') loadConfigs();
-        }
-
-        function switchSubTab(subId) {
-            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.subtab-btn').forEach(btn => {
-                btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
-            });
-            document.getElementById(`subtab-${subId}`).classList.remove('hidden');
-            document.getElementById(`subbtn-${subId}`).className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
-            
-            if(subId === 'produtos-ranking') renderRankingProdutos();
-            if(subId === 'clientes-analise') renderRankingClientes();
-            if(subId === 'crediario-rel') renderRelatorioCrediario();
-        }
-
-        function loadRelatorios() {
-            preencherFiltrosSelects();
-            calcularIndicadoresGerais();
-        }
-
-        async function preencherFiltrosSelects() {
-            let produtos = products;
-            let clientes = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*');
-                if (data) clientes = data;
-            }
-            if (clientes.length === 0) {
-                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            }
-            
-            const selProd = document.getElementById('filtro-produto');
-            if(selProd) {
-                selProd.innerHTML = '<option value="">Todos os produtos</option>' + produtos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
-            }
-
-            const selCat = document.getElementById('filtro-categoria');
-            if(selCat) {
-                let cats = [...new Set(produtos.map(p => p.categoria))];
-                selCat.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-            }
-
-            const selCli = document.getElementById('filtro-cliente');
-            if(selCli) {
-                selCli.innerHTML = '<option value="">Todos os clientes</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-            }
-        }
-
-        function aplicarFiltrosRelatorio() { calcularIndicadoresGerais(); }
-        function limparFiltrosRelatorio() {
-            document.getElementById('filtro-periodo').value = '30';
-            document.getElementById('filtro-produto').value = '';
-            document.getElementById('filtro-categoria').value = '';
-            document.getElementById('filtro-cliente').value = '';
-            document.getElementById('filtro-pagamento').value = '';
-            calcularIndicadoresGerais();
-        }
-
-        async function calcularIndicadoresGerais() {
-            let pedidos = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
-            }
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
-
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
-            }
-            if (credList.length === 0) {
-                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            }
-
-            let produtos = products;
-            let cliFiltro = document.getElementById('filtro-cliente').value;
-            let pagFiltro = document.getElementById('filtro-pagamento').value;
-
-            let faturamentoBruto = 0, qtdVendas = 0, unidadesVendidas = 0, valorRecebido = 0, contasAReceber = 0, contasAtrasadas = 0, custoTotalCMV = 0;
-            const hoje = new Date().toISOString().split('T')[0];
-
-            pedidos.forEach(p => {
-                if (p.status === 'Cancelado') return;
-                if (cliFiltro && p.cliente !== cliFiltro) return;
-                if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
-
-                faturamentoBruto += Number(p.valorTotal || 0);
-                qtdVendas++;
-
-                if (p.itensDetalhados) {
-                    p.itensDetalhados.forEach(item => {
-                        unidadesVendidas += item.qtd;
-                        let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
-                        let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                        custoTotalCMV += (custoUnit * item.qtd);
-                    });
-                }
-
-                if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += Number(p.valorTotal || 0);
-                }
-            });
-
-            credList.forEach(venda => {
-                if (cliFiltro && venda.cliente !== cliFiltro) return;
-                (venda.parcelas || []).forEach(parc => {
-                    let saldoParc = parc.valorOriginal - parc.valorPago;
-                    valorRecebido += parc.valorPago;
-                    if (saldoParc > 0) {
-                        contasAReceber += saldoParc;
-                        if (parc.vencimento < hoje) contasAtrasadas += saldoParc;
+                btn.addEventListener('click', function() {
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/'([^']+)'/);
+                        if (match && match[1]) {
+                            switchTab(match[1]);
+                        }
                     }
                 });
             });
 
-            let lucroEstimado = faturamentoBruto - custoTotalCMV;
-            let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
+            // Carregamentos iniciais seguros
+            try { loadDashboard(); } catch(e){}
+            try { loadConfigs(); } catch(e){}
+            try { loadCategoriesSelect(); } catch(e){}
+            try { loadClientes(); } catch(e){}
+            try { loadClientesSelect(); } catch(e){}
+            try { loadEstoque(); } catch(e){}
+            try { loadPedidos(); } catch(e){}
+        });
 
-            document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-qtd-vendas').textContent = qtdVendas;
-            document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-unidades').textContent = unidadesVendidas;
-            document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
-
-            document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-
-            renderGraficoDesempenho(pedidos);
+        function handleLogout() {
+            location.reload();
         }
 
-        function renderGraficoDesempenho(pedidos) {
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            let diasMap = {};
-            pedidos.forEach(p => {
-                let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
-            });
-            let labels = Object.keys(diasMap).slice(-7);
-            let dataVals = labels.map(l => diasMap[l]);
+        // --- GESTÃO DE PEDIDOS ---
+        async function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            if (!listEl) return;
 
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                    datasets: [{ label: 'Faturamento (R$)', data: dataVals.length > 0 ? dataVals : [0], backgroundColor: '#008B74', borderRadius: 8 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        async function renderRankingProdutos() {
-            let pedidos = [];
+            let pedidosSupabase = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    const { data, error } = await supabaseClient.from('pedidos').select('*');
+                    if (!error && data) pedidosSupabase = data;
+                } catch (err) {}
             }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
 
-            let mapProd = {};
-            pedidos.forEach(p => {
-                if(p.status === 'Cancelado') return;
-                if(p.itensDetalhados) {
-                    p.itensDetalhados.forEach(item => {
-                        if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        mapProd[item.nome].qtd += item.qtd;
-                        mapProd[item.nome].fat += (item.preco * item.qtd);
-                    });
+            let pedidosLocal = [];
+            try {
+                pedidosLocal = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            } catch(e) {}
+
+            let mapPedidos = {};
+            [...pedidosLocal, ...pedidosSupabase].forEach(p => {
+                if (p && p.id) mapPedidos[p.id] = p;
+            });
+            let pedidos = Object.values(mapPedidos);
+
+            const badgePedidos = document.getElementById('dash-total-pedidos');
+            if (badgePedidos) {
+                badgePedidos.textContent = pedidos.filter(p => !p.status || p.status === 'Novo').length;
+            }
+
+            if (pedidos.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>';
+                return;
+            }
+
+            listEl.innerHTML = pedidos.map((p) => {
+                let totalVal = Number(p.valorTotal || p.valortotal || 0);
+                let statusAtual = p.status || 'Novo';
+                let itensHtml = '';
+                
+                if (p.itensDetalhados && Array.isArray(p.itensDetalhados) && p.itensDetalhados.length > 0) {
+                    itensHtml = p.itensDetalhados.map(item => `
+                        <div class="text-gray-600 ml-2">• ${item.qtd || 1}x ${item.nome || 'Produto'} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un</div>
+                    `).join('');
+                } else {
+                    itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos || 'Não especificado'}</p>`;
                 }
-            });
-            let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
-            const tbody = document.getElementById('ranking-produtos-tbody');
-            if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
-            tbody.innerHTML = arr.map((item, idx) => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2.5 font-bold">#${idx + 1}</td>
-                    <td class="p-2.5 font-semibold text-marromCafe">${item.nome}</td>
-                    <td class="p-2.5 text-gray-500">${item.categoria}</td>
-                    <td class="p-2.5 text-center font-bold">${item.qtd}</td>
-                    <td class="p-2.5 text-right font-bold text-verdePetroleo">R$ ${item.fat.toFixed(2).replace('.', ',')}</td>
-                    <td class="p-2.5 text-right text-emerald-700 font-semibold">R$ ${(item.fat * 0.6).toFixed(2).replace('.', ',')}</td>
-                    <td class="p-2.5 text-right font-bold">60%</td>
-                </tr>
-            `).join('');
+
+                return `
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                        <div class="flex justify-between items-start border-b pb-2">
+                            <div>
+                                <h4 class="font-bold uppercase text-marromCafe text-sm">Pedido #${p.id} — ${p.data || 'Recente'}</h4>
+                                <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || p.nomeCliente || 'Não informado'}</p>
+                                <div class="mt-1 space-y-1">
+                                    ${itensHtml}
+                                </div>
+                            </div>
+                            <span class="font-bold text-base text-verdePetroleo">R$ ${totalVal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1">
+                            <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                                <option value="Novo" ${statusAtual === 'Novo' ? 'selected' : ''}>Novo</option>
+                                <option value="Confirmado" ${statusAtual === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                                <option value="Em separação" ${statusAtual === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                                <option value="Entregue" ${statusAtual === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                <option value="Cancelado" ${statusAtual === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                            <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        async function renderRankingClientes() {
-            let pedidos = [];
+        async function updatePedidoStatus(id, val) {
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+                } catch(e) {}
             }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-
-            let mapCli = {};
-            pedidos.forEach(p => {
-                if(p.status === 'Cancelado' || !p.cliente) return;
-                if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || 0);
-                mapCli[p.cliente].pedidos++;
-            });
-            let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
-            const listEl = document.getElementById('ranking-clientes-list');
-            if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
-            listEl.innerHTML = arr.map((c, idx) => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div><b>#${idx + 1} - ${c.nome}</b><p class="text-gray-500">${c.pedidos} pedido(s)</p></div>
-                    <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
-                </div>
-            `).join('');
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.map(p => p.id == id ? {...p, status: val} : p);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
+            loadDashboard();
         }
 
-        async function renderRelatorioCrediario() {
-            let credList = [];
+        async function deletePedido(id) {
+            if(!confirm('Deseja realmente excluir este pedido?')) return;
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    await supabaseClient.from('pedidos').delete().eq('id', id);
+                } catch(e) {}
             }
-            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.filter(p => p.id != id);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
 
-            const listEl = document.getElementById('crediario-rel-list');
-            if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
-            listEl.innerHTML = credList.map(v => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
-                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${Number(v.valorTotal || 0).toFixed(2).replace('.', ',')}</div>
-                    <p class="text-gray-500">Produtos: ${v.produtos}</p>
-                </div>
-            `).join('');
+            alert('Pedido excluído com sucesso!');
+            loadPedidos();
+            loadDashboard();
         }
 
-        function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
+        // --- DASHBOARD & CONTAS ATRASADAS ---
+        async function loadDashboard() {
+            let credSupabase = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credSupabase = data;
+                } catch(e) {}
+            }
+            let credLocal = [];
+            try {
+                credLocal = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            } catch(e) {}
 
-        // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
+            let mapCred = {};
+            [...credLocal, ...credSupabase].forEach(v => {
+                if(v && v.id) mapCred[v.id] = v;
+            });
+            let credList = Object.values(mapCred);
+
+            let pedidosSupabase = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidosSupabase = data;
+                } catch(e) {}
+            }
+            let pedidosLocal = [];
+            try {
+                pedidosLocal = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            } catch(e) {}
+
+            let mapPed = {};
+            [...pedidosLocal, ...pedidosSupabase].forEach(p => {
+                if(p && p.id) mapPed[p.id] = p;
+            });
+            let pedidos = Object.values(mapPed);
+
+            let totalAberto = 0, totalAtrasado = 0;
+            let atrasadasArr = [];
+            const hoje = new Date().toISOString().split('T')[0];
+
+            credList.forEach((venda) => {
+                (venda.parcelas || []).forEach((p) => {
+                    let saldo = Number(p.valorOriginal || p.valor || 0) - Number(p.valorPago || 0);
+                    if (saldo > 0) {
+                        totalAberto += saldo;
+                        if (p.vencimento && p.vencimento < hoje) {
+                            totalAtrasado += saldo;
+                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
+                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            atrasadasArr.push({ cliente: venda.cliente || venda.nomeCliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
+                        }
+                    }
+                });
+            });
+
+            const elAberto = document.getElementById('dash-total-aberto');
+            const elAtrasado = document.getElementById('dash-total-atrasado');
+            const elPedidos = document.getElementById('dash-total-pedidos');
+            const atrasadasBadge = document.getElementById('atrasadas-badge');
+            const atrasadasListEl = document.getElementById('atrasadas-list');
+
+            if (elAberto) elAberto.textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
+            if (elAtrasado) elAtrasado.textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
+            if (elPedidos) elPedidos.textContent = pedidos.filter(p => !p.status || p.status === 'Novo').length;
+            if (atrasadasBadge) atrasadasBadge.textContent = `${atrasadasArr.length} parcelas`;
+            
+            if (atrasadasListEl) {
+                atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
+                    '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
+                    atrasadasArr.map(item => {
+                        const isCritico = item.diasAtraso >= 5;
+                        const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
+                        const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
+                        return `
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
+                                <div>
+                                    <b>${item.cliente || 'Cliente'}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',)}) 
+                                    <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${String(item.vencimento).split('-').reverse().join('/')}) ${badgeCritico}
+                                </div>
+                                <button onclick="cobrarWhatsApp('${item.cliente || ''}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+            }
+        }
+
+        // --- GESTÃO DE PRODUTOS ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
+            if (!listEl) return;
             if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('produtos').select('*');
-                if (!error && data) {
-                    products = data;
-                    localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-                } else {
+                try {
+                    const { data, error } = await supabaseClient.from('produtos').select('*');
+                    if (!error && data) {
+                        products = data;
+                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
+                    } else {
+                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+                    }
+                } catch(e) {
                     products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                 }
             } else {
@@ -898,7 +329,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
                         <div>
-                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
+                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria} - ${p.genero || 'Unissex'})</h4>
                             <p class="text-gray-500">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
                         </div>
                     </div>
@@ -918,6 +349,7 @@
                 nome: document.getElementById('nome').value,
                 sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
+                genero: document.getElementById('genero').value,
                 estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
@@ -926,11 +358,13 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').upsert([productData]);
-                if (error) {
-                    alert("Erro ao salvar na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('produtos').upsert([productData]);
+                    if (error) {
+                        alert("Erro ao salvar na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
 
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
@@ -955,6 +389,7 @@
             document.getElementById('sku').value = p.sku || '';
             loadCategoriesSelect();
             document.getElementById('categoria').value = p.categoria || '';
+            document.getElementById('genero').value = p.genero || 'Unissex';
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
             document.getElementById('descricao').value = p.descricao || '';
             document.getElementById('preco').value = p.preco || '';
@@ -967,11 +402,13 @@
         async function deleteProduct(id) {
             if(!confirm('Excluir produto da nuvem?')) return;
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
-                if (error) {
-                    alert("Erro ao excluir na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
+                    if (error) {
+                        alert("Erro ao excluir na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
             products = products.filter(p => p.id != id);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
@@ -987,7 +424,7 @@
             loadCategoriesSelect();
         }
 
-        // --- CARTILHA DE CLIENTES NA NUVEM ---
+        // --- CLIENTES ---
         async function saveClient(e) {
             e.preventDefault();
             const clienteId = document.getElementById('client-index').value;
@@ -999,11 +436,13 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
-                if (error) {
-                    alert("Erro ao salvar cliente na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
+                    if (error) {
+                        alert("Erro ao salvar cliente na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
 
             alert(clienteId ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
@@ -1014,10 +453,13 @@
 
         async function loadClientes() {
             const list = document.getElementById('clientes-list');
+            if (!list) return;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -1042,8 +484,10 @@
             if (!selectEl) return;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -1054,8 +498,10 @@
         async function editClient(id) {
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
-                if (data && data.length > 0) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
+                    if (data && data.length > 0) clientes = data;
+                } catch(e) {}
             }
             const c = clientes[0] || JSON.parse(localStorage.getItem('helcinho_clientes') || '[]').find(item => item.id == id);
             if(!c) return;
@@ -1080,13 +526,15 @@
         async function deleteClient(id) {
             if(!confirm('Excluir cliente da nuvem?')) return;
             if (supabaseClient) {
-                await supabaseClient.from('clientes').delete().eq('id', id);
+                try {
+                    await supabaseClient.from('clientes').delete().eq('id', id);
+                } catch(e) {}
             }
             loadClientes();
             loadClientesSelect();
         }
 
-        // --- CREDIÁRIO NA NUVEM ---
+        // --- CREDIÁRIO ---
         async function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
@@ -1123,10 +571,9 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('crediario').upsert([vendaCrediario]);
-                if (error) {
-                    console.error("Erro ao salvar crediário na nuvem:", error);
-                }
+                try {
+                    await supabaseClient.from('crediario').upsert([vendaCrediario]);
+                } catch (error) {}
             }
 
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -1136,14 +583,18 @@
             alert('Venda parcelada gerada e salva na nuvem com sucesso!');
             e.target.reset();
             loadCrediario();
+            loadDashboard();
         }
 
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
+            if (!list) return;
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -1181,8 +632,10 @@
         async function baixarParcela(vendaId, pIndex) {
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -1202,211 +655,37 @@
             parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
 
             if (supabaseClient) {
-                await supabaseClient.from('crediario').upsert([venda]);
+                try { await supabaseClient.from('crediario').upsert([venda]); } catch(e){}
             }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
             alert('Baixa registrada com sucesso!');
         }
 
         async function deleteContrato(vendaId, vIndex) {
             if(!confirm('Deseja excluir este contrato?')) return;
             if (supabaseClient) {
-                await supabaseClient.from('crediario').delete().eq('id', vendaId);
+                try { await supabaseClient.from('crediario').delete().eq('id', vendaId); } catch(e){}
             }
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
         }
 
-        // --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
-        async function loadPedidos() {
-            const listEl = document.getElementById('pedidos-list');
-            let pedidos = [];
-
-            if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
-                if (!error && data) {
-                    pedidos = data;
-                }
-            }
-            
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
-
-            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <div>
-                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
-                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
-                        </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-1">
-                        <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
-                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
-                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                        </select>
-                        <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function updatePedidoStatus(id, val) {
-            if (supabaseClient) {
-                await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
-            }
-        }
-
-        async function deletePedido(id) {
-            if(!confirm('Deseja realmente excluir este pedido?')) return;
-            
-            // Apaga da nuvem do Supabase
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
-                if (error) {
-                    alert("Erro ao excluir no Supabase: " + error.message);
-                    return;
-                }
-            }
-            
-            // Apaga também da memória local do navegador para limpar o cache
-            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            localPedidos = localPedidos.filter(p => p.id != id);
-            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
-
-            alert('Pedido excluído com sucesso!');
-            loadPedidos();
-        }
-
-        // --- DASHBOARD & ATRASADOS ---
-        async function loadDashboard() {
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
-            }
-            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-
-            let pedidos = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
-            }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-
-            let totalAberto = 0, totalAtrasado = 0;
-            let atrasadasArr = [];
-            const hoje = new Date().toISOString().split('T')[0];
-
-            credList.forEach((venda) => {
-                (venda.parcelas || []).forEach((p) => {
-                    let saldo = p.valorOriginal - p.valorPago;
-                    if (saldo > 0) {
-                        totalAberto += saldo;
-                        if (p.vencimento < hoje) {
-                            totalAtrasado += saldo;
-                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
-                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
-                        }
-                    }
-                });
-            });
-
-            document.getElementById('dash-total-aberto').textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('dash-total-atrasado').textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('dash-total-pedidos').textContent = pedidos.filter(p => p.status === 'Novo').length;
-
-            const atrasadasListEl = document.getElementById('atrasadas-list');
-            document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
-            
-            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
-                '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
-                atrasadasArr.map(item => {
-                    const isCritico = item.diasAtraso >= 5;
-                    const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
-                    const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
-                    return `
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
-                            <div>
-                                <b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',')}) 
-                                <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${item.vencimento.split('-').reverse().join('/')}) ${badgeCritico}
-                            </div>
-                            <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-        }
-
-        // --- CONFIGURAÇÕES DE WHATSAPP NA NUVEM ---
-        async function saveWhatsApp() {
-            const zapVal = document.getElementById('whatsapp-input').value;
-            if (supabaseClient) {
-                await supabaseClient.from('configuracoes').upsert([{ chave: 'whatsapp', valor: zapVal }]);
-            }
-            localStorage.setItem('helcinho_whatsapp', zapVal);
-            alert('Número do WhatsApp salvo na nuvem com sucesso!');
-        }
-
-        async function saveTemplateCobrar() {
-            const templateVal = document.getElementById('template-cobranca').value;
-            if (supabaseClient) {
-                await supabaseClient.from('configuracoes').upsert([{ chave: 'template_cobranca', valor: templateVal }]);
-            }
-            localStorage.setItem('helcinho_template_cobranca', templateVal);
-            alert('Modelo de cobrança salvo na nuvem com sucesso!');
-        }
-
-        async function loadConfigs() {
-            let zapVal = '';
-            let templateVal = '';
-
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('configuracoes').select('*');
-                if (data) {
-                    const zapItem = data.find(i => i.chave === 'whatsapp');
-                    const tempItem = data.find(i => i.chave === 'template_cobranca');
-                    if (zapItem) zapVal = zapItem.valor;
-                    if (tempItem) templateVal = tempItem.valor;
-                }
-            }
-
-            if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
-            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
-
-            document.getElementById('whatsapp-input').value = zapVal;
-            document.getElementById('template-cobranca').value = templateVal;
-        }
-
-        function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
-            let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
-            let valorFormatado = saldo.toFixed(2).replace('.', ',');
-            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*.`;
-            let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
-            let msg = template.replace(/{cliente}/g, cliente).replace(/{parcela}/g, parcela).replace(/{valor}/g, valorFormatado).replace(/{vencimento}/g, vencFormatado).replace(/{dias}/g, dias);
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        // --- CATEGORIAS NA NUVEM ---
+        // --- CATEGORIAS ---
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             if(!select) return;
-            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
             let savedCats = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('categorias').select('*');
-                if (data) savedCats = data.map(c => c.nome || c.categoria).filter(Boolean);
+                try {
+                    const { data } = await supabaseClient.from('categorias').select('*');
+                    if (data) savedCats = data.map(c => c.nome || c.categoria).filter(Boolean);
+                } catch(e) {}
             }
             if (savedCats.length === 0) {
                 savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
@@ -1421,7 +700,7 @@
             if(nova && nova.trim() !== '') {
                 nova = nova.trim();
                 if (supabaseClient) {
-                    await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
+                    try { await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]); } catch(e){}
                 }
                 let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
                 if(!savedCats.includes(nova)) { 
@@ -1430,8 +709,33 @@
                 }
                 loadCategoriesSelect();
                 document.getElementById('categoria').value = nova;
-                alert(`Categoria "${nova}" criada e salva na nuvem!`);
+                alert(`Categoria "${nova}" criada com sucesso!`);
             }
+        }
+
+        async function excluirCategoria() {
+            const select = document.getElementById('categoria');
+            if (!select) return;
+            const catSelecionada = select.value;
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
+
+            if (categoriasPadrao.includes(catSelecionada)) {
+                alert("As categorias padrão do sistema não podem ser excluídas!");
+                return;
+            }
+
+            if(!confirm(`Deseja realmente excluir a categoria "${catSelecionada}"?`)) return;
+
+            if (supabaseClient) {
+                try { await supabaseClient.from('categorias').delete().eq('nome', catSelecionada); } catch(e){}
+            }
+
+            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            savedCats = savedCats.filter(c => c !== catSelecionada);
+            localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats));
+
+            loadCategoriesSelect();
+            alert(`Categoria "${catSelecionada}" excluída com sucesso!`);
         }
 
         const imageFileInput = document.getElementById('imagem-file');
@@ -1448,7 +752,10 @@
 
         // Calculadora
         function loadCalcSelect() {
-            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            const calcProd = document.getElementById('calc-produto');
+            if (calcProd) {
+                calcProd.innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            }
         }
         function loadProductForCalc() {
             const p = products.find(i => i.id == document.getElementById('calc-produto').value);
@@ -1461,8 +768,8 @@
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
-
-        checkAuth();
     </script>
+</body>
+</html>
 </body>
 </html>
