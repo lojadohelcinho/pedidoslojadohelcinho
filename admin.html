@@ -33,34 +33,8 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner mx-auto flex items-center justify-center">
-                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
-            </div>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
-                    <input type="email" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1">Senha</label>
-                    <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
-            </form>
-            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
-        </div>
-    </div>
-
-    <!-- APLICAÇÃO PRINCIPAL -->
-    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
+    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta - Sem Tela de Login) -->
+    <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
             <div>
@@ -171,23 +145,34 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-semibold">Categoria</label>
-                                <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
+                                    <button type="button" onclick="excluirCategoria()" class="text-[10px] text-red-600 font-bold hover:underline">🗑️ Excluir Categoria</button>
+                                </div>
                             </div>
                             <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                                 <!-- Preenchido dinamicamente -->
                             </select>
                         </div>
                         <div>
+                            <label class="block text-xs font-semibold mb-1">Gênero</label>
+                            <select id="genero" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                                <option value="Unissex">Unissex / Neutro</option>
+                                <option value="Feminino">Feminino</option>
+                                <option value="Masculino">Masculino</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
                             <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold mb-1">Descrição</label>
-                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
                             <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold mb-1">Descrição</label>
+                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
@@ -504,7 +489,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN CONECTADO AO SUPABASE -->
+    <!-- SCRIPT DO PAINEL ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -519,109 +504,31 @@
         let products = [];
         let myChart = null;
 
-        async function checkAuth() {
-            if (localStorage.getItem('helcinho_logged_local') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-                return;
-            }
+        // Inicialização automática ao abrir a página
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadConfigs();
+            loadCategoriesSelect();
+            loadClientes();
+            loadClientesSelect();
+            loadEstoque();
+        });
 
-            if (!supabaseClient) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-                return;
-            }
-
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-container').classList.remove('hidden');
-                    loadDashboard();
-                    loadConfigs();
-                    loadCategoriesSelect();
-                    loadClientes();
-                    loadClientesSelect();
-                    loadEstoque();
-                } else {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('app-container').classList.add('hidden');
-                }
-            } catch (err) {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('hidden');
-            }
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errEl = document.getElementById('login-error');
-
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (!error) {
-                        localStorage.setItem('helcinho_logged_local', 'true');
-                        errEl.classList.add('hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-container').classList.remove('hidden');
-                        loadDashboard();
-                        loadConfigs();
-                        loadCategoriesSelect();
-                        loadClientes();
-                        loadClientesSelect();
-                        loadEstoque();
-                        return;
-                    }
-                } catch (err) {}
-            }
-
-            if (password.length >= 4) {
-                localStorage.setItem('helcinho_logged_local', 'true');
-                errEl.classList.add('hidden');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-            } else {
-                errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
-                errEl.classList.remove('hidden');
-            }
-        }
-
-        async function handleLogout() {
-            localStorage.removeItem('helcinho_logged_local');
-            if (supabaseClient) {
-                try { await supabaseClient.auth.signOut(); } catch(e) {}
-            }
+        function handleLogout() {
             location.reload();
         }
 
+        // Navegação do Menu Lateral
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
             });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetBtn = document.getElementById(`btn-${tabId}`);
+            
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
             
             if(tabId === 'dashboard') loadDashboard();
             if(tabId === 'pedidos') loadPedidos();
@@ -639,8 +546,11 @@
             document.querySelectorAll('.subtab-btn').forEach(btn => {
                 btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
             });
-            document.getElementById(`subtab-${subId}`).classList.remove('hidden');
-            document.getElementById(`subbtn-${subId}`).className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+            const targetSub = document.getElementById(`subtab-${subId}`);
+            const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+
+            if (targetSub) targetSub.classList.remove('hidden');
+            if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
             
             if(subId === 'produtos-ranking') renderRankingProdutos();
             if(subId === 'clientes-analise') renderRankingClientes();
@@ -898,7 +808,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
                         <div>
-                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
+                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria} - ${p.genero || 'Unissex'})</h4>
                             <p class="text-gray-500">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
                         </div>
                     </div>
@@ -918,6 +828,7 @@
                 nome: document.getElementById('nome').value,
                 sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
+                genero: document.getElementById('genero').value,
                 estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
@@ -955,6 +866,7 @@
             document.getElementById('sku').value = p.sku || '';
             loadCategoriesSelect();
             document.getElementById('categoria').value = p.categoria || '';
+            document.getElementById('genero').value = p.genero || 'Unissex';
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
             document.getElementById('descricao').value = p.descricao || '';
             document.getElementById('preco').value = p.preco || '';
@@ -1220,189 +1132,11 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
-        async function loadPedidos() {
-            const listEl = document.getElementById('pedidos-list');
-            let pedidos = [];
-
-            if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
-                if (!error && data) {
-                    pedidos = data;
-                }
-            }
-            
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
-
-            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <div>
-                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
-                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
-                        </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-1">
-                        <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
-                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
-                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                        </select>
-                        <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function updatePedidoStatus(id, val) {
-            if (supabaseClient) {
-                await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
-            }
-        }
-
-        async function deletePedido(id) {
-            if(!confirm('Deseja realmente excluir este pedido?')) return;
-            
-            // Apaga da nuvem do Supabase
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
-                if (error) {
-                    alert("Erro ao excluir no Supabase: " + error.message);
-                    return;
-                }
-            }
-            
-            // Apaga também da memória local do navegador para limpar o cache
-            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            localPedidos = localPedidos.filter(p => p.id != id);
-            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
-
-            alert('Pedido excluído com sucesso!');
-            loadPedidos();
-        }
-
-        // --- DASHBOARD & ATRASADOS ---
-        async function loadDashboard() {
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
-            }
-            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-
-            let pedidos = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
-            }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-
-            let totalAberto = 0, totalAtrasado = 0;
-            let atrasadasArr = [];
-            const hoje = new Date().toISOString().split('T')[0];
-
-            credList.forEach((venda) => {
-                (venda.parcelas || []).forEach((p) => {
-                    let saldo = p.valorOriginal - p.valorPago;
-                    if (saldo > 0) {
-                        totalAberto += saldo;
-                        if (p.vencimento < hoje) {
-                            totalAtrasado += saldo;
-                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
-                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
-                        }
-                    }
-                });
-            });
-
-            document.getElementById('dash-total-aberto').textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('dash-total-atrasado').textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('dash-total-pedidos').textContent = pedidos.filter(p => p.status === 'Novo').length;
-
-            const atrasadasListEl = document.getElementById('atrasadas-list');
-            document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
-            
-            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
-                '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
-                atrasadasArr.map(item => {
-                    const isCritico = item.diasAtraso >= 5;
-                    const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
-                    const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
-                    return `
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
-                            <div>
-                                <b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',')}) 
-                                <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${item.vencimento.split('-').reverse().join('/')}) ${badgeCritico}
-                            </div>
-                            <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-        }
-
-        // --- CONFIGURAÇÕES DE WHATSAPP NA NUVEM ---
-        async function saveWhatsApp() {
-            const zapVal = document.getElementById('whatsapp-input').value;
-            if (supabaseClient) {
-                await supabaseClient.from('configuracoes').upsert([{ chave: 'whatsapp', valor: zapVal }]);
-            }
-            localStorage.setItem('helcinho_whatsapp', zapVal);
-            alert('Número do WhatsApp salvo na nuvem com sucesso!');
-        }
-
-        async function saveTemplateCobrar() {
-            const templateVal = document.getElementById('template-cobranca').value;
-            if (supabaseClient) {
-                await supabaseClient.from('configuracoes').upsert([{ chave: 'template_cobranca', valor: templateVal }]);
-            }
-            localStorage.setItem('helcinho_template_cobranca', templateVal);
-            alert('Modelo de cobrança salvo na nuvem com sucesso!');
-        }
-
-        async function loadConfigs() {
-            let zapVal = '';
-            let templateVal = '';
-
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('configuracoes').select('*');
-                if (data) {
-                    const zapItem = data.find(i => i.chave === 'whatsapp');
-                    const tempItem = data.find(i => i.chave === 'template_cobranca');
-                    if (zapItem) zapVal = zapItem.valor;
-                    if (tempItem) templateVal = tempItem.valor;
-                }
-            }
-
-            if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
-            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
-
-            document.getElementById('whatsapp-input').value = zapVal;
-            document.getElementById('template-cobranca').value = templateVal;
-        }
-
-        function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
-            let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
-            let valorFormatado = saldo.toFixed(2).replace('.', ',');
-            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*.`;
-            let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
-            let msg = template.replace(/{cliente}/g, cliente).replace(/{parcela}/g, parcela).replace(/{valor}/g, valorFormatado).replace(/{vencimento}/g, vencFormatado).replace(/{dias}/g, dias);
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        // --- CATEGORIAS NA NUVEM ---
+        // --- CATEGORIAS NA NUVEM COM CRIAÇÃO E EXCLUSÃO ---
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             if(!select) return;
-            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
             let savedCats = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('categorias').select('*');
@@ -1430,8 +1164,33 @@
                 }
                 loadCategoriesSelect();
                 document.getElementById('categoria').value = nova;
-                alert(`Categoria "${nova}" criada e salva na nuvem!`);
+                alert(`Categoria "${nova}" criada com sucesso!`);
             }
+        }
+
+        async function excluirCategoria() {
+            const select = document.getElementById('categoria');
+            if (!select) return;
+            const catSelecionada = select.value;
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
+
+            if (categoriasPadrao.includes(catSelecionada)) {
+                alert("As categorias padrão do sistema não podem ser excluídas!");
+                return;
+            }
+
+            if(!confirm(`Deseja realmente excluir a categoria "${catSelecionada}"?`)) return;
+
+            if (supabaseClient) {
+                await supabaseClient.from('categorias').delete().eq('nome', catSelecionada);
+            }
+
+            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            savedCats = savedCats.filter(c => c !== catSelecionada);
+            localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats));
+
+            loadCategoriesSelect();
+            alert(`Categoria "${catSelecionada}" excluída com sucesso!`);
         }
 
         const imageFileInput = document.getElementById('imagem-file');
@@ -1462,7 +1221,15 @@
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
 
-        checkAuth();
+        // Inicialização direta do painel sem login
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadConfigs();
+            loadCategoriesSelect();
+            loadClientes();
+            loadClientesSelect();
+            loadEstoque();
+        });
     </script>
 </body>
 </html>
