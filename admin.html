@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js para Gráficos Visuais -->
+    <!-- Chart.js para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
@@ -31,278 +31,309 @@
         }
     </script>
 </head>
-<body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col md:flex-row">
+<body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- MENU LATERAL ESQUERDO -->
-    <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
-        <div>
-            <div class="p-5 border-b border-rosegold/20 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
+    <!-- TELA DE LOGIN (Oculta se estiver logado) -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner mx-auto flex items-center justify-center">
                     <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
+                <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
+                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <h1 class="font-bold text-sm tracking-tight text-marromCafe uppercase">Painel Admin</h1>
-                    <p class="text-[10px] text-rosegold font-semibold">Gestão Comercial</p>
+                    <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
+                    <input type="email5" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
                 </div>
-            </div>
-
-            <nav class="p-3 space-y-1">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
-                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
-                </button>
-                <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
-                </button>
-                <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
-                </button>
-                <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-warehouse w-5 text-center"></i> Estoque & Status
-                </button>
-                <button onclick="switchTab('clientes')" id="btn-clientes" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-address-book w-5 text-center"></i> Cartilha de Clientes
-                </button>
-                <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
-                </button>
-                <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
-                </button>
-                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
-                </button>
-                <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-brands fa-whatsapp w-5 text-center text-green-600"></i> Configurar WhatsApp
-                </button>
-            </nav>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Senha</label>
+                    <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
+            </form>
+            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold"></div>
         </div>
+    </div>
 
-        <div class="p-4 border-t border-rosegold/20">
-            <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
-                <i class="fa-solid fa-store"></i> Ver a Loja Online
-            </a>
-        </div>
-    </aside>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
-
-        <!-- DASHBOARD -->
-        <section id="tab-dashboard" class="tab-content space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                    <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
-                    <h3 id="dash-total-aberto" class="text-2xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                    <p class="text-xs text-red-600 uppercase font-semibold">Total Atrasado</p>
-                    <h3 id="dash-total-atrasado" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</h3>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                    <p class="text-xs text-emerald-600 uppercase font-semibold">Pedidos Novos do Site</p>
-                    <h3 id="dash-total-pedidos" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas</h2>
-                    <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
-                </div>
-                <div id="atrasadas-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- GESTÃO DE PEDIDOS -->
-        <section id="tab-pedidos" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-bag-shopping text-rosegold mr-2"></i> Pedidos Recebidos da Loja Online</h2>
-                <div id="pedidos-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- CADASTRO / EDIÇÃO DE PRODUTOS -->
-        <section id="tab-produtos" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
-                    <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600">Limpar</button>
-                </div>
-                <form id="product-form" onsubmit="saveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input type="hidden" id="product-id">
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Nome do Produto</label>
-                        <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+    <!-- APLICAÇÃO PRINCIPAL (Oculta até fazer login) -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
+        <!-- MENU LATERAL ESQUERDO -->
+        <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
+            <div>
+                <div class="p-5 border-b border-rosegold/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
+                        <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Código SKU</label>
-                        <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Categoria</label>
-                        <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
-                            <option value="Presentes">Presentes</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
-                        <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold mb-1">Descrição</label>
-                        <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
-                        <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
-                        <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
-                        <input type="hidden" id="imagem-base64">
-                    </div>
-                    <div class="sm:col-span-2 pt-2">
-                        <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto</button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <!-- ESTOQUE -->
-        <section id="tab-estoque" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
-                <div id="estoque-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- CARTILHA DE CLIENTES -->
-        <section id="tab-clientes" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
-                <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="hidden" id="client-index" value="">
-                    <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente</button>
-                </form>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe">📋 Clientes Cadastrados</h2>
-                <div id="clientes-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- CREDIÁRIO -->
-        <section id="tab-crediario" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
-                <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="hidden" id="cred-index" value="">
-                    <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" id="cred-parcelas" placeholder="Qtd de Parcelas (Ex: 3)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <div>
-                        <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
-                        <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Gerar Parcelas</button>
-                    </div>
-                </form>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
-                <div id="crediario-list" class="space-y-4"></div>
-            </div>
-        </section>
-
-        <!-- CALCULADORA DE CUSTOS -->
-        <section id="tab-calculadora" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-calculator text-rosegold mr-2"></i> Simulador e Precificação</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Selecionar Produto</label>
-                        <select id="calc-produto" onchange="loadProductForCalc()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Custo (R$)</label>
-                        <input type="number" step="0.01" id="calc-custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Margem Desejada (%)</label>
-                        <input type="number" id="calc-margem" value="50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm">Calcular Preço Sugerido</button>
+                        <h1 class="font-bold text-sm tracking-tight text-marromCafe uppercase">Painel Admin</h1>
+                        <p class="text-[10px] text-rosegold font-semibold">Gestão Comercial</p>
                     </div>
                 </div>
-                <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border p-4 rounded-xl text-center">
-                    <h3 id="calc-preco-sugerido" class="font-bold text-xl text-verdePetroleo">R$ 0,00</h3>
-                </div>
-            </div>
-        </section>
 
-        <!-- RELATÓRIOS & VENDAS (COM GRÁFICO E EXPORTAÇÃO CSV) -->
-        <section id="tab-relatorios" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
-                    <button onclick="exportCSV()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow transition">
-                        <i class="fa-solid fa-file-arrow-down"></i> Exportar Dados (CSV)
+                <nav class="p-3 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
                     </button>
-                </div>
-                
+                    <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
+                    </button>
+                    <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
+                    </button>
+                    <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-warehouse w-5 text-center"></i> Estoque & Status
+                    </button>
+                    <button onclick="switchTab('clientes')" id="btn-clientes" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-address-book w-5 text-center"></i> Cartilha de Clientes
+                    </button>
+                    <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
+                    </button>
+                    <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
+                    </button>
+                    <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
+                    </button>
+                    <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-brands fa-whatsapp w-5 text-center text-green-600"></i> Configurar WhatsApp
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-rosegold/20 space-y-2">
+                <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
+                    <i class="fa-solid fa-store"></i> Ver a Loja Online
+                </a>
+                <button onclick="handleLogout()" class="w-full bg-red-100 text-red-700 py-2 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-red-200 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair do Sistema
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
+
+            <!-- DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
-                        <p class="text-xs text-gray-500">Faturamento Total Acumulado</p>
-                        <h3 id="rel-faturamento" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
+                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
+                        <h3 id="dash-total-aberto" class="text-2xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
                     </div>
-                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
-                        <p class="text-xs text-gray-500">Total de Pedidos Realizados</p>
-                        <h3 id="rel-qtd-pedidos" class="font-bold text-2xl text-verdePetroleo mt-1">0</h3>
+                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                        <p class="text-xs text-red-600 uppercase font-semibold">Total Atrasado</p>
+                        <h3 id="dash-total-atrasado" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</h3>
                     </div>
-                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
-                        <p class="text-xs text-gray-500">Ticket Médio por Venda</p>
-                        <h3 id="rel-ticket" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
-                    </div>
-                </div>
-
-                <!-- Gráfico Visual de Vendas -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-                    <h3 class="font-bold text-xs uppercase text-gray-600">Visualização Gráfica de Desempenho</h3>
-                    <div class="relative h-64 w-full">
-                        <canvas id="salesChart"></canvas>
+                    <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                        <p class="text-xs text-emerald-600 uppercase font-semibold">Pedidos Novos do Site</p>
+                        <h3 id="dash-total-pedidos" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- WHATSAPP -->
-        <section id="tab-config" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar WhatsApp</h2>
-                <div class="flex gap-3">
-                    <input type="text" id="whatsapp-input" placeholder="Ex: 5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                    <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2.5 rounded-xl font-semibold text-sm">Salvar</button>
+                <div class="bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas</h2>
+                        <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
+                    </div>
+                    <div id="atrasadas-list" class="space-y-3"></div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-    </main>
+            <!-- GESTÃO DE PEDIDOS -->
+            <section id="tab-pedidos" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-bag-shopping text-rosegold mr-2"></i> Pedidos Recebidos da Loja Online</h2>
+                    <div id="pedidos-list" class="space-y-3"></div>
+                </div>
+            </section>
 
-    <!-- SCRIPT DO PAINEL ADMIN -->
+            <!-- PRODUTOS -->
+            <section id="tab-produtos" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
+                        <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600">Limpar</button>
+                    </div>
+                    <form id="product-form" onsubmit="saveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="hidden" id="product-id">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Nome do Produto</label>
+                            <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Código SKU</label>
+                            <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Categoria</label>
+                            <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                                <option value="Presentes">Presentes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
+                            <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold mb-1">Descrição</label>
+                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
+                            <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
+                            <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
+                            <input type="hidden" id="imagem-base64">
+                        </div>
+                        <div class="sm:col-span-2 pt-2">
+                            <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ESTOQUE -->
+            <section id="tab-estoque" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
+                    <div id="estoque-list" class="space-y-3"></div>
+                </div>
+            </section>
+
+            <!-- CARTILHA DE CLIENTES -->
+            <section id="tab-clientes" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
+                    <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="hidden" id="client-index" value="">
+                        <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente</button>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe">📋 Clientes Cadastrados</h2>
+                    <div id="clientes-list" class="space-y-3"></div>
+                </div>
+            </section>
+
+            <!-- CREDIÁRIO -->
+            <section id="tab-crediario" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
+                    <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="hidden" id="cred-index" value="">
+                        <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <input type="number" id="cred-parcelas" placeholder="Qtd de Parcelas (Ex: 3)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
+                            <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Gerar Parcelas</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
+                    <div id="crediario-list" class="space-y-4"></div>
+                </div>
+            </section>
+
+            <!-- CALCULADORA -->
+            <section id="tab-calculadora" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-calculator text-rosegold mr-2"></i> Simulador e Precificação</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Selecionar Produto</label>
+                            <select id="calc-produto" onchange="loadProductForCalc()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Custo (R$)</label>
+                            <input type="number" step="0.01" id="calc-custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Margem Desejada (%)</label>
+                            <input type="number" id="calc-margem" value="50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm">Calcular Preço Sugerido</button>
+                        </div>
+                    </div>
+                    <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border p-4 rounded-xl text-center">
+                        <h3 id="calc-preco-sugerido" class="font-bold text-xl text-verdePetroleo">R$ 0,00</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RELATÓRIOS -->
+            <section id="tab-relatorios" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
+                        <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
+                        <button onclick="exportCSV()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow transition">
+                            <i class="fa-solid fa-file-arrow-down"></i> Exportar Dados (CSV)
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                            <p class="text-xs text-gray-500">Faturamento Total Acumulado</p>
+                            <h3 id="rel-faturamento" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
+                        </div>
+                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                            <p class="text-xs text-gray-500">Total de Pedidos Realizados</p>
+                            <h3 id="rel-qtd-pedidos" class="font-bold text-2xl text-verdePetroleo mt-1">0</h3>
+                        </div>
+                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                            <p class="text-xs text-gray-500">Ticket Médio por Venda</p>
+                            <h3 id="rel-ticket" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
+                        <h3 class="font-bold text-xs uppercase text-gray-600">Visualização Gráfica de Desempenho</h3>
+                        <div class="relative h-64 w-full">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHATSAPP -->
+            <section id="tab-config" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar WhatsApp</h2>
+                    <div class="flex gap-3">
+                        <input type="text" id="whatsapp-input" placeholder="Ex: 5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2.5 rounded-xl font-semibold text-sm">Salvar</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
         let supabaseClient = null;
+
         try {
             if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -311,6 +342,57 @@
 
         let products = [];
         let myChart = null;
+
+        // Verificação de Autenticação ao carregar a página
+        async function checkAuth() {
+            if (!supabaseClient) {
+                // Se o Supabase não estiver conectado, libera o acesso direto para testes locais
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                loadDashboard();
+                return;
+            }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                loadDashboard();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+
+            if (!supabaseClient) {
+                alert('Supabase não configurado corretamente.');
+                return;
+            }
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                errEl.textContent = 'Erro ao entrar: ' + error.message;
+                errEl.classList.remove('hidden');
+            } else {
+                errEl.classList.add('hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                loadDashboard();
+            }
+        }
+
+        async function handleLogout() {
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
+            location.reload();
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -365,13 +447,6 @@
                 localProducts.push(productData);
             }
             localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
-
-            if (supabaseClient) {
-                try {
-                    if (productId) await supabaseClient.from('produtos').update(productData).eq('id', productId);
-                    else await supabaseClient.from('produtos').insert([productData]);
-                } catch(err) {}
-            }
 
             alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             resetProductForm();
@@ -647,18 +722,15 @@
             document.getElementById('rel-qtd-pedidos').textContent = qtd;
             document.getElementById('rel-ticket').textContent = `R$ ${ticket.toFixed(2).replace('.', ',')}`;
 
-            // Renderiza ou Atualiza o Gráfico com Chart.js
             const ctx = document.getElementById('salesChart').getContext('2d');
-            if (myChart) {
-                myChart.destroy();
-            }
+            if (myChart) myChart.destroy();
 
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Novos', 'Confirmados', 'Em Separação', 'Entregues', 'Cancelados'],
                     datasets: [{
-                        label: 'Quantidade de Pedidos por Status',
+                        label: 'Quantidade de Pedidos',
                         data: [statusCount.Novo, statusCount.Confirmado, statusCount['Em separação'], statusCount.Entregue, statusCount.Cancelado],
                         backgroundColor: ['#008B74', '#3E2723', '#D49B85', '#10B981', '#EF4444'],
                         borderRadius: 8
@@ -667,20 +739,15 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                 }
             });
         }
 
-        // Função de Exportar CSV
         function exportCSV() {
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            if (pedidos.length === 0) return alert('Nenhum dado de pedido para exportar!');
+            if (pedidos.length === 0) return alert('Nenhum dado para exportar!');
 
             let csvContent = "data:text/csv;charset=utf-8,ID Pedido;Data;Produtos;Valor Total;Status;Presente\r\n";
             pedidos.forEach(p => {
@@ -762,7 +829,7 @@
         }
 
         document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
-        loadDashboard();
+        checkAuth();
     </script>
 </body>
 </html>
