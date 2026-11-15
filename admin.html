@@ -327,7 +327,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN CORRIGIDO -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -347,7 +347,8 @@
         // Verificação de Sessão Ativa
         async function checkAuth() {
             if (!supabaseClient) {
-                showLoginError("Supabase não configurado corretamente.");
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
                 return;
             }
 
@@ -405,12 +406,6 @@
                 try { await supabaseClient.auth.signOut(); } catch(e) {}
             }
             location.reload();
-        }
-
-        function showLoginError(msg) {
-            const errEl = document.getElementById('login-error');
-            errEl.textContent = msg;
-            errEl.classList.remove('hidden');
         }
 
         function switchTab(tabId) {
@@ -679,7 +674,7 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS (Atualizado para mostrar o nome do cliente em destaque) ---
+        // --- GESTÃO DE PEDIDOS (Exibe o nome do cliente) ---
         function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
