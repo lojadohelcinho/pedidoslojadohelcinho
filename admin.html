@@ -100,7 +100,7 @@
                         <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
                     </button>
                     <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                        <i class="fa-brands fa-whatsapp w-5 text-center text-green-600"></i> Configurar WhatsApp
+                        <i class="fa-solid fa-gear w-5 text-center text-green-600"></i> Configurações & WhatsApp
                     </button>
                 </nav>
             </div>
@@ -314,13 +314,33 @@
                 </div>
             </section>
 
-            <!-- WHATSAPP -->
+            <!-- CONFIGURAÇÕES & WHATSAPP & COBRANÇA -->
             <section id="tab-config" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar WhatsApp</h2>
-                    <div class="flex gap-3">
-                        <input type="text" id="whatsapp-input" placeholder="Ex: 5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2.5 rounded-xl font-semibold text-sm">Salvar</button>
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-gear text-verdePetroleo mr-2"></i> Configurações do Sistema</h2>
+                    
+                    <!-- WhatsApp Config -->
+                    <div class="space-y-2 border-b pb-4">
+                        <label class="block text-xs font-semibold text-marromCafe">Número do WhatsApp para Pedidos (Ex: 5514999999999)</label>
+                        <div class="flex gap-3">
+                            <input type="text" id="whatsapp-input" placeholder="5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                            <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar WhatsApp</button>
+                        </div>
+                    </div>
+
+                    <!-- Mensagem de Cobrança Customizada -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-marromCafe">Modelo de Texto para Cobrança via WhatsApp</label>
+                        <p class="text-[11px] text-gray-500">
+                            Tags disponíveis que serão substituídas automaticamente: 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{cliente}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{parcela}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{valor}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{vencimento}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{dias}</code>
+                        </p>
+                        <textarea id="template-cobranca" rows="5" class="w-full bg-creme border border-rosegold/30 rounded-xl p-3 text-xs focus:outline-none focus:border-verdePetroleo"></textarea>
+                        <button onclick="saveTemplateCobrar()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar Modelo de Cobrança</button>
                     </div>
                 </div>
             </section>
@@ -342,12 +362,12 @@
         let products = [];
         let myChart = null;
 
-        // Verificação de Autenticação ao carregar a página
         async function checkAuth() {
             if (localStorage.getItem('helcinho_logged_local') === 'true') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
+                loadConfigs();
                 return;
             }
 
@@ -355,6 +375,7 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
+                loadConfigs();
                 return;
             }
 
@@ -364,6 +385,7 @@
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     loadDashboard();
+                    loadConfigs();
                 } else {
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('app-container').classList.add('hidden');
@@ -389,11 +411,10 @@
                         document.getElementById('login-screen').classList.add('hidden');
                         document.getElementById('app-container').classList.remove('hidden');
                         loadDashboard();
+                        loadConfigs();
                         return;
                     }
-                } catch (err) {
-                    console.warn("Supabase auth error, using fallback.");
-                }
+                } catch (err) {}
             }
 
             if (password.length >= 4) {
@@ -402,6 +423,7 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
+                loadConfigs();
             } else {
                 errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
                 errEl.classList.remove('hidden');
@@ -431,6 +453,7 @@
             if(tabId === 'crediario') loadCrediario();
             if(tabId === 'calculadora') loadCalcSelect();
             if(tabId === 'relatorios') loadRelatorios();
+            if(tabId === 'config') loadConfigs();
         }
 
         // Upload Imagem
@@ -787,7 +810,7 @@
             document.body.removeChild(link);
         }
 
-        // --- DASHBOARD & ATRASADOS (Atualizado com destaque crítico para 5+ dias) ---
+        // --- DASHBOARD & ATRASADOS ---
         function loadDashboard() {
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -846,9 +869,41 @@
                 }).join('');
         }
 
+        // --- CONFIGURAÇÕES DE WHATSAPP E MENSAGEM ---
+        function saveWhatsApp() {
+            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
+            alert('Número do WhatsApp salvo com sucesso!');
+        }
+
+        function saveTemplateCobrar() {
+            const template = document.getElementById('template-cobranca').value;
+            localStorage.setItem('helcinho_template_cobranca', template);
+            alert('Modelo de mensagem de cobrança salvo com sucesso!');
+        }
+
+        function loadConfigs() {
+            document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
+            
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
+            
+            document.getElementById('template-cobranca').value = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
+        }
+
         function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
             let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
-            let msg = `Olá *${cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc ${parcela}*) no valor de *R$ ${saldo.toFixed(2).replace('.', ',')}* com vencimento em *${vencFormatado}* (${dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
+            let valorFormatado = saldo.toFixed(2).replace('.', ',');
+
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
+            
+            let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
+
+            let msg = template
+                .replace(/{cliente}/g, cliente)
+                .replace(/{parcela}/g, parcela)
+                .replace(/{valor}/g, valorFormatado)
+                .replace(/{vencimento}/g, vencFormatado)
+                .replace(/{dias}/g, dias);
+
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
@@ -869,12 +924,6 @@
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
 
-        function saveWhatsApp() {
-            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
-            alert('WhatsApp salvo com sucesso!');
-        }
-
-        document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
         checkAuth();
     </script>
 </body>
