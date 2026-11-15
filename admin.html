@@ -47,7 +47,7 @@
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
-                    <input type="email5" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
+                    <input type="email" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold mb-1">Senha</label>
@@ -346,19 +346,23 @@
         // Verificação de Autenticação ao carregar a página
         async function checkAuth() {
             if (!supabaseClient) {
-                // Se o Supabase não estiver conectado, libera o acesso direto para testes locais
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
                 return;
             }
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-            } else {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    loadDashboard();
+                } else {
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-container').classList.add('hidden');
+                }
+            } catch (err) {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
@@ -375,15 +379,20 @@
                 return;
             }
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                errEl.textContent = 'Erro ao entrar: ' + error.message;
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    errEl.textContent = 'Erro ao entrar: ' + error.message;
+                    errEl.classList.remove('hidden');
+                } else {
+                    errEl.classList.add('hidden');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    loadDashboard();
+                }
+            } catch (err) {
+                errEl.textContent = 'Erro de conexão com o Supabase.';
                 errEl.classList.remove('hidden');
-            } else {
-                errEl.classList.add('hidden');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
             }
         }
 
