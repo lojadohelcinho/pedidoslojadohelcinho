@@ -44,6 +44,9 @@
                 <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
                     <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
                 </button>
+                <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
+                </button>
                 <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
                 </button>
@@ -56,8 +59,8 @@
                 <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
                 </button>
-                <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
+                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
                 </button>
                 <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-brands fa-whatsapp w-5 text-center text-green-600"></i> Configurar WhatsApp
@@ -75,11 +78,11 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
 
-        <!-- ABA 0: DASHBOARD & CONTAS ATRASADAS -->
+        <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                    <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto</p>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
                     <h3 id="dash-total-aberto" class="text-2xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
@@ -87,153 +90,141 @@
                     <h3 id="dash-total-atrasado" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</h3>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
-                    <p class="text-xs text-emerald-600 uppercase font-semibold">Recebido no Mês</p>
-                    <h3 id="dash-total-recebido" class="text-2xl font-bold text-emerald-600 mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-emerald-600 uppercase font-semibold">Pedidos Novos do Site</p>
+                    <h3 id="dash-total-pedidos" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
                 </div>
             </div>
 
-            <!-- Seção de Contas Atrasadas -->
+            <!-- Contas Atrasadas -->
             <div class="bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b pb-3">
-                    <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas (Atenção Necessária)</h2>
+                    <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas</h2>
                     <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
                 </div>
-                <div id="atrasadas-list" class="space-y-3">
-                    <!-- Preenchido via JS -->
-                </div>
+                <div id="atrasadas-list" class="space-y-3"></div>
             </div>
         </section>
 
-        <!-- ABA 1: CADASTRO DE PRODUTOS -->
+        <!-- GESTÃO DE PEDIDOS -->
+        <section id="tab-pedidos" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-bag-shopping text-rosegold mr-2"></i> Pedidos Recebidos da Loja Online</h2>
+                <div id="pedidos-list" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- PRODUTOS -->
         <section id="tab-produtos" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
-                    <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200">Limpar Formulário</button>
+                    <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600">Limpar</button>
                 </div>
                 <form id="product-form" onsubmit="saveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input type="hidden" id="product-id">
                     <div>
                         <label class="block text-xs font-semibold mb-1">Nome do Produto</label>
-                        <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Código SKU</label>
-                        <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold mb-1">Categoria</label>
-                        <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                             <option value="Masculino">Masculino</option>
                             <option value="Feminino">Feminino</option>
                             <option value="Presentes">Presentes</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
-                        <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold mb-1">Descrição / Detalhes</label>
-                        <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <label class="block text-xs font-semibold mb-1">Descrição</label>
+                        <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
-                        <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Imagem do Produto (Arquivo)</label>
-                        <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs text-gray-600">
+                        <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
+                        <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
                         <input type="hidden" id="imagem-base64">
                     </div>
                     <div class="sm:col-span-2 pt-2">
-                        <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Salvar Produto</button>
+                        <button type="submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto</button>
                     </div>
                 </form>
             </div>
         </section>
 
-        <!-- ABA 2: ESTOQUE -->
+        <!-- ESTOQUE -->
         <section id="tab-estoque" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Estoque</h2>
                 <div id="estoque-list" class="space-y-3"></div>
             </div>
         </section>
 
-        <!-- ABA 3: CLIENTES -->
+        <!-- CLIENTES -->
         <section id="tab-clientes" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> Cadastrar Cliente</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> Clientes</h2>
                 <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="hidden" id="client-index" value="">
-                    <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="text" id="cli-nome" placeholder="Nome" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs transition">Salvar Cliente</button>
+                    <button type="submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe">📋 Clientes Cadastrados</h2>
+                <h2 class="font-bold text-base text-marromCafe">📋 Lista de Clientes</h2>
                 <div id="clientes-list" class="space-y-3"></div>
             </div>
         </section>
 
-        <!-- ABA 4: CREDIÁRIO & PARCELAS INDIVIDUAIS -->
+        <!-- CREDIÁRIO -->
         <section id="tab-crediario" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> Registrar Venda Parcelada (Crediário)</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> Crediário Parcelado</h2>
                 <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" id="cred-parcelas" placeholder="Qtd de Parcelas (Ex: 3)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="text" id="cred-cliente" placeholder="Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="text" id="cred-produtos" placeholder="Produtos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="number" id="cred-parcelas" placeholder="Qtd Parcelas" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <div>
-                        <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
+                        <label class="block text-xs font-semibold mb-1 text-gray-500">1º Vencimento</label>
                         <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Gerar Parcelas do Crediário</button>
+                        <button type="submit" class="w-full bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Gerar Parcelas</button>
                     </div>
                 </form>
             </div>
-
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
+                <h2 class="font-bold text-base text-marromCafe">💳 Contratos Ativos</h2>
                 <div id="crediario-list" class="space-y-4"></div>
             </div>
         </section>
 
-        <!-- ABA 5: CALCULADORA -->
-        <section id="tab-calculadora" class="tab-content hidden space-y-6">
+        <!-- RELATÓRIOS & VENDAS -->
+        <section id="tab-relatorios" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-calculator text-rosegold mr-2"></i> Simulador e Precificação</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Selecionar Produto</label>
-                        <select id="calc-produto" onchange="loadProductForCalc()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <option value="">Selecione...</option>
-                        </select>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                        <p class="text-xs text-gray-500">Faturamento Total Acumulado</p>
+                        <h3 id="rel-faturamento" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Custo (R$)</label>
-                        <input type="number" step="0.01" id="calc-custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                        <p class="text-xs text-gray-500">Total de Pedidos Realizados</p>
+                        <h3 id="rel-qtd-pedidos" class="font-bold text-2xl text-verdePetroleo mt-1">0</h3>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Margem Desejada (%)</label>
-                        <input type="number" id="calc-margem" value="50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                        <p class="text-xs text-gray-500">Ticket Médio por Venda</p>
+                        <h3 id="rel-ticket" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
                     </div>
-                    <div class="sm:col-span-2">
-                        <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm transition">Calcular Preço Sugerido</button>
-                    </div>
-                </div>
-                <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border p-4 rounded-xl text-center">
-                    <h3 id="calc-preco-sugerido" class="font-bold text-xl text-verdePetroleo">R$ 0,00</h3>
                 </div>
             </div>
         </section>
 
-        <!-- ABA 6: WHATSAPP -->
+        <!-- WHATSAPP -->
         <section id="tab-config" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar WhatsApp</h2>
@@ -246,7 +237,7 @@
 
     </main>
 
-    <!-- SCRIPT DO PAINEL ADMIN COM GESTÃO FINANCEIRA DE PARCELAS -->
+    <!-- SCRIPT DO PAINEL ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -268,10 +259,11 @@
             document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
             
             if(tabId === 'dashboard') loadDashboard();
+            if(tabId === 'pedidos') loadPedidos();
             if(tabId === 'estoque') loadEstoque();
             if(tabId === 'clientes') loadClientes();
             if(tabId === 'crediario') loadCrediario();
-            if(tabId === 'calculadora') loadCalcSelect();
+            if(tabId === 'relatorios') loadRelatorios();
         }
 
         // Upload Imagem
@@ -287,38 +279,90 @@
             });
         }
 
+        // Gestão de Pedidos
+        function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            
+            if (pedidos.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online ainda.</p>';
+                return;
+            }
+
+            listEl.innerHTML = pedidos.map((p, index) => `
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <div>
+                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                            <p class="text-gray-600 font-medium">Produtos: ${p.produtos}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold text-sm text-verdePetroleo">R$ ${p.valorTotal.toFixed(2).replace('.', ',')}</span>
+                            <p class="text-[10px] text-gray-500">Presente: ${p.presente}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-gray-500">Status:</span>
+                            <select onchange="updatePedidoStatus(${index}, this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                                <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                                <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                                <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                                <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                        </div>
+                        <button onclick="deletePedido(${index})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updatePedidoStatus(index, novoStatus) {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            pedidos[index].status = novoStatus;
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidos));
+        }
+
+        function deletePedido(index) {
+            if(!confirm('Deseja excluir este pedido?')) return;
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            pedidos.splice(index, 1);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidos));
+            loadPedidos();
+        }
+
+        // Relatórios Avançados
+        function loadRelatorios() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let faturamento = 0;
+            pedidos.forEach(p => {
+                if (p.status !== 'Cancelado') faturamento += p.valorTotal;
+            });
+            let qtd = pedidos.filter(p => p.status !== 'Cancelado').length;
+            let ticket = qtd > 0 ? faturamento / qtd : 0;
+
+            document.getElementById('rel-faturamento').textContent = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
+            document.getElementById('rel-qtd-pedidos').textContent = qtd;
+            document.getElementById('rel-ticket').textContent = `R$ ${ticket.toFixed(2).replace('.', ',')}`;
+        }
+
         // Produtos
         async function saveProduct(e) {
             e.preventDefault();
-            const productId = document.getElementById('product-id').value;
             const productData = {
-                id: productId ? Number(productId) : Date.now(),
+                id: Date.now(),
                 nome: document.getElementById('nome').value,
-                sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
-                estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
                 imagem: document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
                 ativo: true
             };
-
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            if (productId) {
-                localProducts = localProducts.map(p => p.id == productId ? productData : p);
-            } else {
-                localProducts.push(productData);
-            }
+            localProducts.push(productData);
             localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
-
-            if (supabaseClient) {
-                try {
-                    if (productId) await supabaseClient.from('produtos').update(productData).eq('id', productId);
-                    else await supabaseClient.from('produtos').insert([productData]);
-                } catch(err) {}
-            }
-
-            alert('Produto salvo com sucesso!');
+            alert('Produto cadastrado com sucesso!');
             resetProductForm();
             loadEstoque();
         }
@@ -326,16 +370,9 @@
         function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
             products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            if (products.length === 0) {
-                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
-                return;
-            }
-            listEl.innerHTML = products.map(p => `
+            listEl.innerHTML = products.length === 0 ? '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>' : products.map(p => `
                 <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20 text-xs">
-                    <div>
-                        <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
-                        <p class="text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual}</p>
-                    </div>
+                    <div><h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4><p class="text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</p></div>
                     <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
@@ -350,200 +387,10 @@
 
         function resetProductForm() {
             document.getElementById('product-form').reset();
-            document.getElementById('product-id').value = '';
             document.getElementById('imagem-base64').value = '';
         }
 
-        // --- CREDIÁRIO AVANÇADO COM PARCELAS INDIVIDUAIS ---
-        function saveCrediario(e) {
-            e.preventDefault();
-            const cliente = document.getElementById('cred-cliente').value;
-            const produtos = document.getElementById('cred-produtos').value;
-            const valorTotal = parseFloat(document.getElementById('cred-valor').value);
-            const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
-            const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
-
-            if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
-
-            const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
-            let parcelas = [];
-            let dataBase = new Date(dataInicialStr + 'T00:00:00');
-
-            for (let i = 1; i <= qtdParcelas; i++) {
-                let vencStr = dataBase.toISOString().split('T')[0];
-                parcelas.push({
-                    id: Date.now() + i,
-                    numero: `${i}/${qtdParcelas}`,
-                    valorOriginal: valorParcela,
-                    valorPago: 0,
-                    vencimento: vencStr,
-                    status: 'Pendente' // Pendente, Parcial, Paga
-                });
-                // Adiciona 30 dias para a próxima parcela
-                dataBase.setDate(dataBase.getDate() + 30);
-            }
-
-            const vendaCrediario = {
-                id: Date.now(),
-                cliente,
-                produtos,
-                valorTotal,
-                parcelas
-            };
-
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            credList.push(vendaCrediario);
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-
-            alert('Venda parcelada gerada com sucesso!');
-            e.target.reset();
-            loadCrediario();
-        }
-
-        function loadCrediario() {
-            const list = document.getElementById('crediario-list');
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            
-            if (credList.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum contrato no crediário.</p>';
-                return;
-            }
-
-            list.innerHTML = credList.map((venda, vIndex) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <div>
-                            <h4 class="font-bold text-sm uppercase text-marromCafe">${venda.cliente}</h4>
-                            <p class="text-xs text-gray-500">Produtos: ${venda.produtos} | Total: R$ ${venda.valorTotal.toFixed(2).replace('.', ',')}</p>
-                        </div>
-                        <button onclick="deleteContrato(${vIndex})" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i> Excluir Venda</button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        ${venda.parcelas.map((p, pIndex) => {
-                            const hoje = new Date().toISOString().split('T')[0];
-                            let statusClass = "bg-blue-50 text-blue-700 border-blue-200";
-                            let saldoRestante = p.valorOriginal - p.valorPago;
-                            
-                            if (p.status === 'Paga' || saldoRestante <= 0) {
-                                statusClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
-                            } else if (p.vencimento < hoje) {
-                                statusClass = "bg-red-50 text-red-700 border-red-200 font-bold";
-                            }
-
-                            return `
-                                <div class="p-3 rounded-xl border ${statusClass} text-xs space-y-1">
-                                    <div class="flex justify-between font-bold">
-                                        <span>Parcela ${p.numero}</span>
-                                        <span>R$ ${saldoRestante.toFixed(2).replace('.', ',')}</span>
-                                    </div>
-                                    <p class="text-[10px]">Vencimento: ${p.vencimento.split('-').reverse().join('/')}</p>
-                                    <p class="text-[10px]">Status: <b>${p.vencimento < hoje && saldoRestante > 0 ? 'ATRASADA' : p.status}</b></p>
-                                    ${saldoRestante > 0 ? `<button onclick="baixarParcela(${vIndex}, ${pIndex})" class="mt-1 w-full bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Registrar Baixa</button>` : ''}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function baixarParcela(vIndex, pIndex) {
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            let parcela = credList[vIndex].parcelas[pIndex];
-            let saldo = parcela.valorOriginal - parcela.valorPago;
-            let valorPagoStr = prompt(`Valor a baixar (Saldo restante: R$ ${saldo.toFixed(2)})`, saldo);
-            if(!valorPagoStr) return;
-            let valorPago = parseFloat(valorPagoStr);
-            if(isNaN(valorPago) || valorPago <= 0) return alert('Valor inválido!');
-
-            parcela.valorPago += valorPago;
-            if (parcela.valorPago >= parcela.valorOriginal) {
-                parcela.status = 'Paga';
-            } else {
-                parcela.status = 'Parcial';
-            }
-
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-            loadCrediario();
-            alert('Pagamento registrado com sucesso!');
-        }
-
-        function deleteContrato(vIndex) {
-            if(!confirm('Deseja excluir todo este contrato de crediário?')) return;
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            credList.splice(vIndex, 1);
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-            loadCrediario();
-        }
-
-        // --- DASHBOARD & CONTAS ATRASADAS ---
-        function loadDashboard() {
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            let totalAberto = 0;
-            let totalAtrasado = 0;
-            let atrasadasArr = [];
-            const hoje = new Date().toISOString().split('T')[0];
-
-            credList.forEach((venda, vIndex) => {
-                venda.parcelas.forEach((p, pIndex) => {
-                    let saldo = p.valorOriginal - p.valorPago;
-                    if (saldo > 0) {
-                        totalAberto += saldo;
-                        if (p.vencimento < hoje) {
-                            totalAtrasado += saldo;
-                            // Calcula dias em atraso
-                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
-                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({
-                                cliente: venda.cliente,
-                                produtos: venda.produtos,
-                                parcela: p.numero,
-                                saldo,
-                                vencimento: p.vencimento,
-                                diasAtraso: diffDays,
-                                vIndex,
-                                pIndex
-                            });
-                        }
-                    }
-                });
-            });
-
-            document.getElementById('dash-total-aberto').textContent = `R$ ${totalAaberto = totalAberto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('dash-total-atrasado').textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
-
-            const atrasadasListEl = document.getElementById('atrasadas-list');
-            if (atrasadasArr.length === 0) {
-                atrasadasListEl.innerHTML = '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento. Parabéns!</p>';
-                return;
-            }
-
-            atrasadasListEl.innerHTML = atrasadasArr.map(item => `
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-red-50/60 p-3 rounded-xl border border-red-200 text-xs gap-3">
-                    <div>
-                        <h4 class="font-bold uppercase text-red-800">${item.cliente}</h4>
-                        <p class="text-gray-600">Parcela ${item.parcela} (${item.produtos}) — Vencida em ${item.vencimento.split('-').reverse().join('/')}</p>
-                        <p class="text-red-600 font-bold mt-0.5">Saldo: R$ ${item.saldo.toFixed(2).replace('.', ',')} (${item.diasAtraso} dias em atraso)</p>
-                    </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="baixarParcela(${item.vIndex}, ${item.pIndex}); loadDashboard();" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-check"></i> Baixar
-                        </button>
-                        <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, '${item.vencimento}', ${item.diasAtraso})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1">
-                            <i class="fa-brands fa-whatsapp"></i> Cobrar
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function cobrarWhatsApp(cliente, parcela, saldo, vencimento, dias) {
-            let msg = `Olá ${cliente}, tudo bem? Notamos que a parcela ${parcela} no valor de R$ ${saldo.toFixed(2).replace('.', ',')} (vencimento em ${vencimento.split('-').reverse().join('/')}) está com ${dias} dias em atraso na Loja do Helcinho. Poderia verificar, por favor?`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        // Clientes & Outros
+        // Clientes
         function saveClient(e) {
             e.preventDefault();
             const cliente = { nome: document.getElementById('cli-nome').value, whatsapp: document.getElementById('cli-zap').value, endereco: document.getElementById('cli-end').value };
@@ -559,21 +406,107 @@
             const clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente.</p>' : clientes.map(c => `<div class="bg-creme p-3 rounded-xl border text-xs"><b>${c.nome}</b> - ${c.whatsapp}</div>`).join('');
         }
-        function loadCalcSelect() {
-            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+
+        // Crediário
+        function saveCrediario(e) {
+            e.preventDefault();
+            const cliente = document.getElementById('cred-cliente').value;
+            const produtos = document.getElementById('cred-produtos').value;
+            const valorTotal = parseFloat(document.getElementById('cred-valor').value);
+            const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
+            const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
+
+            if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
+            const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
+            let parcelas = [];
+            let dataBase = new Date(dataInicialStr + 'T00:00:00');
+
+            for (let i = 1; i <= qtdParcelas; i++) {
+                parcelas.push({
+                    id: Date.now() + i,
+                    numero: `${i}/${qtdParcelas}`,
+                    valorOriginal: valorParcela,
+                    valorPago: 0,
+                    vencimento: dataBase.toISOString().split('T')[0],
+                    status: 'Pendente'
+                });
+                dataBase.setDate(dataBase.getDate() + 30);
+            }
+
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            credList.push({ id: Date.now(), cliente, produtos, valorTotal, parcelas });
+            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
+            alert('Venda parcelada gerada!');
+            e.target.reset();
+            loadCrediario();
         }
-        function loadProductForCalc() {
-            const p = products.find(i => i.id == document.getElementById('calc-produto').value);
-            if(p) document.getElementById('calc-custo').value = (p.preco * 0.4).toFixed(2);
+
+        function loadCrediario() {
+            const list = document.getElementById('crediario-list');
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato.</p>' : credList.map((venda, vIndex) => `
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
+                    <div class="flex justify-between font-bold border-b pb-1">
+                        <span>${venda.cliente} — R$ ${venda.valorTotal.toFixed(2).replace('.', ',')}</span>
+                        <button onclick="deleteContrato(${vIndex})" class="text-red-500">Excluir</button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        ${venda.parcelas.map((p, pIndex) => `
+                            <div class="p-2 rounded border bg-white">
+                                <b>Parc ${p.numero}</b><br>R$ ${(p.valorOriginal - p.valorPago).toFixed(2)}<br>Venc: ${p.vencimento.split('-').reverse().join('/')}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
         }
-        function calcularPrecoIdeal() {
-            const custo = parseFloat(document.getElementById('calc-custo').value) || 0;
-            const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
-            const sugerido = custo * (1 + (margem / 100));
-            document.getElementById('calc-resultado').classList.remove('hidden');
-            document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
+        function deleteContrato(vIndex) {
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            credList.splice(vIndex, 1);
+            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
+            loadCrediario();
         }
+
+        // Dashboard
+        function loadDashboard() {
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let totalAberto = 0, totalAtrasado = 0;
+            let atrasadasArr = [];
+            const hoje = new Date().toISOString().split('T')[0];
+
+            credList.forEach((venda, vIndex) => {
+                venda.parcelas.forEach((p, pIndex) => {
+                    let saldo = p.valorOriginal - p.valorPago;
+                    if (saldo > 0) {
+                        totalAberto += saldo;
+                        if (p.vencimento < hoje) {
+                            totalAtrasado += saldo;
+                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, vIndex, pIndex });
+                        }
+                    }
+                });
+            });
+
+            document.getElementById('dash-total-aberto').textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('dash-total-atrasado').textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('dash-total-pedidos').textContent = pedidos.filter(p => p.status === 'Novo').length;
+
+            const atrasadasListEl = document.getElementById('atrasadas-list');
+            document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
+            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? '<p class="text-xs text-gray-400">Nenhuma conta atrasada.</p>' : atrasadasArr.map(item => `
+                <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200 text-xs">
+                    <div><b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2)}) - Venc: ${item.vencimento.split('-').reverse().join('/')}</div>
+                    <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo})" class="bg-green-600 text-white px-3 py-1 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>
+                </div>
+            `).join('');
+        }
+
+        function cobrarWhatsApp(cliente, parcela, saldo) {
+            let msg = `Olá ${cliente}, notamos que a parcela ${parcela} no valor de R$ ${saldo.toFixed(2).replace('.', ',')} está em aberto na Loja do Helcinho. Poderia verificar?`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
         function saveWhatsApp() {
             localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
             alert('Salvo!');
