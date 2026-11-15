@@ -33,8 +33,34 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL (Visível Diretamente) -->
-    <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner mx-auto flex items-center justify-center">
+                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
+                </div>
+                <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
+                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
+                    <input type="email" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Senha (ou digite 4+ caracteres)</label>
+                    <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
+            </form>
+            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
+        </div>
+    </div>
+
+    <!-- APLICAÇÃO PRINCIPAL -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
             <div>
@@ -506,6 +532,9 @@
 
         // Inicialização direta do painel sem login
         window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('app-container')?.classList.remove('hidden');
+
             try { loadDashboard(); } catch(e){}
             try { loadConfigs(); } catch(e){}
             try { loadCategoriesSelect(); } catch(e){}
@@ -520,98 +549,52 @@
         }
 
         // Navegação do Menu Lateral
-        
-// NAVEGAÇÃO PRINCIPAL DO SISTEMA
-window.switchTab = function(tabId) {
-    const tab = document.getElementById(`tab-${tabId}`);
-    const button = document.getElementById(`btn-${tabId}`);
-
-    if (!tab || !button) {
-        console.error('Aba não encontrada:', tabId);
-        return;
-    }
-
-    // Esconde todas as abas
-    document.querySelectorAll('.tab-content').forEach(el => {
-        el.classList.add('hidden');
-    });
-
-    // Reseta os botões do menu
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
-    });
-
-    // Mostra a aba selecionada
-    tab.classList.remove('hidden');
-
-    // Destaca o botão selecionado
-    button.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
-
-    // Carrega os dados da aba
-    try {
-        if (tabId === 'dashboard') loadDashboard();
-        if (tabId === 'pedidos') loadPedidos();
-        if (tabId === 'produtos') {
-            loadEstoque();
-            loadCategoriesSelect();
+        function switchTab(tabId) {
+            try {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
+                });
+                
+                const targetTab = document.getElementById(`tab-${tabId}`);
+                const targetBtn = document.getElementById(`btn-${tabId}`);
+                
+                if (targetTab) targetTab.classList.remove('hidden');
+                if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+                
+                if(tabId === 'dashboard') loadDashboard();
+                if(tabId === 'pedidos') loadPedidos();
+                if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
+                if(tabId === 'estoque') loadEstoque();
+                if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
+                if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
+                if(tabId === 'calculadora') loadCalcSelect();
+                if(tabId === 'relatorios') loadRelatorios();
+                if(tabId === 'config') loadConfigs();
+            } catch (err) {
+                console.error("Erro ao alternar aba:", err);
+            }
         }
-        if (tabId === 'estoque') loadEstoque();
-        if (tabId === 'clientes') {
-            loadClientes();
-            loadClientesSelect();
+
+        function switchSubTab(subId) {
+            try {
+                document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.subtab-btn').forEach(btn => {
+                    btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+                });
+                const targetSub = document.getElementById(`subtab-${subId}`);
+                const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+
+                if (targetSub) targetSub.classList.remove('hidden');
+                if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+                
+                if(subId === 'produtos-ranking') renderRankingProdutos();
+                if(subId === 'clientes-analise') renderRankingClientes();
+                if(subId === 'crediario-rel') renderRelatorioCrediario();
+            } catch (err) {
+                console.error("Erro ao alternar sub-aba:", err);
+            }
         }
-        if (tabId === 'crediario') {
-            loadCrediario();
-            loadClientesSelect();
-        }
-        if (tabId === 'calculadora') loadCalcSelect();
-        if (tabId === 'relatorios') loadRelatorios();
-        if (tabId === 'config') loadConfigs();
-
-    } catch (error) {
-        console.error(`Erro ao carregar a aba "${tabId}":`, error);
-        alert('A aba abriu, mas ocorreu um erro ao carregar os dados. Consulte o Console (F12).');
-    }
-};
-
-
-// CONTROLE DAS SUB-ABAS DOS RELATÓRIOS
-window.switchSubTab = function(subId) {
-    const subTab = document.getElementById(`subtab-${subId}`);
-    const button = document.getElementById(`subbtn-${subId}`);
-
-    if (!subTab || !button) {
-        console.error('Sub-aba não encontrada:', subId);
-        return;
-    }
-
-    // Esconde todas as sub-abas
-    document.querySelectorAll('.subtab-content').forEach(el => {
-        el.classList.add('hidden');
-    });
-
-    // Reseta os botões
-    document.querySelectorAll('.subtab-btn').forEach(btn => {
-        btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
-    });
-
-    // Mostra a sub-aba selecionada
-    subTab.classList.remove('hidden');
-
-    // Destaca o botão selecionado
-    button.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
-
-    try {
-        if (subId === 'produtos-ranking') renderRankingProdutos();
-        if (subId === 'clientes-analise') renderRankingClientes();
-        if (subId === 'crediario-rel') renderRelatorioCrediario();
-
-    } catch (error) {
-        console.error(`Erro ao carregar a sub-aba "${subId}":`, error);
-        alert('A sub-aba abriu, mas ocorreu um erro ao carregar os dados. Consulte o Console (F12).');
-    }
-};
-
 
         function loadRelatorios() {
             preencherFiltrosSelects();
@@ -698,10 +681,10 @@ window.switchSubTab = function(subId) {
 
                 if (p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
-                        unidadesVendidas += (item.qtd || 1);
+                        unidadesVendidas += item.qtd;
                         let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
                         let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                        custoTotalCMV += (custoUnit * (item.qtd || 1));
+                        custoTotalCMV += (custoUnit * item.qtd);
                     });
                 }
 
@@ -749,7 +732,7 @@ window.switchSubTab = function(subId) {
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || p.valortotal || 0);
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
             });
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
@@ -780,8 +763,8 @@ window.switchSubTab = function(subId) {
                 if(p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
                         if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        mapProd[item.nome].qtd += (item.qtd || 1);
-                        mapProd[item.nome].fat += ((item.preco || 0) * (item.qtd || 1));
+                        mapProd[item.nome].qtd += item.qtd;
+                        mapProd[item.nome].fat += (item.preco * item.qtd);
                     });
                 }
             });
@@ -816,7 +799,7 @@ window.switchSubTab = function(subId) {
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || p.valortotal || 0);
+                mapCli[p.cliente].total += Number(p.valorTotal || 0);
                 mapCli[p.cliente].pedidos++;
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
@@ -854,7 +837,7 @@ window.switchSubTab = function(subId) {
 
         function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
 
-        // --- GESTÃO DE PEDIDOS (Supabase + LocalStorage) ---
+        // --- GESTÃO DE PEDIDOS ROBUSTA ---
         async function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             if (!listEl) return;
@@ -1161,244 +1144,6 @@ window.switchSubTab = function(subId) {
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
             document.getElementById('product-btn-submit').textContent = 'Salvar Produto na Nuvem';
             loadCategoriesSelect();
-        }
-
-        // --- CARTILHA DE CLIENTES NA NUVEM ---
-        async function saveClient(e) {
-            e.preventDefault();
-            const clienteId = document.getElementById('client-index').value;
-            const clienteData = {
-                id: clienteId ? clienteId : 'CLI-' + Date.now(),
-                nome: document.getElementById('cli-nome').value,
-                whatsapp: document.getElementById('cli-zap').value,
-                endereco: document.getElementById('cli-end').value
-            };
-
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
-                if (error) {
-                    alert("Erro ao salvar cliente na nuvem: " + error.message);
-                    return;
-                }
-            }
-
-            alert(clienteId ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
-            resetClientForm();
-            loadClientes();
-            loadClientesSelect();
-        }
-
-        async function loadClientes() {
-            const list = document.getElementById('clientes-list');
-            if (!list) return;
-            let clientes = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
-            }
-            if (clientes.length === 0) {
-                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            }
-
-            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c) => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editClient('${c.id}')" class="text-blue-600 hover:text-blue-800" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            ${c.nome}
-                        </h4>
-                        <p class="text-gray-500">${c.whatsapp || c.cli_zap} | ${c.endereco || c.cli_end}</p>
-                    </div>
-                    <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
-        }
-
-        async function loadClientesSelect() {
-            const selectEl = document.getElementById('cred-cliente');
-            if (!selectEl) return;
-            let clientes = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
-            }
-            if (clientes.length === 0) {
-                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            }
-            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-        }
-
-        async function editClient(id) {
-            let clientes = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
-                if (data && data.length > 0) clientes = data;
-            }
-            const c = clientes[0] || JSON.parse(localStorage.getItem('helcinho_clientes') || '[]').find(item => item.id == id);
-            if(!c) return;
-
-            document.getElementById('client-index').value = c.id;
-            document.getElementById('cli-nome').value = c.nome || '';
-            document.getElementById('cli-zap').value = c.whatsapp || c.cli_zap || '';
-            document.getElementById('cli-end').value = c.endereco || c.cli_end || '';
-            document.getElementById('client-form-title').textContent = 'Editar Cliente (' + c.nome + ')';
-            document.getElementById('client-btn-submit').textContent = 'Atualizar Cliente na Nuvem';
-        }
-
-        function resetClientForm() {
-            document.getElementById('client-index').value = '';
-            document.getElementById('cli-nome').value = '';
-            document.getElementById('cli-zap').value = '';
-            document.getElementById('cli-end').value = '';
-            document.getElementById('client-form-title').textContent = 'Cadastrar Novo Cliente';
-            document.getElementById('client-btn-submit').textContent = 'Salvar Cliente na Nuvem';
-        }
-
-        async function deleteClient(id) {
-            if(!confirm('Excluir cliente da nuvem?')) return;
-            if (supabaseClient) {
-                await supabaseClient.from('clientes').delete().eq('id', id);
-            }
-            loadClientes();
-            loadClientesSelect();
-        }
-
-        // --- CREDIÁRIO NA NUVEM ---
-        async function saveCrediario(e) {
-            e.preventDefault();
-            const cliente = document.getElementById('cred-cliente').value;
-            const produtos = document.getElementById('cred-produtos').value;
-            const valorTotal = parseFloat(document.getElementById('cred-valor').value);
-            const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
-            const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
-
-            if(!cliente) return alert('Selecione um cliente!');
-            if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
-
-            const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
-            let parcelas = [];
-            let dataBase = new Date(dataInicialStr + 'T00:00:00');
-
-            for (let i = 1; i <= qtdParcelas; i++) {
-                parcelas.push({
-                    id: Date.now() + i,
-                    numero: `${i}/${qtdParcelas}`,
-                    valorOriginal: valorParcela,
-                    valorPago: 0,
-                    vencimento: dataBase.toISOString().split('T')[0],
-                    status: 'Pendente'
-                });
-                dataBase.setDate(dataBase.getDate() + 30);
-            }
-
-            const vendaCrediario = {
-                id: 'CRED-' + Date.now(),
-                cliente,
-                produtos,
-                valorTotal,
-                parcelas
-            };
-
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('crediario').upsert([vendaCrediario]);
-                if (error) {
-                    console.error("Erro ao salvar crediário na nuvem:", error);
-                }
-            }
-
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            credList.push(vendaCrediario);
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-
-            alert('Venda parcelada gerada e salva na nuvem com sucesso!');
-            e.target.reset();
-            loadCrediario();
-            loadDashboard();
-        }
-
-        async function loadCrediario() {
-            const list = document.getElementById('crediario-list');
-            if (!list) return;
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
-                if (data) credList = data;
-            }
-            if (credList.length === 0) {
-                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            }
-
-            list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>' : credList.map((venda, vIndex) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
-                    <div class="flex justify-between items-center font-bold border-b pb-1">
-                        <span>${venda.cliente} — R$ ${Number(venda.valorTotal || 0).toFixed(2).replace('.', ',')} (${venda.produtos})</span>
-                        <button onclick="deleteContrato('${venda.id}', ${vIndex})" class="text-red-500 hover:text-red-700">Excluir Venda</button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        ${(venda.parcelas || []).map((p, pIndex) => {
-                            const hoje = new Date().toISOString().split('T')[0];
-                            let saldo = p.valorOriginal - p.valorPago;
-                            let statusTxt = p.status;
-                            if (saldo <= 0) statusTxt = 'Paga';
-                            else if (p.vencimento < hoje) statusTxt = 'ATRASADA';
-                            return `
-                                <div class="p-2 rounded border bg-white flex flex-col justify-between">
-                                    <div>
-                                        <b>Parc ${p.numero}</b> | R$ ${saldo.toFixed(2).replace('.', ',')}<br>
-                                        Venc: ${p.vencimento.split('-').reverse().join('/')}<br>
-                                        Status: <span class="${statusTxt === 'ATRASADA' ? 'text-red-600 font-bold' : ''}">${statusTxt}</span>
-                                    </div>
-                                    ${saldo > 0 ? `<button onclick="baixarParcela('${venda.id}', ${pIndex})" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function baixarParcela(vendaId, pIndex) {
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
-            }
-            if (credList.length === 0) {
-                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            }
-
-            let venda = credList.find(v => v.id == vendaId) || credList[vendaId];
-            if (!venda) return;
-
-            let parcela = venda.parcelas[pIndex];
-            let saldo = parcela.valorOriginal - parcela.valorPago;
-            let valorPagoStr = prompt(`Valor a baixar (Saldo: R$ ${saldo.toFixed(2)})`, saldo);
-            if(!valorPagoStr) return;
-            let valorPago = parseFloat(valorPagoStr);
-            if(isNaN(valorPago) || valorPago <= 0) return alert('Valor inválido!');
-            
-            parcela.valorPago += valorPago;
-            parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
-
-            if (supabaseClient) {
-                await supabaseClient.from('crediario').upsert([venda]);
-            }
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-            loadCrediario();
-            loadDashboard();
-            alert('Baixa registrada com sucesso!');
-        }
-
-        async function deleteContrato(vendaId, vIndex) {
-            if(!confirm('Deseja excluir este contrato?')) return;
-            if (supabaseClient) {
-                await supabaseClient.from('crediario').delete().eq('id', vendaId);
-            }
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            credList.splice(vIndex, 1);
-            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
-            loadCrediario();
-            loadDashboard();
         }
 
         // --- CATEGORIAS NA NUVEM COM EXCLUSÃO E CRIAÇÃO ---
