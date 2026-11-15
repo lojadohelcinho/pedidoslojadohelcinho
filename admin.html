@@ -505,79 +505,18 @@
         let products = [];
         let myChart = null;
 
-        function checkAuth() {
-            try {
-                if (localStorage.getItem('helcinho_logged_local') === 'true') {
-                    const loginScreen = document.getElementById('login-screen');
-                    const appContainer = document.getElementById('app-container');
-                    
-                    if (loginScreen) loginScreen.classList.add('hidden');
-                    if (appContainer) appContainer.classList.remove('hidden');
+        // Inicialização direta do painel sem login
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadConfigs();
+            loadCategoriesSelect();
+            loadClientes();
+            loadClientesSelect();
+            loadEstoque();
+        });
 
-                    if (typeof loadDashboard === 'function') loadDashboard();
-                    if (typeof loadConfigs === 'function') loadConfigs();
-                    if (typeof loadCategoriesSelect === 'function') loadCategoriesSelect();
-                    if (typeof loadClientes === 'function') loadClientes();
-                    if (typeof loadClientesSelect === 'function') loadClientesSelect();
-                    if (typeof loadEstoque === 'function') loadEstoque();
-                } else {
-                    const loginScreen = document.getElementById('login-screen');
-                    const appContainer = document.getElementById('app-container');
-                    
-                    if (loginScreen) loginScreen.classList.remove('hidden');
-                    if (appContainer) appContainer.classList.add('hidden');
-                }
-            } catch (err) {
-                console.error("Erro no checkAuth:", err);
-            }
-        }
-
-        function handleLogin(e) {
-            if (e) e.preventDefault();
-            try {
-                const passwordInput = document.getElementById('login-password');
-                const errEl = document.getElementById('login-error');
-                
-                if (!passwordInput) {
-                    alert('Erro interno no formulário.');
-                    return false;
-                }
-
-                const password = passwordInput.value;
-
-                if (password && password.length >= 4) {
-                    localStorage.setItem('helcinho_logged_local', 'true');
-                    if (errEl) errEl.classList.add('hidden');
-                    
-                    const loginScreen = document.getElementById('login-screen');
-                    const appContainer = document.getElementById('app-container');
-                    
-                    if (loginScreen) loginScreen.classList.add('hidden');
-                    if (appContainer) appContainer.classList.remove('hidden');
-
-                    if (typeof loadDashboard === 'function') loadDashboard();
-                    if (typeof loadConfigs === 'function') loadConfigs();
-                    if (typeof loadCategoriesSelect === 'function') loadCategoriesSelect();
-                    if (typeof loadClientes === 'function') loadClientes();
-                    if (typeof loadClientesSelect === 'function') loadClientesSelect();
-                    if (typeof loadEstoque === 'function') loadEstoque();
-                } else {
-                    if (errEl) {
-                        errEl.textContent = 'Senha inválida. Digite pelo menos 4 caracteres.';
-                        errEl.classList.remove('hidden');
-                    } else {
-                        alert('Digite uma senha com pelo menos 4 caracteres.');
-                    }
-                }
-            } catch (err) {
-                console.error("Erro ao fazer login:", err);
-                alert("Erro ao entrar no sistema: " + err.message);
-            }
-            return false;
-        }
-
-        async function handleLogout() {
-            localStorage.removeItem('helcinho_logged_local');
+        // Função vazia apenas para evitar erros caso algum botão antigo tente chamá-la
+        function handleLogout() {
             location.reload();
         }
 
