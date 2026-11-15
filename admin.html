@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
+    <!-- APLICAÇÃO PRINCIPAL (Visível Diretamente) -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -146,8 +146,8 @@
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-semibold">Categoria</label>
                                 <div class="flex gap-2">
-                                    <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
-                                    <button type="button" onclick="excluirCategoria()" class="text-[10px] text-red-600 font-bold hover:underline">🗑️ Excluir Categoria</button>
+                                    <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar</button>
+                                    <button type="button" onclick="excluirCategoria()" class="text-[10px] text-red-600 font-bold hover:underline">🗑️ Excluir</button>
                                 </div>
                             </div>
                             <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
@@ -504,7 +504,7 @@
         let products = [];
         let myChart = null;
 
-        // Inicialização automática ao abrir a página
+        // Inicialização direta do painel sem login
         window.addEventListener('DOMContentLoaded', () => {
             try { loadDashboard(); } catch(e){}
             try { loadConfigs(); } catch(e){}
@@ -542,7 +542,7 @@
                 if(tabId === 'calculadora') loadCalcSelect();
                 if(tabId === 'relatorios') loadRelatorios();
                 if(tabId === 'config') loadConfigs();
-            } catch(err) {
+            } catch (err) {
                 console.error("Erro ao alternar aba:", err);
             }
         }
@@ -562,12 +562,253 @@
                 if(subId === 'produtos-ranking') renderRankingProdutos();
                 if(subId === 'clientes-analise') renderRankingClientes();
                 if(subId === 'crediario-rel') renderRelatorioCrediario();
-            } catch(err) {
+            } catch (err) {
                 console.error("Erro ao alternar sub-aba:", err);
             }
         }
 
-        // --- GESTÃO DE PEDIDOS (Supabase + LocalStorage Combinados) ---
+        function loadRelatorios() {
+            preencherFiltrosSelects();
+            calcularIndicadoresGerais();
+        }
+
+        async function preencherFiltrosSelects() {
+            let produtos = products;
+            let clientes = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*');
+                    if (data) clientes = data;
+                } catch(e) {}
+            }
+            if (clientes.length === 0) {
+                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            }
+            
+            const selProd = document.getElementById('filtro-produto');
+            if(selProd) {
+                selProd.innerHTML = '<option value="">Todos os produtos</option>' + produtos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+            }
+
+            const selCat = document.getElementById('filtro-categoria');
+            if(selCat) {
+                let cats = [...new Set(produtos.map(p => p.categoria))];
+                selCat.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+
+            const selCli = document.getElementById('filtro-cliente');
+            if(selCli) {
+                selCli.innerHTML = '<option value="">Todos os clientes</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            }
+        }
+
+        function aplicarFiltrosRelatorio() { calcularIndicadoresGerais(); }
+        function limparFiltrosRelatorio() {
+            document.getElementById('filtro-periodo').value = '30';
+            document.getElementById('filtro-produto').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-cliente').value = '';
+            document.getElementById('filtro-pagamento').value = '';
+            calcularIndicadoresGerais();
+        }
+
+        async function calcularIndicadoresGerais() {
+            let pedidos = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
+            }
+            if (pedidos.length === 0) {
+                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            }
+
+            let credList = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
+            }
+            if (credList.length === 0) {
+                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            }
+
+            let produtos = products;
+            let cliFiltro = document.getElementById('filtro-cliente').value;
+            let pagFiltro = document.getElementById('filtro-pagamento').value;
+
+            let faturamentoBruto = 0, qtdVendas = 0, unidadesVendidas = 0, valorRecebido = 0, contasAReceber = 0, contasAtrasadas = 0, custoTotalCMV = 0;
+            const hoje = new Date().toISOString().split('T')[0];
+
+            pedidos.forEach(p => {
+                if (p.status === 'Cancelado') return;
+                if (cliFiltro && p.cliente !== cliFiltro) return;
+                if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
+
+                faturamentoBruto += Number(p.valorTotal || p.valortotal || 0);
+                qtdVendas++;
+
+                if (p.itensDetalhados) {
+                    p.itensDetalhados.forEach(item => {
+                        unidadesVendidas += (item.qtd || 1);
+                        let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
+                        let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
+                        custoTotalCMV += (custoUnit * (item.qtd || 1));
+                    });
+                }
+
+                if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
+                    valorRecebido += Number(p.valorTotal || p.valortotal || 0);
+                }
+            });
+
+            credList.forEach(venda => {
+                if (cliFiltro && venda.cliente !== cliFiltro) return;
+                (venda.parcelas || []).forEach(parc => {
+                    let saldoParc = parc.valorOriginal - parc.valorPago;
+                    valorRecebido += parc.valorPago;
+                    if (saldoParc > 0) {
+                        contasAReceber += saldoParc;
+                        if (parc.vencimento < hoje) contasAtrasadas += saldoParc;
+                    }
+                });
+            });
+
+            let lucroEstimado = faturamentoBruto - custoTotalCMV;
+            let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
+
+            document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-qtd-vendas').textContent = qtdVendas;
+            document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-unidades').textContent = unidadesVendidas;
+            document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
+
+            document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
+
+            renderGraficoDesempenho(pedidos);
+        }
+
+        function renderGraficoDesempenho(pedidos) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            let diasMap = {};
+            pedidos.forEach(p => {
+                let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || p.valortotal || 0);
+            });
+            let labels = Object.keys(diasMap).slice(-7);
+            let dataVals = labels.map(l => diasMap[l]);
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Nenhum dado'],
+                    datasets: [{ label: 'Faturamento (R$)', data: dataVals.length > 0 ? dataVals : [0], backgroundColor: '#008B74', borderRadius: 8 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        async function renderRankingProdutos() {
+            let pedidos = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
+            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+
+            let mapProd = {};
+            pedidos.forEach(p => {
+                if(p.status === 'Cancelado') return;
+                if(p.itensDetalhados) {
+                    p.itensDetalhados.forEach(item => {
+                        if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
+                        mapProd[item.nome].qtd += (item.qtd || 1);
+                        mapProd[item.nome].fat += ((item.preco || 0) * (item.qtd || 1));
+                    });
+                }
+            });
+            let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
+            const tbody = document.getElementById('ranking-produtos-tbody');
+            if(!tbody) return;
+            if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
+            tbody.innerHTML = arr.map((item, idx) => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2.5 font-bold">#${idx + 1}</td>
+                    <td class="p-2.5 font-semibold text-marromCafe">${item.nome}</td>
+                    <td class="p-2.5 text-gray-500">${item.categoria}</td>
+                    <td class="p-2.5 text-center font-bold">${item.qtd}</td>
+                    <td class="p-2.5 text-right font-bold text-verdePetroleo">R$ ${item.fat.toFixed(2).replace('.', ',')}</td>
+                    <td class="p-2.5 text-right text-emerald-700 font-semibold">R$ ${(item.fat * 0.6).toFixed(2).replace('.', ',')}</td>
+                    <td class="p-2.5 text-right font-bold">60%</td>
+                </tr>
+            `).join('');
+        }
+
+        async function renderRankingClientes() {
+            let pedidos = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
+            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+
+            let mapCli = {};
+            pedidos.forEach(p => {
+                if(p.status === 'Cancelado' || !p.cliente) return;
+                if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
+                mapCli[p.cliente].total += Number(p.valorTotal || p.valortotal || 0);
+                mapCli[p.cliente].pedidos++;
+            });
+            let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
+            const listEl = document.getElementById('ranking-clientes-list');
+            if(!listEl) return;
+            if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
+            listEl.innerHTML = arr.map((c, idx) => `
+                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
+                    <div><b>#${idx + 1} - ${c.nome}</b><p class="text-gray-500">${c.pedidos} pedido(s)</p></div>
+                    <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
+                </div>
+            `).join('');
+        }
+
+        async function renderRelatorioCrediario() {
+            let credList = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
+            }
+            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+
+            const listEl = document.getElementById('crediario-rel-list');
+            if(!listEl) return;
+            if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
+            listEl.innerHTML = credList.map(v => `
+                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
+                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${Number(v.valorTotal || 0).toFixed(2).replace('.', ',')}</div>
+                    <p class="text-gray-500">Produtos: ${v.produtos}</p>
+                </div>
+            `).join('');
+        }
+
+        function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
+
+        // --- GESTÃO DE PEDIDOS (Supabase + LocalStorage) ---
         async function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             if (!listEl) return;
@@ -759,242 +1000,10 @@
             }
         }
 
-        // --- RELATÓRIOS ---
-        function loadRelatorios() {
-            preencherFiltrosSelects();
-            calcularIndicadoresGerais();
-        }
-
-        async function preencherFiltrosSelects() {
-            let produtos = products;
-            let clientes = [];
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('clientes').select('*');
-                    if (data) clientes = data;
-                } catch(e) {}
-            }
-            if (clientes.length === 0) {
-                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            }
-            
-            const selProd = document.getElementById('filtro-produto');
-            if(selProd) {
-                selProd.innerHTML = '<option value="">Todos os produtos</option>' + produtos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
-            }
-
-            const selCat = document.getElementById('filtro-categoria');
-            if(selCat) {
-                let cats = [...new Set(produtos.map(p => p.categoria))];
-                selCat.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-            }
-
-            const selCli = document.getElementById('filtro-cliente');
-            if(selCli) {
-                selCli.innerHTML = '<option value="">Todos os clientes</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-            }
-        }
-
-        function aplicarFiltrosRelatorio() { calcularIndicadoresGerais(); }
-        function limparFiltrosRelatorio() {
-            document.getElementById('filtro-periodo').value = '30';
-            document.getElementById('filtro-produto').value = '';
-            document.getElementById('filtro-categoria').value = '';
-            document.getElementById('filtro-cliente').value = '';
-            document.getElementById('filtro-pagamento').value = '';
-            calcularIndicadoresGerais();
-        }
-
-        async function calcularIndicadoresGerais() {
-            let pedidos = [];
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('pedidos').select('*');
-                    if (data) pedidos = data;
-                } catch(e) {}
-            }
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
-
-            let credList = [];
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('crediario').select('*');
-                    if (data) credList = data;
-                } catch(e) {}
-            }
-            if (credList.length === 0) {
-                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            }
-
-            let produtos = products;
-            let cliFiltro = document.getElementById('filtro-cliente').value;
-            let pagFiltro = document.getElementById('filtro-pagamento').value;
-
-            let faturamentoBruto = 0, qtdVendas = 0, unidadesVendidas = 0, valorRecebido = 0, contasAReceber = 0, contasAtrasadas = 0, custoTotalCMV = 0;
-            const hoje = new Date().toISOString().split('T')[0];
-
-            pedidos.forEach(p => {
-                if (p.status === 'Cancelado') return;
-                if (cliFiltro && p.cliente !== cliFiltro) return;
-                if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
-
-                faturamentoBruto += Number(p.valorTotal || p.valortotal || 0);
-                qtdVendas++;
-
-                if (p.itensDetalhados) {
-                    p.itensDetalhados.forEach(item => {
-                        unidadesVendidas += (item.qtd || 1);
-                        let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
-                        let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                        custoTotalCMV += (custoUnit * (item.qtd || 1));
-                    });
-                }
-
-                if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += Number(p.valorTotal || p.valortotal || 0);
-                }
-            });
-
-            credList.forEach(venda => {
-                if (cliFiltro && venda.cliente !== cliFiltro) return;
-                (venda.parcelas || []).forEach(parc => {
-                    let saldoParc = parc.valorOriginal - parc.valorPago;
-                    valorRecebido += parc.valorPago;
-                    if (saldoParc > 0) {
-                        contasAReceber += saldoParc;
-                        if (parc.vencimento < hoje) contasAtrasadas += saldoParc;
-                    }
-                });
-            });
-
-            let lucroEstimado = faturamentoBruto - custoTotalCMV;
-            let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
-
-            document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-qtd-vendas').textContent = qtdVendas;
-            document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-unidades').textContent = unidadesVendidas;
-            document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
-
-            document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-
-            renderGraficoDesempenho(pedidos);
-        }
-
-        function renderGraficoDesempenho(pedidos) {
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            let diasMap = {};
-            pedidos.forEach(p => {
-                let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
-            });
-            let labels = Object.keys(diasMap).slice(-7);
-            let dataVals = labels.map(l => diasMap[l]);
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                    datasets: [{ label: 'Faturamento (R$)', data: dataVals.length > 0 ? dataVals : [0], backgroundColor: '#008B74', borderRadius: 8 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        async function renderRankingProdutos() {
-            let pedidos = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
-            }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-
-            let mapProd = {};
-            pedidos.forEach(p => {
-                if(p.status === 'Cancelado') return;
-                if(p.itensDetalhados) {
-                    p.itensDetalhados.forEach(item => {
-                        if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        mapProd[item.nome].qtd += item.qtd;
-                        mapProd[item.nome].fat += (item.preco * item.qtd);
-                    });
-                }
-            });
-            let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
-            const tbody = document.getElementById('ranking-produtos-tbody');
-            if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
-            tbody.innerHTML = arr.map((item, idx) => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2.5 font-bold">#${idx + 1}</td>
-                    <td class="p-2.5 font-semibold text-marromCafe">${item.nome}</td>
-                    <td class="p-2.5 text-gray-500">${item.categoria}</td>
-                    <td class="p-2.5 text-center font-bold">${item.qtd}</td>
-                    <td class="p-2.5 text-right font-bold text-verdePetroleo">R$ ${item.fat.toFixed(2).replace('.', ',')}</td>
-                    <td class="p-2.5 text-right text-emerald-700 font-semibold">R$ ${(item.fat * 0.6).toFixed(2).replace('.', ',')}</td>
-                    <td class="p-2.5 text-right font-bold">60%</td>
-                </tr>
-            `).join('');
-        }
-
-        async function renderRankingClientes() {
-            let pedidos = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
-            }
-            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-
-            let mapCli = {};
-            pedidos.forEach(p => {
-                if(p.status === 'Cancelado' || !p.cliente) return;
-                if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || 0);
-                mapCli[p.cliente].pedidos++;
-            });
-            let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
-            const listEl = document.getElementById('ranking-clientes-list');
-            if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
-            listEl.innerHTML = arr.map((c, idx) => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div><b>#${idx + 1} - ${c.nome}</b><p class="text-gray-500">${c.pedidos} pedido(s)</p></div>
-                    <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
-                </div>
-            `).join('');
-        }
-
-        async function renderRelatorioCrediario() {
-            let credList = [];
-            if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
-            }
-            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-
-            const listEl = document.getElementById('crediario-rel-list');
-            if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
-            listEl.innerHTML = credList.map(v => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
-                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${Number(v.valorTotal || 0).toFixed(2).replace('.', ',')}</div>
-                    <p class="text-gray-500">Produtos: ${v.produtos}</p>
-                </div>
-            `).join('');
-        }
-
-        function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
-
         // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
+            if (!listEl) return;
             if (supabaseClient) {
                 const { data, error } = await supabaseClient.from('produtos').select('*');
                 if (!error && data) {
@@ -1135,6 +1144,7 @@
 
         async function loadClientes() {
             const list = document.getElementById('clientes-list');
+            if (!list) return;
             let clientes = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
@@ -1257,10 +1267,12 @@
             alert('Venda parcelada gerada e salva na nuvem com sucesso!');
             e.target.reset();
             loadCrediario();
+            loadDashboard();
         }
 
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
+            if (!list) return;
             let credList = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
@@ -1327,6 +1339,7 @@
             }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
             alert('Baixa registrada com sucesso!');
         }
 
@@ -1339,6 +1352,7 @@
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
         }
 
         // --- CATEGORIAS NA NUVEM COM EXCLUSÃO E CRIAÇÃO ---
@@ -1429,17 +1443,6 @@
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
-
-        // Inicialização direta do painel sem login
-        window.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-            loadConfigs();
-            loadCategoriesSelect();
-            loadClientes();
-            loadClientesSelect();
-            loadEstoque();
-            loadPedidos();
-        });
     </script>
 </body>
 </html>
