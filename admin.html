@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Loja do Helcinho</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js para Gráficos Visuais -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -164,7 +170,7 @@
             </div>
         </section>
 
-        <!-- ESTOQUE (COM EDIÇÃO POR LÁPIS) -->
+        <!-- ESTOQUE -->
         <section id="tab-estoque" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
@@ -172,7 +178,7 @@
             </div>
         </section>
 
-        <!-- CARTILHA DE CLIENTES (COM EDIÇÃO POR LÁPIS) -->
+        <!-- CARTILHA DE CLIENTES -->
         <section id="tab-clientes" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
@@ -190,7 +196,7 @@
             </div>
         </section>
 
-        <!-- CREDIÁRIO & PARCELAS INDIVIDUAIS (COM EDIÇÃO POR LÁPIS) -->
+        <!-- CREDIÁRIO -->
         <section id="tab-crediario" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
@@ -244,10 +250,16 @@
             </div>
         </section>
 
-        <!-- RELATÓRIOS & VENDAS -->
+        <!-- RELATÓRIOS & VENDAS (COM GRÁFICO E EXPORTAÇÃO CSV) -->
         <section id="tab-relatorios" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
+            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
+                    <button onclick="exportCSV()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow transition">
+                        <i class="fa-solid fa-file-arrow-down"></i> Exportar Dados (CSV)
+                    </button>
+                </div>
+                
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
                         <p class="text-xs text-gray-500">Faturamento Total Acumulado</p>
@@ -260,6 +272,14 @@
                     <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
                         <p class="text-xs text-gray-500">Ticket Médio por Venda</p>
                         <h3 id="rel-ticket" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <!-- Gráfico Visual de Vendas -->
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
+                    <h3 class="font-bold text-xs uppercase text-gray-600">Visualização Gráfica de Desempenho</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="salesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -290,6 +310,7 @@
         } catch (e) {}
 
         let products = [];
+        let myChart = null;
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -471,7 +492,7 @@
             loadClientes();
         }
 
-        // --- CREDIÁRIO & PARCELAS ---
+        // --- CREDIÁRIO ---
         function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
@@ -605,15 +626,75 @@
             loadPedidos();
         }
 
-        // --- RELATÓRIOS ---
+        // --- RELATÓRIOS & GRÁFICOS (CHART.JS) + EXPORTAÇÃO CSV ---
         function loadRelatorios() {
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             let faturamento = 0, qtd = 0;
-            pedidos.forEach(p => { if (p.status !== 'Cancelado') { faturamento += p.valorTotal; qtd++; } });
+            let statusCount = { Novo: 0, Confirmado: 0, 'Em separação': 0, Entregue: 0, Cancelado: 0 };
+
+            pedidos.forEach(p => {
+                if (p.status !== 'Cancelado') {
+                    faturamento += p.valorTotal;
+                    qtd++;
+                }
+                if (statusCount[p.status] !== undefined) {
+                    statusCount[p.status]++;
+                }
+            });
+
             let ticket = qtd > 0 ? faturamento / qtd : 0;
             document.getElementById('rel-faturamento').textContent = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
             document.getElementById('rel-qtd-pedidos').textContent = qtd;
             document.getElementById('rel-ticket').textContent = `R$ ${ticket.toFixed(2).replace('.', ',')}`;
+
+            // Renderiza ou Atualiza o Gráfico com Chart.js
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Novos', 'Confirmados', 'Em Separação', 'Entregues', 'Cancelados'],
+                    datasets: [{
+                        label: 'Quantidade de Pedidos por Status',
+                        data: [statusCount.Novo, statusCount.Confirmado, statusCount['Em separação'], statusCount.Entregue, statusCount.Cancelado],
+                        backgroundColor: ['#008B74', '#3E2723', '#D49B85', '#10B981', '#EF4444'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        // Função de Exportar CSV
+        function exportCSV() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            if (pedidos.length === 0) return alert('Nenhum dado de pedido para exportar!');
+
+            let csvContent = "data:text/csv;charset=utf-8,ID Pedido;Data;Produtos;Valor Total;Status;Presente\r\n";
+            pedidos.forEach(p => {
+                let row = [p.id, p.data, `"${p.produtos}"`, p.valorTotal.toFixed(2), p.status, p.presente];
+                csvContent += row.join(";") + "\r\n";
+            });
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "relatorio_vendas_helcinho.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // --- DASHBOARD & ATRASADOS ---
