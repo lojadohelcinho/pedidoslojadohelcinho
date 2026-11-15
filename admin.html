@@ -1267,17 +1267,25 @@
         }
 
         async function deletePedido(id) {
-    if(!confirm('Deseja realmente excluir este pedido?')) return;
-    if (supabaseClient) {
-        const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
-        if (error) {
-            alert("Erro ao excluir no Supabase: " + error.message);
-            return;
+            if(!confirm('Deseja realmente excluir este pedido?')) return;
+            
+            // Apaga da nuvem do Supabase
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
+                if (error) {
+                    alert("Erro ao excluir no Supabase: " + error.message);
+                    return;
+                }
+            }
+            
+            // Apaga também da memória local do navegador para limpar o cache
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.filter(p => p.id != id);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
+
+            alert('Pedido excluído com sucesso!');
+            loadPedidos();
         }
-    }
-    alert('Pedido excluído com sucesso!');
-    loadPedidos();
-}
 
         // --- DASHBOARD & ATRASADOS ---
         async function loadDashboard() {
