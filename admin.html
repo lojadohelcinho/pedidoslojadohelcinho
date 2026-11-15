@@ -1234,6 +1234,7 @@
         }
 
         // --- GESTÃO DE PEDIDOS (EXIBINDO VALORES E ITENS CORRETAMENTE) ---
+// --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
 async function loadPedidos() {
     const listEl = document.getElementById('pedidos-list');
     let pedidos = [];
@@ -1250,14 +1251,12 @@ async function loadPedidos() {
     }
 
     listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => {
-        // Pega o valor total independentemente se foi salvo como valorTotal ou valortotal
         let totalVal = Number(p.valorTotal || p.valortotal || 0);
 
-        // Monta a lista detalhada dos itens se existirem, senão usa a descrição em texto
         let itensHtml = '';
         if (p.itensDetalhados && Array.isArray(p.itensDetalhados) && p.itensDetalhados.length > 0) {
             itensHtml = p.itensDetalhados.map(item => `
-                <div class="text-gray-600 ml-2">• ${item.qtd}x ${item.nome} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un (Total: R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',')})</div>
+                <div class="text-gray-600 ml-2">• ${item.qtd}x ${item.nome} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un (Total: R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',)})</div>
             `).join('');
         } else {
             itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos || 'Não especificado'}</p>`;
