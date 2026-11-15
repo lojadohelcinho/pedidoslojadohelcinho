@@ -943,34 +943,23 @@
             const productData = {
                 id: productId ? Number(productId) : Date.now(),
                 nome: document.getElementById('nome').value,
-                sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
-                estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
                 imagem: document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
                 ativo: true
             };
 
-            // Enviar para o Supabase (Nuvem) se estiver ativo
+            // Enviar obrigatoriamente para a nuvem do Supabase
             if (supabaseClient) {
-                try {
-                    await supabaseClient.from('produtos').upsert([productData]);
-                } catch (err) {
-                    console.error("Erro ao enviar para o Supabase:", err);
+                const { error } = await supabaseClient.from('produtos').upsert([productData]);
+                if (error) {
+                    alert("Erro ao salvar na nuvem: " + error.message);
+                    return;
                 }
             }
 
-            // Salvar também localmente no navegador
-            let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            if (productId) {
-                localProducts = localProducts.map(p => p.id == productId ? productData : p);
-            } else {
-                localProducts.push(productData);
-            }
-            localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
-
-            alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
+            alert(productId ? 'Produto atualizado com sucesso na nuvem!' : 'Produto cadastrado com sucesso na nuvem!');
             resetProductForm();
             loadEstoque();
             loadCategoriesSelect();
