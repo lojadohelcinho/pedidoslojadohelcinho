@@ -504,55 +504,58 @@
         let products = [];
         let myChart = null;
 
-        // Inicialização segura ao carregar a página
+        // Inicialização blindada: cada função corre isoladamente para nunca travar o painel
         window.addEventListener('DOMContentLoaded', () => {
-            try {
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-            } catch (err) {
-                console.error("Erro na inicialização:", err);
-            }
+            const safeCall = (fn) => {
+                try {
+                    if (typeof fn === 'function') fn();
+                } catch (err) {
+                    console.warn("Aviso em função de arranque:", err);
+                }
+            };
+
+            safeCall(loadDashboard);
+            safeCall(loadConfigs);
+            safeCall(loadCategoriesSelect);
+            safeCall(loadClientes);
+            safeCall(loadClientesSelect);
+            safeCall(loadEstoque);
         });
 
         function handleLogout() {
             location.reload();
         }
 
-        // Função do Menu Lateral blindada contra erros
+        // Função do Menu Lateral com segurança reforçada
         function switchTab(tabId) {
             try {
-                // Esconde todas as abas
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                
-                // Remove o destaque de todos os botões do menu
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
                 });
                 
-                // Ativa a aba e o botão correspondentes
                 const targetTab = document.getElementById(`tab-${tabId}`);
                 const targetBtn = document.getElementById(`btn-${tabId}`);
                 
                 if (targetTab) targetTab.classList.remove('hidden');
                 if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
                 
-                // Executa a função de carregamento correspondente
-                if(tabId === 'dashboard') loadDashboard();
-                if(tabId === 'pedidos') loadPedidos();
-                if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
-                if(tabId === 'estoque') loadEstoque();
-                if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
-                if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
-                if(tabId === 'calculadora') loadCalcSelect();
-                if(tabId === 'relatorios') loadRelatorios();
-                if(tabId === 'config') loadConfigs();
+                if(tabId === 'dashboard') safeExec(loadDashboard);
+                if(tabId === 'pedidos') safeExec(loadPedidos);
+                if(tabId === 'produtos') { safeExec(loadEstoque); safeExec(loadCategoriesSelect); }
+                if(tabId === 'estoque') safeExec(loadEstoque);
+                if(tabId === 'clientes') { safeExec(loadClientes); safeExec(loadClientesSelect); }
+                if(tabId === 'crediario') { safeExec(loadCrediario); safeExec(loadClientesSelect); }
+                if(tabId === 'calculadora') safeExec(loadCalcSelect);
+                if(tabId === 'relatorios') safeExec(loadRelatorios);
+                if(tabId === 'config') safeExec(loadConfigs);
             } catch (err) {
                 console.error("Erro ao alternar aba:", err);
             }
+        }
+
+        function safeExec(fn) {
+            try { if (typeof fn === 'function') fn(); } catch(e) { console.warn(e); }
         }
 
         function switchSubTab(subId) {
