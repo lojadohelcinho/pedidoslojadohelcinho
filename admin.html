@@ -1233,45 +1233,62 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
-        async function loadPedidos() {
-            const listEl = document.getElementById('pedidos-list');
-            let pedidos = [];
+        // --- GESTÃO DE PEDIDOS (EXIBINDO VALORES E ITENS CORRETAMENTE) ---
+async function loadPedidos() {
+    const listEl = document.getElementById('pedidos-list');
+    let pedidos = [];
 
-            if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
-                if (!error && data) {
-                    pedidos = data;
-                }
-            }
-            
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
-
-            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <div>
-                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
-                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
-                        </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-1">
-                        <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
-                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
-                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                        </select>
-                        <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
-                    </div>
-                </div>
-            `).join('');
+    if (supabaseClient) {
+        const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
+        if (!error && data) {
+            pedidos = data;
         }
+    }
+    
+    if (pedidos.length === 0) {
+        pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+    }
+
+    listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => {
+        // Pega o valor total independentemente se foi salvo como valorTotal ou valortotal
+        let totalVal = Number(p.valorTotal || p.valortotal || 0);
+
+        // Monta a lista detalhada dos itens se existirem, senão usa a descrição em texto
+        let itensHtml = '';
+        if (p.itensDetalhados && Array.isArray(p.itensDetalhados) && p.itensDetalhados.length > 0) {
+            itensHtml = p.itensDetalhados.map(item => `
+                <div class="text-gray-600 ml-2">• ${item.qtd}x ${item.nome} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un (Total: R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',')})</div>
+            `).join('');
+        } else {
+            itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos || 'Não especificado'}</p>`;
+        }
+
+        return `
+            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                <div class="flex justify-between items-start border-b pb-2">
+                    <div>
+                        <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                        <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
+                        <div class="mt-1 space-y-1">
+                            ${itensHtml}
+                        </div>
+                    </div>
+                    <span class="font-bold text-base text-verdePetroleo">R$ ${totalVal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                    <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                        <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                        <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                        <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                        <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                        <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                    </select>
+                    <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
         async function updatePedidoStatus(id, val) {
             if (supabaseClient) {
