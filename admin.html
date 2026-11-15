@@ -232,16 +232,31 @@
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
                     <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input type="hidden" id="cred-index" value="">
-                        <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <input type="number" id="cred-parcelas" placeholder="Qtd de Parcelas (Ex: 3)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        <!-- ALTERADO: Input de texto substituído por um Select carregado da cartilha -->
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Selecionar Cliente</label>
+                            <select id="cred-cliente" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                                <option value="">Selecione um cliente...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Produtos Vendidos</label>
+                            <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Valor Total (R$)</label>
+                            <input type="number" step="0.01" id="cred-valor" placeholder="0,00" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Qtd de Parcelas</label>
+                            <input type="number" id="cred-parcelas" placeholder="Ex: 3" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                        </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
                             <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                         </div>
                         <div class="flex items-end">
-                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Gerar Parcelas</button>
+                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition shadow">Gerar Parcelas</button>
                         </div>
                     </form>
                 </div>
@@ -332,7 +347,7 @@
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold text-marromCafe">Modelo de Texto para Cobrança via WhatsApp</label>
                         <p class="text-[11px] text-gray-500">
-                            Tags disponíveis que serão substituídas automaticamente: 
+                            Tags disponíveis: 
                             <code class="bg-gray-100 text-marromCafe px-1 rounded">{cliente}</code>, 
                             <code class="bg-gray-100 text-marromCafe px-1 rounded">{parcela}</code>, 
                             <code class="bg-gray-100 text-marromCafe px-1 rounded">{valor}</code>, 
@@ -449,8 +464,8 @@
             if(tabId === 'dashboard') loadDashboard();
             if(tabId === 'pedidos') loadPedidos();
             if(tabId === 'estoque') loadEstoque();
-            if(tabId === 'clientes') loadClientes();
-            if(tabId === 'crediario') loadCrediario();
+            if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
+            if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
             if(tabId === 'calculadora') loadCalcSelect();
             if(tabId === 'relatorios') loadRelatorios();
             if(tabId === 'config') loadConfigs();
@@ -553,7 +568,7 @@
             document.getElementById('product-btn-submit').textContent = 'Salvar Produto';
         }
 
-        // --- CLIENTES ---
+        // --- CLIENTES & SELECT ORDENADO ALFABETICAMENTE ---
         function saveClient(e) {
             e.preventDefault();
             const index = document.getElementById('client-index').value;
@@ -564,11 +579,16 @@
             alert(index !== "" ? 'Cliente atualizado!' : 'Cliente cadastrado!');
             resetClientForm();
             loadClientes();
+            loadClientesSelect();
         }
 
         function loadClientes() {
             const list = document.getElementById('clientes-list');
-            const clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            
+            // Ordenar alfabeticamente a exibição na cartilha também
+            clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+
             list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c, i) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
@@ -580,6 +600,21 @@
                     </div>
                     <button onclick="deleteClient(${i})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
                 </div>
+            `).join('');
+        }
+
+        // Carrega a lista suspensa ordenada de A a Z
+        function loadClientesSelect() {
+            const selectEl = document.getElementById('cred-cliente');
+            if (!selectEl) return;
+            
+            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            
+            // Ordenação alfabética pelo nome do cliente
+            clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `
+                <option value="${c.nome}">${c.nome}</option>
             `).join('');
         }
 
@@ -610,6 +645,7 @@
             clientes.splice(i, 1);
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
             loadClientes();
+            loadClientesSelect();
         }
 
         // --- CREDIÁRIO ---
@@ -621,6 +657,7 @@
             const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
             const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
 
+            if(!cliente) return alert('Selecione um cliente da cartilha!');
             if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
 
             const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
