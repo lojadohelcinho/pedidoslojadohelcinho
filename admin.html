@@ -169,11 +169,12 @@
                             <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold mb-1">Categoria</label>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-semibold">Categoria</label>
+                                <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
+                            </div>
                             <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                                <option value="Masculino">Masculino</option>
-                                <option value="Feminino">Feminino</option>
-                                <option value="Presentes">Presentes</option>
+                                <!-- Preenchido dinamicamente -->
                             </select>
                         </div>
                         <div>
@@ -232,7 +233,6 @@
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
                     <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input type="hidden" id="cred-index" value="">
-                        <!-- ALTERADO: Input de texto substituído por um Select carregado da cartilha -->
                         <div>
                             <label class="block text-xs font-semibold mb-1 text-gray-500">Selecionar Cliente</label>
                             <select id="cred-cliente" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
@@ -383,6 +383,8 @@
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
                 loadConfigs();
+                loadCategoriesSelect();
+                loadClientesSelect();
                 return;
             }
 
@@ -391,6 +393,8 @@
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
                 loadConfigs();
+                loadCategoriesSelect();
+                loadClientesSelect();
                 return;
             }
 
@@ -401,6 +405,8 @@
                     document.getElementById('app-container').classList.remove('hidden');
                     loadDashboard();
                     loadConfigs();
+                    loadCategoriesSelect();
+                    loadClientesSelect();
                 } else {
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('app-container').classList.add('hidden');
@@ -427,6 +433,8 @@
                         document.getElementById('app-container').classList.remove('hidden');
                         loadDashboard();
                         loadConfigs();
+                        loadCategoriesSelect();
+                        loadClientesSelect();
                         return;
                     }
                 } catch (err) {}
@@ -439,6 +447,8 @@
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
                 loadConfigs();
+                loadCategoriesSelect();
+                loadClientesSelect();
             } else {
                 errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
                 errEl.classList.remove('hidden');
@@ -463,6 +473,7 @@
             
             if(tabId === 'dashboard') loadDashboard();
             if(tabId === 'pedidos') loadPedidos();
+            if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
             if(tabId === 'estoque') loadEstoque();
             if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
             if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
@@ -482,6 +493,36 @@
                     reader.readAsDataURL(file);
                 }
             });
+        }
+
+        // --- CATEGORIAS DINÂMICAS ---
+        function loadCategoriesSelect() {
+            const select = document.getElementById('categoria');
+            if(!select) return;
+            
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
+            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            let catsProdutos = produtos.map(p => p.categoria).filter(Boolean);
+            
+            let todas = [...new Set([...categoriasPadrao, ...savedCats, ...catsProdutos])].sort();
+            
+            select.innerHTML = todas.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function adicionarNovaCategoria() {
+            let nova = prompt("Digite o nome da nova categoria (Ex: Hidratantes, Maquiagem):");
+            if(nova && nova.trim() !== '') {
+                nova = nova.trim();
+                let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+                if(!savedCats.includes(nova)) {
+                    savedCats.push(nova);
+                    localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats));
+                }
+                loadCategoriesSelect();
+                document.getElementById('categoria').value = nova;
+                alert(`Categoria "${nova}" criada com sucesso!`);
+            }
         }
 
         // --- PRODUTOS ---
@@ -511,6 +552,7 @@
             alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             resetProductForm();
             loadEstoque();
+            loadCategoriesSelect();
         }
 
         function loadEstoque() {
@@ -543,6 +585,7 @@
             document.getElementById('product-id').value = p.id;
             document.getElementById('nome').value = p.nome;
             document.getElementById('sku').value = p.sku || '';
+            loadCategoriesSelect();
             document.getElementById('categoria').value = p.categoria;
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
             document.getElementById('descricao').value = p.descricao;
@@ -566,9 +609,10 @@
             document.getElementById('imagem-base64').value = '';
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
             document.getElementById('product-btn-submit').textContent = 'Salvar Produto';
+            loadCategoriesSelect();
         }
 
-        // --- CLIENTES & SELECT ORDENADO ALFABETICAMENTE ---
+        // --- CLIENTES & SELECT ORDENADO ---
         function saveClient(e) {
             e.preventDefault();
             const index = document.getElementById('client-index').value;
@@ -585,8 +629,6 @@
         function loadClientes() {
             const list = document.getElementById('clientes-list');
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            
-            // Ordenar alfabeticamente a exibição na cartilha também
             clientes.sort((a, b) => a.nome.localeCompare(b.nome));
 
             list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c, i) => `
@@ -603,14 +645,10 @@
             `).join('');
         }
 
-        // Carrega a lista suspensa ordenada de A a Z
         function loadClientesSelect() {
             const selectEl = document.getElementById('cred-cliente');
             if (!selectEl) return;
-            
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            
-            // Ordenação alfabética pelo nome do cliente
             clientes.sort((a, b) => a.nome.localeCompare(b.nome));
 
             selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `
