@@ -33,31 +33,6 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner mx-auto flex items-center justify-center">
-                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
-            </div>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
-                    <input type="email" id="login-email" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1">Senha de Acesso</label>
-                    <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
-            </form>
-            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
-        </div>
-    </div>
 
     <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
