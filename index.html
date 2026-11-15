@@ -301,15 +301,22 @@
                 presente: isGift ? 'Sim' : 'Não'
             };
 
-            // Salva na nuvem do Supabase para aparecer no admin.html
-            try {
-                const { error } = await supabaseClient.from('pedidos').insert([novoPedido]);
-                if (error) {
-                    console.error("Erro ao enviar pedido para o Supabase:", error);
-                }
-            } catch (err) {
-                console.error("Erro de rede ao salvar pedido:", err);
-            }
+            // Objeto limpo para a nuvem
+    const novoPedidoSupabase = {
+        id: numeroPedido,
+        cliente: nomeCliente,
+        produtos: produtosDescricao,
+        valortotal: subtotal,
+        status: 'Novo',
+        data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+    };
+
+    // Envia para a nuvem do Supabase
+    try {
+        await supabaseClient.from('pedidos').insert([novoPedidoSupabase]);
+    } catch (err) {
+        console.error("Erro ao enviar para o Supabase:", err);
+    }
 
             // Também guarda no localStorage local para redundância
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
