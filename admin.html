@@ -137,7 +137,7 @@
                     </div>
 
                     <div class="sm:col-span-2 pt-2">
-                        <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Salvar Produto no Sistema</button>
+                        <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Salvar Produto no Sistema</button>
                     </div>
                 </form>
             </div>
@@ -154,12 +154,13 @@
         <!-- ABA 3: CARTILHA DE CLIENTES -->
         <section id="tab-clientes" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> Cadastrar Novo Cliente</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
                 <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="hidden" id="client-index" value="">
                     <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cli-zap" placeholder="WhatsApp (DDD + Número)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cli-end" placeholder="Endereço Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" class="sm:col-span-3 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Salvar Cliente</button>
+                    <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Salvar Cliente</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
@@ -171,13 +172,14 @@
         <!-- ABA 4: CREDIÁRIO / FIADO -->
         <section id="tab-crediario" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> Registrar Venda no Crediário</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
                 <form onsubmit="saveCrediario(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="hidden" id="cred-index" value="">
                     <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total da Venda (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="number" id="cred-parcelas" placeholder="Quantidade de Parcelas" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" class="sm:col-span-2 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Lançar no Crediário</button>
+                    <button type="submit" id="cred-btn-submit" class="sm:col-span-2 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Lançar no Crediário</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
@@ -343,7 +345,6 @@
                 ativo: true
             };
 
-            // Atualiza localStorage para sincronização instantânea
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             if (productId) {
                 localProducts = localProducts.map(p => p.id == productId ? productData : p);
@@ -352,7 +353,6 @@
             }
             localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
 
-            // Tenta salvar no Supabase
             if (supabaseClient) {
                 try {
                     if (productId) {
@@ -417,6 +417,7 @@
             document.getElementById('desconto').value = p.desconto || '';
             document.getElementById('imagem-base64').value = p.imagem;
             document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
+            document.getElementById('product-btn-submit').textContent = 'Atualizar Produto';
             switchTab('produtos');
         }
 
@@ -444,52 +445,157 @@
             document.getElementById('product-id').value = '';
             document.getElementById('imagem-base64').value = '';
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
+            document.getElementById('product-btn-submit').textContent = 'Salvar Produto no Sistema';
             document.getElementById('new-category-box').classList.add('hidden');
         }
 
-        // Funções de Clientes, Crediário e Calculadora
+        // --- CLIENTES (Com Edição por Ícone de Lápis) ---
         function saveClient(e) {
             e.preventDefault();
-            const cliente = { nome: document.getElementById('cli-nome').value, whatsapp: document.getElementById('cli-zap').value, endereco: document.getElementById('cli-end').value };
+            const index = document.getElementById('client-index').value;
+            const cliente = {
+                nome: document.getElementById('cli-nome').value,
+                whatsapp: document.getElementById('cli-zap').value,
+                endereco: document.getElementById('cli-end').value
+            };
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            clientes.push(cliente);
+            if (index !== "") {
+                clientes[index] = cliente;
+            } else {
+                clientes.push(cliente);
+            }
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
-            alert('Cliente cadastrado com sucesso!');
-            e.target.reset();
+            alert(index !== "" ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
+            resetClientForm();
             loadClientes();
         }
 
         function loadClientes() {
             const list = document.getElementById('clientes-list');
             const clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map(c => `
+            if(clientes.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>';
+                return;
+            }
+            list.innerHTML = clientes.map((c, index) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div><h4 class="font-bold uppercase text-marromCafe">${c.nome}</h4><p class="text-gray-500">${c.whatsapp} | ${c.endereco}</p></div>
+                    <div>
+                        <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
+                            <button onclick="editClient(${index})" class="text-blue-600 hover:text-blue-800" title="Editar Cliente"><i class="fa-solid fa-pen"></i></button>
+                            ${c.nome}
+                        </h4>
+                        <p class="text-gray-500 mt-1"><i class="fa-brands fa-whatsapp text-green-600 mr-1"></i> ${c.whatsapp} | ${c.endereco}</p>
+                    </div>
+                    <button onclick="deleteClient(${index})" class="text-red-500 hover:text-red-700 p-1" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
 
+        function editClient(index) {
+            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            const c = clientes[index];
+            if (!c) return;
+            document.getElementById('client-index').value = index;
+            document.getElementById('cli-nome').value = c.nome;
+            document.getElementById('cli-zap').value = c.whatsapp;
+            document.getElementById('cli-end').value = c.endereco;
+            document.getElementById('client-form-title').textContent = 'Editar Cliente (' + c.nome + ')';
+            document.getElementById('client-btn-submit').textContent = 'Atualizar Cliente';
+        }
+
+        function resetClientForm() {
+            document.getElementById('client-index').value = '';
+            document.getElementById('cli-nome').value = '';
+            document.getElementById('cli-zap').value = '';
+            document.getElementById('cli-end').value = '';
+            document.getElementById('client-form-title').textContent = 'Cadastrar Novo Cliente';
+            document.getElementById('client-btn-submit').textContent = 'Salvar Cliente';
+        }
+
+        function deleteClient(index) {
+            if(!confirm('Deseja excluir este cliente?')) return;
+            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            clientes.splice(index, 1);
+            localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
+            loadClientes();
+        }
+
+        // --- CREDIÁRIO / FIADO (Com Edição por Ícone de Lápis) ---
         function saveCrediario(e) {
             e.preventDefault();
-            const item = { cliente: document.getElementById('cred-cliente').value, produtos: document.getElementById('cred-produtos').value, valor: parseFloat(document.getElementById('cred-valor').value), parcelas: parseInt(document.getElementById('cred-parcelas').value) };
+            const index = document.getElementById('cred-index').value;
+            const item = {
+                cliente: document.getElementById('cred-cliente').value,
+                produtos: document.getElementById('cred-produtos').value,
+                valor: parseFloat(document.getElementById('cred-valor').value),
+                parcelas: parseInt(document.getElementById('cred-parcelas').value)
+            };
             let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            cred.push(item);
+            if (index !== "") {
+                cred[index] = item;
+            } else {
+                cred.push(item);
+            }
             localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
-            alert('Venda lançada no crediário!');
-            e.target.reset();
+            alert(index !== "" ? 'Crediário atualizado com sucesso!' : 'Venda lançada no crediário!');
+            resetCrediarioForm();
             loadCrediario();
         }
 
         function loadCrediario() {
             const list = document.getElementById('crediario-list');
             const cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            list.innerHTML = cred.length === 0 ? '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>' : cred.map(c => `
+            if(cred.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>';
+                return;
+            }
+            list.innerHTML = cred.map((c, index) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div><h4 class="font-bold uppercase text-marromCafe">${c.cliente}</h4><p class="text-gray-600">Produtos: ${c.produtos}</p><p class="text-verdePetroleo font-bold">Total: R$ ${c.valor.toFixed(2).replace('.', ',')} (${c.parcelas}x)</p></div>
+                    <div>
+                        <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
+                            <button onclick="editCrediario(${index})" class="text-blue-600 hover:text-blue-800" title="Editar Crediário"><i class="fa-solid fa-pen"></i></button>
+                            ${c.cliente}
+                        </h4>
+                        <p class="text-gray-600 mt-1">Produtos: ${c.produtos}</p>
+                        <p class="text-verdePetroleo font-bold mt-1">Total: R$ ${Number(c.valor).toFixed(2).replace('.', ',')} (${c.parcelas}x de R$ ${(c.valor/c.parcelas).toFixed(2).replace('.', ',')})</p>
+                    </div>
+                    <button onclick="deleteCrediario(${index})" class="text-red-500 hover:text-red-700 p-1" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
 
+        function editCrediario(index) {
+            let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
+            const c = cred[index];
+            if (!c) return;
+            document.getElementById('cred-index').value = index;
+            document.getElementById('cred-cliente').value = c.cliente;
+            document.getElementById('cred-produtos').value = c.produtos;
+            document.getElementById('cred-valor').value = c.valor;
+            document.getElementById('cred-parcelas').value = c.parcelas;
+            document.getElementById('cred-form-title').textContent = 'Editar Crediário (' + c.cliente + ')';
+            document.getElementById('cred-btn-submit').textContent = 'Atualizar Crediário';
+        }
+
+        function resetCrediarioForm() {
+            document.getElementById('cred-index').value = '';
+            document.getElementById('cred-cliente').value = '';
+            document.getElementById('cred-produtos').value = '';
+            document.getElementById('cred-valor').value = '';
+            document.getElementById('cred-parcelas').value = '';
+            document.getElementById('cred-form-title').textContent = 'Registrar Venda no Crediário';
+            document.getElementById('cred-btn-submit').textContent = 'Lançar no Crediário';
+        }
+
+        function deleteCrediario(index) {
+            if(!confirm('Deseja excluir este registro de crediário?')) return;
+            let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
+            cred.splice(index, 1);
+            localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
+            loadCrediario();
+        }
+
+        // Calculadora de Custos
         async function loadCalcSelect() {
             const select = document.getElementById('calc-produto');
             products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
