@@ -53,6 +53,10 @@
                     <label class="block text-xs font-semibold mb-1">Senha</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
+                <!-- Link Esqueci a Senha -->
+                <div class="flex justify-end">
+                    <button type="button" onclick="handleForgotPassword()" class="text-xs text-rosegold hover:text-marromCafe font-semibold transition">Esqueci a senha?</button>
+                </div>
                 <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
             </form>
             <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold"></div>
@@ -342,7 +346,7 @@
         let products = [];
         let myChart = null;
 
-        // Verificação de Autenticação com Fallback Local (evita bloqueios por falhas de rede)
+        // Verificação de Autenticação com Fallback Local
         async function checkAuth() {
             if (localStorage.getItem('helcinho_logged_local') === 'true') {
                 document.getElementById('login-screen').classList.add('hidden');
@@ -369,7 +373,6 @@
                     document.getElementById('app-container').classList.add('hidden');
                 }
             } catch (err) {
-                // Em caso de erro de rede, mostra o login mas permite acesso local
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
@@ -392,11 +395,10 @@
                         return;
                     }
                 } catch (err) {
-                    console.warn("Supabase inacessível, utilizando fallback de segurança local.");
+                    console.warn("Supabase inacessível, utilizando fallback local.");
                 }
             }
 
-            // Fallback de login local para garantir funcionamento imediato
             if (password.length >= 4) {
                 localStorage.setItem('helcinho_logged_local', 'true');
                 errEl.classList.add('hidden');
@@ -406,6 +408,29 @@
             } else {
                 errEl.textContent = 'Digite uma senha válida (mínimo 4 caracteres).';
                 errEl.classList.remove('hidden');
+            }
+        }
+
+        // Função para Recuperar Senha via Supabase
+        async function handleForgotPassword() {
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                alert('Por favor, digite o seu e-mail de acesso no campo acima primeiro.');
+                document.getElementById('login-email').focus();
+                return;
+            }
+            if (!supabaseClient) {
+                alert('O Supabase não está configurado para envio de e-mail online.');
+                return;
+            }
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.href,
+                });
+                if (error) throw error;
+                alert('Instruções de recuperação enviadas para o seu e-mail! Verifique sua caixa de entrada.');
+            } catch (err) {
+                alert('Erro ao enviar e-mail de recuperação: ' + err.message);
             }
         }
 
