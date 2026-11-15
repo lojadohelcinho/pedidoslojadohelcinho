@@ -141,7 +141,11 @@
         let cart = [];
         let currentCategory = 'todos';
 
-        const defaultProducts = [];
+        const defaultProducts = [
+            { id: 1, nome: "MALBEC PURE GOLD", descricao: "Fragrância marcante e sofisticada.", preco: 280.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500", ativo: true },
+            { id: 2, nome: "ESSENCIAL SUPREME", descricao: "Amadeirado intenso e envolvente.", preco: 180.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500", ativo: true },
+            { id: 3, nome: "LILLY", descricao: "Notas florais com toque aveludado.", preco: 500.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500", ativo: true }
+        ];
 
         async function fetchProducts() {
             document.getElementById('loading-spinner').classList.remove('hidden');
