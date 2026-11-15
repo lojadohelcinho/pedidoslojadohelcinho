@@ -47,10 +47,10 @@
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold mb-1">E-mail de Acesso</label>
-                    <input type="email" id="login-email" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
+                    <input type="email" id="login-email" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="seu-email@dominio.com">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold mb-1">Senha</label>
+                    <label class="block text-xs font-semibold mb-1">Senha de Acesso</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
                 <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
@@ -530,7 +530,7 @@
         let products = [];
         let myChart = null;
 
-        async function checkAuth() {
+        function checkAuth() {
             if (localStorage.getItem('helcinho_logged_local') === 'true') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
@@ -540,66 +540,16 @@
                 loadClientes();
                 loadClientesSelect();
                 loadEstoque();
-                return;
-            }
-
-            if (!supabaseClient) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                loadConfigs();
-                loadCategoriesSelect();
-                loadClientes();
-                loadClientesSelect();
-                loadEstoque();
-                return;
-            }
-
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-container').classList.remove('hidden');
-                    loadDashboard();
-                    loadConfigs();
-                    loadCategoriesSelect();
-                    loadClientes();
-                    loadClientesSelect();
-                    loadEstoque();
-                } else {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('app-container').classList.add('hidden');
-                }
-            } catch (err) {
+            } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
         }
 
-        async function handleLogin(e) {
+        function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const errEl = document.getElementById('login-error');
-
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (!error) {
-                        localStorage.setItem('helcinho_logged_local', 'true');
-                        errEl.classList.add('hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-container').classList.remove('hidden');
-                        loadDashboard();
-                        loadConfigs();
-                        loadCategoriesSelect();
-                        loadClientes();
-                        loadClientesSelect();
-                        loadEstoque();
-                        return;
-                    }
-                } catch (err) {}
-            }
 
             if (password.length >= 4) {
                 localStorage.setItem('helcinho_logged_local', 'true');
@@ -613,16 +563,13 @@
                 loadClientesSelect();
                 loadEstoque();
             } else {
-                errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
+                errEl.textContent = 'Senha inválida. Digite pelo menos 4 caracteres.';
                 errEl.classList.remove('hidden');
             }
         }
 
         async function handleLogout() {
             localStorage.removeItem('helcinho_logged_local');
-            if (supabaseClient) {
-                try { await supabaseClient.auth.signOut(); } catch(e) {}
-            }
             location.reload();
         }
 
@@ -1001,7 +948,7 @@
             loadCategoriesSelect();
         }
 
-        // --- CARTILHA DE CLIENTES NA NUVEM (CORRIGIDO PARA ID TEXTO) ---
+        // --- CARTILHA DE CLIENTES NA NUVEM ---
         async function saveClient(e) {
             e.preventDefault();
             const clienteId = document.getElementById('client-index').value;
