@@ -218,7 +218,7 @@
                         <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                         <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                         <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                        <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente</button>
+                        <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente na Nuvem</button>
                     </form>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
@@ -482,7 +482,7 @@
                         <label class="block text-xs font-semibold text-marromCafe">Número do WhatsApp para Pedidos (Ex: 5514999999999)</label>
                         <div class="flex gap-3">
                             <input type="text" id="whatsapp-input" placeholder="5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar WhatsApp</button>
+                            <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar WhatsApp na Nuvem</button>
                         </div>
                     </div>
 
@@ -497,7 +497,7 @@
                             <code class="bg-gray-100 text-marromCafe px-1 rounded">{dias}</code>
                         </p>
                         <textarea id="template-cobranca" rows="5" class="w-full bg-creme border border-rosegold/30 rounded-xl p-3 text-xs focus:outline-none focus:border-verdePetroleo"></textarea>
-                        <button onclick="saveTemplateCobrar()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar Modelo de Cobrança</button>
+                        <button onclick="saveTemplateCobrar()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar Modelo na Nuvem</button>
                     </div>
                 </div>
             </section>
@@ -526,6 +526,7 @@
                 loadDashboard();
                 loadConfigs();
                 loadCategoriesSelect();
+                loadClientes();
                 loadClientesSelect();
                 loadEstoque();
                 return;
@@ -537,6 +538,7 @@
                 loadDashboard();
                 loadConfigs();
                 loadCategoriesSelect();
+                loadClientes();
                 loadClientesSelect();
                 loadEstoque();
                 return;
@@ -550,6 +552,7 @@
                     loadDashboard();
                     loadConfigs();
                     loadCategoriesSelect();
+                    loadClientes();
                     loadClientesSelect();
                     loadEstoque();
                 } else {
@@ -579,6 +582,7 @@
                         loadDashboard();
                         loadConfigs();
                         loadCategoriesSelect();
+                        loadClientes();
                         loadClientesSelect();
                         loadEstoque();
                         return;
@@ -594,6 +598,7 @@
                 loadDashboard();
                 loadConfigs();
                 loadCategoriesSelect();
+                loadClientes();
                 loadClientesSelect();
                 loadEstoque();
             } else {
@@ -647,9 +652,16 @@
             calcularIndicadoresGerais();
         }
 
-        function preencherFiltrosSelects() {
+        async function preencherFiltrosSelects() {
             let produtos = products;
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            let clientes = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('clientes').select('*');
+                if (data) clientes = data;
+            }
+            if (clientes.length === 0) {
+                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            }
             
             const selProd = document.getElementById('filtro-produto');
             if(selProd) {
@@ -678,8 +690,16 @@
             calcularIndicadoresGerais();
         }
 
-        function calcularIndicadoresGerais() {
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+        async function calcularIndicadoresGerais() {
+            let pedidos = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('pedidos').select('*');
+                if (data) pedidos = data;
+            }
+            if (pedidos.length === 0) {
+                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            }
+
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             let produtos = products;
             
@@ -694,20 +714,20 @@
                 if (cliFiltro && p.cliente !== cliFiltro) return;
                 if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
 
-                faturamentoBruto += p.valorTotal;
+                faturamentoBruto += Number(p.valorTotal || 0);
                 qtdVendas++;
 
                 if (p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
                         unidadesVendidas += item.qtd;
-                        let prodRef = produtos.find(pr => pr.id == item.id || pr.nome === item.nome);
+                        let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
                         let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
                         custoTotalCMV += (custoUnit * item.qtd);
                     });
                 }
 
                 if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += p.valorTotal;
+                    valorRecebido += Number(p.valorTotal || 0);
                 }
             });
 
@@ -750,7 +770,7 @@
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + p.valorTotal;
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
             });
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
@@ -765,8 +785,14 @@
             });
         }
 
-        function renderRankingProdutos() {
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+        async function renderRankingProdutos() {
+            let pedidos = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('pedidos').select('*');
+                if (data) pedidos = data;
+            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+
             let mapProd = {};
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado') return;
@@ -794,13 +820,19 @@
             `).join('');
         }
 
-        function renderRankingClientes() {
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+        async function renderRankingClientes() {
+            let pedidos = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('pedidos').select('*');
+                if (data) pedidos = data;
+            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+
             let mapCli = {};
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += p.valorTotal;
+                mapCli[p.cliente].total += Number(p.valorTotal || 0);
                 mapCli[p.cliente].pedidos++;
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
@@ -880,7 +912,6 @@
                 ativo: true
             };
 
-            // Enviar obrigatoriamente para a nuvem do Supabase
             if (supabaseClient) {
                 const { error } = await supabaseClient.from('produtos').upsert([productData]);
                 if (error) {
@@ -889,7 +920,6 @@
                 }
             }
 
-            // Atualizar cache local
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             if (productId) {
                 localProducts = localProducts.map(p => p.id == productId ? productData : p);
@@ -944,56 +974,85 @@
             loadCategoriesSelect();
         }
 
-        // --- CLIENTES ---
-        function saveClient(e) {
+        // --- CARTILHA DE CLIENTES NA NUVEM ---
+        async function saveClient(e) {
             e.preventDefault();
-            const index = document.getElementById('client-index').value;
-            const cliente = { nome: document.getElementById('cli-nome').value, whatsapp: document.getElementById('cli-zap').value, endereco: document.getElementById('cli-end').value };
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            if (index !== "") clientes[index] = cliente; else clientes.push(cliente);
-            localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
-            alert(index !== "" ? 'Cliente atualizado!' : 'Cliente cadastrado!');
+            const clienteId = document.getElementById('client-index').value;
+            const clienteData = {
+                id: clienteId ? clienteId : 'CLI-' + Date.now(),
+                nome: document.getElementById('cli-nome').value,
+                whatsapp: document.getElementById('cli-zap').value,
+                endereco: document.getElementById('cli-end').value
+            };
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
+                if (error) {
+                    alert("Erro ao salvar cliente na nuvem: " + error.message);
+                    return;
+                }
+            }
+
+            alert(clienteId ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
             resetClientForm();
             loadClientes();
             loadClientesSelect();
         }
 
-        function loadClientes() {
+        async function loadClientes() {
             const list = document.getElementById('clientes-list');
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            clientes.sort((a, b) => a.nome.localeCompare(b.nome));
-            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c, i) => `
+            let clientes = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                if (data) clientes = data;
+            }
+            if (clientes.length === 0) {
+                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            }
+
+            list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
                         <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editClient(${i})" class="text-blue-600 hover:text-blue-800" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="editClient('${c.id}')" class="text-blue-600 hover:text-blue-800" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             ${c.nome}
                         </h4>
-                        <p class="text-gray-500">${c.whatsapp} | ${c.endereco}</p>
+                        <p class="text-gray-500">${c.whatsapp || c.cli_zap} | ${c.endereco || c.cli_end}</p>
                     </div>
-                    <button onclick="deleteClient(${i})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
 
-        function loadClientesSelect() {
+        async function loadClientesSelect() {
             const selectEl = document.getElementById('cred-cliente');
             if (!selectEl) return;
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+            let clientes = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                if (data) clientes = data;
+            }
+            if (clientes.length === 0) {
+                clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            }
             selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         }
 
-        function editClient(i) {
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            const c = clientes[i];
+        async function editClient(id) {
+            let clientes = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
+                if (data && data.length > 0) clientes = data;
+            }
+            const c = clientes[0] || JSON.parse(localStorage.getItem('helcinho_clientes') || '[]').find(item => item.id == id);
             if(!c) return;
-            document.getElementById('client-index').value = i;
-            document.getElementById('cli-nome').value = c.nome;
-            document.getElementById('cli-zap').value = c.whatsapp;
-            document.getElementById('cli-end').value = c.endereco;
+
+            document.getElementById('client-index').value = c.id;
+            document.getElementById('cli-nome').value = c.nome || '';
+            document.getElementById('cli-zap').value = c.whatsapp || c.cli_zap || '';
+            document.getElementById('cli-end').value = c.endereco || c.cli_end || '';
             document.getElementById('client-form-title').textContent = 'Editar Cliente (' + c.nome + ')';
-            document.getElementById('client-btn-submit').textContent = 'Atualizar Cliente';
+            document.getElementById('client-btn-submit').textContent = 'Atualizar Cliente na Nuvem';
         }
 
         function resetClientForm() {
@@ -1002,14 +1061,14 @@
             document.getElementById('cli-zap').value = '';
             document.getElementById('cli-end').value = '';
             document.getElementById('client-form-title').textContent = 'Cadastrar Novo Cliente';
-            document.getElementById('client-btn-submit').textContent = 'Salvar Cliente';
+            document.getElementById('client-btn-submit').textContent = 'Salvar Cliente na Nuvem';
         }
 
-        function deleteClient(i) {
-            if(!confirm('Excluir cliente?')) return;
-            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-            clientes.splice(i, 1);
-            localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
+        async function deleteClient(id) {
+            if(!confirm('Excluir cliente da nuvem?')) return;
+            if (supabaseClient) {
+                await supabaseClient.from('clientes').delete().eq('id', id);
+            }
             loadClientes();
             loadClientesSelect();
         }
@@ -1107,84 +1166,77 @@
         }
 
         // --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
-async function loadPedidos() {
-    const listEl = document.getElementById('pedidos-list');
-    let pedidos = [];
+        async function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            let pedidos = [];
 
-    if (supabaseClient) {
-        const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
-        if (!error && data) {
-            pedidos = data;
-        }
-    }
-    
-    // Fallback para localStorage caso falhe a nuvem
-    if (pedidos.length === 0) {
-        pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-    }
+            if (supabaseClient) {
+                const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
+                if (!error && data) {
+                    pedidos = data;
+                }
+            }
+            
+            if (pedidos.length === 0) {
+                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            }
 
-    listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p, index) => `
-        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-            <div class="flex justify-between items-center border-b pb-2">
-                <div>
-                    <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                    <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
-                    <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
+            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p) => `
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <div>
+                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
+                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
+                        </div>
+                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1">
+                        <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                        </select>
+                        <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
+                    </div>
                 </div>
-                <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
-            </div>
-            <div class="flex justify-between items-center pt-1">
-                <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
-                    <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                    <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-                    <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
-                    <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                    <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                </select>
-                <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-async function updatePedidoStatus(id, val) {
-    if (supabaseClient) {
-        await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
-    }
-}
-
-async function deletePedido(id) {
-    if(!confirm('Excluir pedido?')) return;
-    if (supabaseClient) {
-        await supabaseClient.from('pedidos').delete().eq('id', id);
-    }
-    loadPedidos();
-}
-
-        function updatePedidoStatus(index, val) {
-            let p = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            p[index].status = val;
-            localStorage.setItem('helcinho_pedidos', JSON.stringify(p));
+            `).join('');
         }
 
-        function deletePedido(index) {
+        async function updatePedidoStatus(id, val) {
+            if (supabaseClient) {
+                await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+            }
+        }
+
+        async function deletePedido(id) {
             if(!confirm('Excluir pedido?')) return;
-            let p = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            p.splice(index, 1);
-            localStorage.setItem('helcinho_pedidos', JSON.stringify(p));
+            if (supabaseClient) {
+                await supabaseClient.from('pedidos').delete().eq('id', id);
+            }
             loadPedidos();
         }
 
         // --- DASHBOARD & ATRASADOS ---
-        function loadDashboard() {
+        async function loadDashboard() {
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let pedidos = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('pedidos').select('*');
+                if (data) pedidos = data;
+            }
+            if (pedidos.length === 0) {
+                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            }
+
             let totalAberto = 0, totalAtrasado = 0;
             let atrasadasArr = [];
             const hoje = new Date().toISOString().split('T')[0];
 
-            credList.forEach((venda, vIndex) => {
-                venda.parcelas.forEach((p, pIndex) => {
+            credList.forEach((venda) => {
+                venda.parcelas.forEach((p) => {
                     let saldo = p.valorOriginal - p.valorPago;
                     if (saldo > 0) {
                         totalAberto += saldo;
@@ -1192,7 +1244,7 @@ async function deletePedido(id) {
                             totalAtrasado += saldo;
                             let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
                             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays, vIndex, pIndex });
+                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
                         }
                     }
                 });
@@ -1225,13 +1277,44 @@ async function deletePedido(id) {
                 }).join('');
         }
 
-        // --- CONFIGURAÇÕES DE WHATSAPP ---
-        function saveWhatsApp() { localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value); alert('Número do WhatsApp salvo!'); }
-        function saveTemplateCobrar() { localStorage.setItem('helcinho_template_cobranca', document.getElementById('template-cobranca').value); alert('Modelo salvo!'); }
-        function loadConfigs() {
-            document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
-            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
-            document.getElementById('template-cobranca').value = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
+        // --- CONFIGURAÇÕES DE WHATSAPP NA NUVEM ---
+        async function saveWhatsApp() {
+            const zapVal = document.getElementById('whatsapp-input').value;
+            if (supabaseClient) {
+                await supabaseClient.from('configuracoes').upsert([{ chave: 'whatsapp', valor: zapVal }]);
+            }
+            localStorage.setItem('helcinho_whatsapp', zapVal);
+            alert('Número do WhatsApp salvo na nuvem com sucesso!');
+        }
+
+        async function saveTemplateCobrar() {
+            const templateVal = document.getElementById('template-cobranca').value;
+            if (supabaseClient) {
+                await supabaseClient.from('configuracoes').upsert([{ chave: 'template_cobranca', valor: templateVal }]);
+            }
+            localStorage.setItem('helcinho_template_cobranca', templateVal);
+            alert('Modelo de cobrança salvo na nuvem com sucesso!');
+        }
+
+        async function loadConfigs() {
+            let zapVal = '';
+            let templateVal = '';
+
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('configuracoes').select('*');
+                if (data) {
+                    const zapItem = data.find(i => i.chave === 'whatsapp');
+                    const tempItem = data.find(i => i.chave === 'template_cobranca');
+                    if (zapItem) zapVal = zapItem.valor;
+                    if (tempItem) templateVal = tempItem.valor;
+                }
+            }
+
+            if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
+            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
+
+            document.getElementById('whatsapp-input').value = zapVal;
+            document.getElementById('template-cobranca').value = templateVal;
         }
 
         function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
