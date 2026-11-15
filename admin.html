@@ -171,23 +171,34 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-semibold">Categoria</label>
-                                <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="adicionarNovaCategoria()" class="text-[10px] text-verdePetroleo font-bold hover:underline">+ Criar Categoria</button>
+                                    <button type="button" onclick="excluirCategoria()" class="text-[10px] text-red-600 font-bold hover:underline">🗑️ Excluir Categoria</button>
+                                </div>
                             </div>
                             <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                                 <!-- Preenchido dinamicamente -->
                             </select>
                         </div>
                         <div>
+                            <label class="block text-xs font-semibold mb-1">Gênero</label>
+                            <select id="genero" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                                <option value="Unissex">Unissex</option>
+                                <option value="Feminino">Feminino</option>
+                                <option value="Masculino">Masculino</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
                             <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold mb-1">Descrição</label>
-                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
                             <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold mb-1">Descrição</label>
+                            <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
@@ -721,7 +732,7 @@
                 if (cliFiltro && p.cliente !== cliFiltro) return;
                 if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
 
-                faturamentoBruto += Number(p.valorTotal || 0);
+                faturamentoBruto += Number(p.valorTotal || p.valortotal || 0);
                 qtdVendas++;
 
                 if (p.itensDetalhados) {
@@ -734,7 +745,7 @@
                 }
 
                 if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += Number(p.valorTotal || 0);
+                    valorRecebido += Number(p.valorTotal || p.valortotal || 0);
                 }
             });
 
@@ -777,7 +788,7 @@
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || p.valortotal || 0);
             });
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
@@ -839,7 +850,7 @@
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || 0);
+                mapCli[p.cliente].total += Number(p.valorTotal || p.valortotal || 0);
                 mapCli[p.cliente].pedidos++;
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
@@ -898,7 +909,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
                         <div>
-                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
+                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria} - ${p.genero || 'Unissex'})</h4>
                             <p class="text-gray-500">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
                         </div>
                     </div>
@@ -918,6 +929,7 @@
                 nome: document.getElementById('nome').value,
                 sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
+                genero: document.getElementById('genero').value,
                 estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
@@ -955,6 +967,7 @@
             document.getElementById('sku').value = p.sku || '';
             loadCategoriesSelect();
             document.getElementById('categoria').value = p.categoria || '';
+            document.getElementById('genero').value = p.genero || 'Unissex';
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
             document.getElementById('descricao').value = p.descricao || '';
             document.getElementById('preco').value = p.preco || '';
@@ -1244,7 +1257,7 @@
                             <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
                             <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
                         </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
+                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || p.valortotal || 0).toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div class="flex justify-between items-center pt-1">
                         <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
@@ -1267,9 +1280,7 @@
         }
 
         async function deletePedido(id) {
-            if(!confirm('Deseja realmente excluir este pedido?')) return;
-            
-            // Apaga da nuvem do Supabase
+            if(!confirm('Deseja excluir este pedido?')) return;
             if (supabaseClient) {
                 const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
                 if (error) {
@@ -1277,8 +1288,6 @@
                     return;
                 }
             }
-            
-            // Apaga também da memória local do navegador para limpar o cache
             let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             localPedidos = localPedidos.filter(p => p.id != id);
             localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
@@ -1383,7 +1392,7 @@
             }
 
             if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
-            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
+            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca'] || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
 
             document.getElementById('whatsapp-input').value = zapVal;
             document.getElementById('template-cobranca').value = templateVal;
@@ -1398,11 +1407,11 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // --- CATEGORIAS NA NUVEM ---
+        // --- CATEGORIAS NA NUVEM COM EXCLUSÃO ---
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             if(!select) return;
-            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
             let savedCats = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('categorias').select('*');
@@ -1432,6 +1441,30 @@
                 document.getElementById('categoria').value = nova;
                 alert(`Categoria "${nova}" criada e salva na nuvem!`);
             }
+        }
+
+        async function excluirCategoria() {
+            const select = document.getElementById('categoria');
+            const catSelecionada = select.value;
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
+
+            if (categoriasPadrao.includes(catSelecionada)) {
+                alert("As categorias padrão do sistema não podem ser excluídas!");
+                return;
+            }
+
+            if(!confirm(`Deseja realmente excluir a categoria "${catSelecionada}"?`)) return;
+
+            if (supabaseClient) {
+                await supabaseClient.from('categorias').delete().eq('nome', catSelecionada);
+            }
+
+            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            savedCats = savedCats.filter(c => c !== catSelecionada);
+            localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats));
+
+            loadCategoriesSelect();
+            alert(`Categoria "${catSelecionada}" excluída com sucesso!`);
         }
 
         const imageFileInput = document.getElementById('imagem-file');
