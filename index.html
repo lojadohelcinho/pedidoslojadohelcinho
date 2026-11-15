@@ -288,20 +288,48 @@
         }
 
         function checkoutWhatsApp() {
-            if (cart.length === 0) return alert('Sua sacola está vazia!');
-            const whatsappNumber = localStorage.getItem('helcinho_whatsapp') || '5514999999999';
-            const isGift = document.getElementById('is-gift').checked;
-            let text = `*🛍️ NOVO PEDIDO - LOJA DO HELCINHO*\n\n`;
-            let subtotal = 0;
-            cart.forEach(item => {
-                const totalItem = item.preco * item.qtd;
-                subtotal += totalItem;
-                text += `• ${item.qtd}x *${item.nome}* (${item.descricao || ''}) - R$ ${totalItem.toFixed(2).replace('.', ',')}\n`;
-            });
-            if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
-            text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
-            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank');
-        }
+    if (cart.length === 0) return alert('Sua sacola está vazia!');
+    const whatsappNumber = localStorage.getItem('helcinho_whatsapp') || '5514999999999';
+    const isGift = document.getElementById('is-gift').checked;
+    
+    // Gera um número de pedido único
+    const numeroPedido = 'PED-' + Math.floor(100000 + Math.random() * 900000);
+    
+    let subtotal = 0;
+    cart.forEach(item => { subtotal += item.preco * item.qtd; });
+
+    // Cria o objeto do pedido para alimentar o painel admin
+    const novoPedido = {
+        id: numeroPedido,
+        data: new Date().toLocaleString('pt-BR'),
+        produtos: cart.map(i => `${i.qtd}x ${i.nome}`).join(', '),
+        itens Detalhados: cart,
+        valorTotal: subtotal,
+        formaPagamento: 'WhatsApp / Pix',
+        status: 'Novo',
+        presente: isGift ? 'Sim' : 'Não'
+    };
+
+    // Salva nos pedidos do sistema
+    let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+    pedidos.unshift(novoPedido); // Adiciona no topo da lista
+    localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidos));
+
+    // Formata mensagem para o WhatsApp
+    let text = `*🛍️ PEDIDO #${numeroPedido} - LOJA DO HELCINHO*\n\n`;
+    cart.forEach(item => {
+        text += `• ${item.qtd}x *${item.nome}* - R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}\n`;
+    });
+    if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
+    text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
+
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank');
+    
+    // Limpa a sacola após o pedido
+    cart = [];
+    updateBadge();
+    toggleCart();
+}
 
         fetchProducts();
     </script>
