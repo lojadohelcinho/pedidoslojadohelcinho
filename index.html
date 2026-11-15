@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Montserrat & Plus Jakarta Sans -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -39,7 +39,7 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center">
-                    <img src="logohelcinho.png" alt="Logo do Helcinho" class="w-full h-full object-cover">
+                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h1 class="font-cocomatStyle font-extrabold text-base sm:text-lg uppercase tracking-wider text-marromCafe">LOJA DO HELCINHO</h1>
@@ -47,7 +47,6 @@
                 </div>
             </a>
             <div class="flex items-center gap-3">
-                <!-- Botão da Sacola -->
                 <button onclick="toggleCart()" class="relative bg-verdePetroleo hover:bg-verdeHover text-white p-2.5 rounded-full shadow transition flex items-center justify-center w-10 h-10">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-creme hidden">0</span>
@@ -56,12 +55,12 @@
         </div>
     </header>
 
-    <!-- Barra de Busca e Filtros Dinâmicos -->
+    <!-- Barra de Busca e Filtros -->
     <div class="max-w-7xl mx-auto px-4 py-4 w-full">
         <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
             <div class="relative w-full sm:w-96">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Buscar perfume..." class="w-full bg-white border border-rosegold/30 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo shadow-sm">
+                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Buscar produto..." class="w-full bg-white border border-rosegold/30 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo shadow-sm">
             </div>
             <div id="category-filters" class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
                 <button onclick="setCategory('todos')" id="cat-todos" class="category-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-verdePetroleo text-white shadow-sm transition whitespace-nowrap">Todos</button>
@@ -73,12 +72,12 @@
     <main class="max-w-7xl mx-auto px-4 py-2 flex-grow w-full mb-16">
         <div id="loading-spinner" class="text-center py-12">
             <i class="fa-solid fa-spinner fa-spin text-3xl text-verdePetroleo"></i>
-            <p class="text-sm text-gray-500 mt-2">Carregando catálogo...</p>
+            <p class="text-sm text-gray-500 mt-2">A carregar catálogo da nuvem...</p>
         </div>
         <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         <div id="empty-state" class="hidden text-center py-16">
             <i class="fa-solid fa-box-open text-4xl text-rosegold mb-3"></i>
-            <p class="text-marromCafe font-medium">Nenhum produto encontrado.</p>
+            <p class="text-marromCafe font-medium">Nenhum produto encontrado na nuvem.</p>
         </div>
     </main>
 
@@ -91,13 +90,10 @@
                     <h2 id="cart-title" class="font-bold text-base text-marromCafe">Sacola (0 produtos)</h2>
                     <button onclick="toggleCart()" class="text-gray-400 hover:text-marromCafe p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                
-                <!-- Campo de Nome do Cliente no Carrinho -->
                 <div class="p-4 bg-white border-b border-rosegold/10">
                     <label class="block text-xs font-semibold mb-1 text-marromCafe">Seu Nome Completo *</label>
                     <input type="text" id="cliente-nome" placeholder="Digite seu nome para o pedido" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
                 </div>
-
                 <div class="bg-verdePetroleo/10 px-4 py-3 border-b border-verdePetroleo/20 flex items-center gap-3">
                     <i class="fa-solid fa-gift text-verdePetroleo text-lg"></i>
                     <label class="text-xs font-medium text-marromCafe cursor-pointer flex items-center gap-2">
@@ -125,45 +121,29 @@
         <p>© 2026 Loja do Helcinho. Todos os direitos reservados.</p>
     </footer>
 
-    <!-- Lógica de Funcionamento -->
+    <!-- Lógica Conectada ao Supabase -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
         
-        let supabaseClient = null;
-        try {
-            if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (e) { console.warn("Supabase não configurado."); }
-
+        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let products = [];
         let cart = [];
         let currentCategory = 'todos';
 
-        const defaultProducts = [
-            { id: 1, nome: "MALBEC PURE GOLD", descricao: "Fragrância marcante e sofisticada.", preco: 280.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500", ativo: true },
-            { id: 2, nome: "ESSENCIAL SUPREME", descricao: "Amadeirado intenso e envolvente.", preco: 180.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500", ativo: true },
-            { id: 3, nome: "LILLY", descricao: "Notas florais com toque aveludado.", preco: 500.00, categoria: "Perfumes", imagem: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500", ativo: true }
-        ];
-
         async function fetchProducts() {
             document.getElementById('loading-spinner').classList.remove('hidden');
             try {
-                let loadedProducts = [];
-                if (supabaseClient) {
-                    const { data, error } = await supabaseClient.from('produtos').select('*');
-                    if (!error && data && data.length > 0) {
-                        loadedProducts = data;
-                    }
+                const { data, error } = await supabaseClient.from('produtos').select('*');
+                if (error) {
+                    console.error("Erro ao buscar produtos do Supabase:", error);
+                    products = [];
+                } else {
+                    products = data || [];
                 }
-                if (loadedProducts.length === 0) {
-                    loadedProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-                }
-                products = loadedProducts.length > 0 ? loadedProducts : defaultProducts;
             } catch (err) {
-                products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-                if (products.length === 0) products = defaultProducts;
+                console.error("Erro de ligação:", err);
+                products = [];
             }
             document.getElementById('loading-spinner').classList.add('hidden');
             updateCategories();
@@ -172,7 +152,7 @@
 
         function updateCategories() {
             const activeProducts = products.filter(p => p.ativo !== false);
-            const cats = ['todos', ...new Set(activeProducts.map(p => p.categoria))];
+            const cats = ['todos', ...new Set(activeProducts.map(p => p.categoria).filter(Boolean))];
             const container = document.getElementById('category-filters');
             container.innerHTML = cats.map(cat => {
                 const label = cat.charAt(0).toUpperCase() + cat.slice(1);
@@ -188,8 +168,8 @@
             
             const filtered = products.filter(p => {
                 if (p.ativo === false) return false;
-                const matchCat = currentCategory === 'todos' || p.categoria.toLowerCase() === currentCategory.toLowerCase();
-                const matchSearch = p.nome.toLowerCase().includes(search) || p.descricao.toLowerCase().includes(search);
+                const matchCat = currentCategory === 'todos' || (p.categoria && p.categoria.toLowerCase() === currentCategory.toLowerCase());
+                const matchSearch = (p.nome && p.nome.toLowerCase().includes(search)) || (p.descricao && p.descricao.toLowerCase().includes(search));
                 return matchCat && matchSearch;
             });
 
@@ -202,19 +182,19 @@
             grid.innerHTML = filtered.map(p => `
                 <div class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
                     <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48">
-                        ${p.desconto ? `<span class="absolute top-2 left-2 bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">${p.desconto}</span>` : ''}
+                        ${p.preco_antigo ? `<span class="absolute top-2 left-2 bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">Promoção</span>` : ''}
                         <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" alt="${p.nome}" class="h-full object-contain">
                     </div>
                     <div class="p-3 flex flex-col flex-grow justify-between">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-rosegold">${p.categoria}</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-rosegold">${p.categoria || 'Geral'}</span>
                             <h3 class="font-bold text-sm text-marromCafe uppercase mt-0.5">${p.nome}</h3>
-                            <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${p.descricao}</p>
+                            <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${p.descricao || ''}</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-gray-100 flex items-end justify-between">
                             <div>
                                 ${p.preco_antigo ? `<span class="text-[10px] text-gray-400 line-through block">R$ ${Number(p.preco_antigo).toFixed(2).replace('.', ',')}</span>` : ''}
-                                <span class="font-bold text-base text-marromCafe">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
+                                <span class="font-bold text-base text-marromCafe">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')}</span>
                             </div>
                             <button onclick="addToCart(${p.id})" class="bg-verdePetroleo hover:bg-verdeHover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow transition">
                                 <i class="fa-solid fa-bag-shopping text-xs"></i>
@@ -271,7 +251,7 @@
             }
             let subtotal = 0;
             container.innerHTML = cart.map(item => {
-                subtotal += item.preco * item.qtd;
+                subtotal += (item.preco || 0) * item.qtd;
                 return `
                     <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-rosegold/20 shadow-xs">
                         <img src="${item.imagem}" class="w-14 h-14 object-contain bg-gray-50 rounded-lg p-1">
@@ -304,15 +284,12 @@
 
             const whatsappNumber = localStorage.getItem('helcinho_whatsapp') || '5514999999999';
             const isGift = document.getElementById('is-gift').checked;
-            
             const numeroPedido = 'PED-' + Math.floor(100000 + Math.random() * 900000);
             
             let subtotal = 0;
-            cart.forEach(item => { subtotal += item.preco * item.qtd; });
-
+            cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
             const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
 
-            // Objeto sincronizado com o painel admin
             const novoPedido = {
                 id: numeroPedido,
                 cliente: nomeCliente,
@@ -332,7 +309,7 @@
             let text = `*🛍️ PEDIDO #${numeroPedido} - LOJA DO HELCINHO*\n`;
             text += `👤 *Cliente:* ${nomeCliente}\n\n`;
             cart.forEach(item => {
-                text += `• ${item.qtd}x *${item.nome}* - R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}\n`;
+                text += `• ${item.qtd}x *${item.nome}* - R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',')}\n`;
             });
             if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
             text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
