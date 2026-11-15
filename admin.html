@@ -195,7 +195,7 @@
                             <input type="hidden" id="imagem-base64">
                         </div>
                         <div class="sm:col-span-2 pt-2">
-                            <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto</button>
+                            <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto na Nuvem</button>
                         </div>
                     </form>
                 </div>
@@ -204,7 +204,7 @@
             <!-- ESTOQUE -->
             <section id="tab-estoque" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos na Nuvem</h2>
                     <div id="estoque-list" class="space-y-3"></div>
                 </div>
             </section>
@@ -295,11 +295,9 @@
                 </div>
             </section>
 
-            <!-- RELATÓRIOS & VENDAS (PAINEL COMPLETO) -->
+            <!-- RELATÓRIOS & VENDAS -->
             <section id="tab-relatorios" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
-                    
-                    <!-- CABEÇALHO E EXPORTAÇÃO -->
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
                         <div>
                             <h2 class="font-bold text-lg text-marromCafe"><i class="fa-solid fa-chart-line text-verdePetroleo mr-2"></i> Relatórios & Inteligência Comercial</h2>
@@ -315,7 +313,7 @@
                         </div>
                     </div>
 
-                    <!-- 1. FILTROS GERAIS -->
+                    <!-- FILTROS GERAIS -->
                     <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
                         <div class="flex justify-between items-center">
                             <h3 class="font-bold text-xs uppercase text-marromCafe tracking-wider"><i class="fa-solid fa-filter mr-1"></i> Filtros de Análise</h3>
@@ -375,52 +373,43 @@
                         <button onclick="switchSubTab('crediario-rel')" id="subbtn-crediario-rel" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Crediário & Inadimplência</button>
                     </div>
 
-                    <!-- CONTEÚDO DA SUB-ABA: VISÃO GERAL (8 CARDS PRINCIPAIS) -->
+                    <!-- CONTEÚDO DA SUB-ABA: VISÃO GERAL -->
                     <div id="subtab-visao-geral" class="subtab-content space-y-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- 1. Faturamento Bruto -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-gray-500 uppercase font-semibold">Faturamento Bruto</p>
                                 <h3 id="card-fat-bruto" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
                             </div>
-                            <!-- 2. Lucro Estimado -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-emerald-700 uppercase font-semibold">Lucro Estimado</p>
                                 <h3 id="card-lucro" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</h3>
                             </div>
-                            <!-- 3. Total de Vendas -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-gray-500 uppercase font-semibold">Total de Vendas</p>
                                 <h3 id="card-qtd-vendas" class="text-xl font-bold text-marromCafe mt-1">0</h3>
                             </div>
-                            <!-- 4. Ticket Médio -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-gray-500 uppercase font-semibold">Ticket Médio</p>
                                 <h3 id="card-ticket" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
                             </div>
-                            <!-- 5. Produtos Vendidos -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-gray-500 uppercase font-semibold">Unidades Comercializadas</p>
                                 <h3 id="card-unidades" class="text-xl font-bold text-marromCafe mt-1">0</h3>
                             </div>
-                            <!-- 6. Valor Recebido -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-blue-700 uppercase font-semibold">Valor Recebido (Caixa)</p>
                                 <h3 id="card-recebido" class="text-xl font-bold text-blue-700 mt-1">R$ 0,00</h3>
                             </div>
-                            <!-- 7. Contas a Receber -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-amber-700 uppercase font-semibold">Contas a Receber</p>
                                 <h3 id="card-a-receber" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</h3>
                             </div>
-                            <!-- 8. Contas Atrasadas -->
                             <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
                                 <p class="text-[11px] text-red-600 uppercase font-semibold">Contas Atrasadas</p>
                                 <h3 id="card-atrasadas" class="text-xl font-bold text-red-600 mt-1">R$ 0,00</h3>
                             </div>
                         </div>
 
-                        <!-- GRÁFICO DE DESEMPENHO -->
                         <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
                             <div class="flex justify-between items-center">
                                 <h3 class="font-bold text-xs uppercase text-marromCafe">Evolução do Faturamento por Período</h3>
@@ -431,7 +420,7 @@
                         </div>
                     </div>
 
-                    <!-- CONTEÚDO DA SUB-ABA: RANKING DE PRODUTOS -->
+                    <!-- RANKING DE PRODUTOS -->
                     <div id="subtab-produtos-ranking" class="subtab-content hidden space-y-4">
                         <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Ranking de Produtos Mais Vendidos</h3>
                         <div class="overflow-x-auto">
@@ -454,7 +443,7 @@
                         </div>
                     </div>
 
-                    <!-- CONTEÚDO DA SUB-ABA: DESEMPENHO CLIENTES -->
+                    <!-- DESEMPENHO CLIENTES -->
                     <div id="subtab-clientes-analise" class="subtab-content hidden space-y-4">
                         <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-users text-verdePetroleo mr-2"></i> Top Clientes por Faturamento</h3>
                         <div id="ranking-clientes-list" class="space-y-2">
@@ -462,7 +451,7 @@
                         </div>
                     </div>
 
-                    <!-- CONTEÚDO DA SUB-ABA: RESUMO FINANCEIRO -->
+                    <!-- RESUMO FINANCEIRO -->
                     <div id="subtab-financeiro" class="subtab-content hidden space-y-4">
                         <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-file-invoice-dollar text-verdePetroleo mr-2"></i> Demonstrativo Financeiro</h3>
                         <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-2 text-xs">
@@ -474,23 +463,21 @@
                         </div>
                     </div>
 
-                    <!-- CONTEÚDO DA SUB-ABA: CREDIÁRIO & INADIMPLÊNCIA -->
+                    <!-- CREDIÁRIO & INADIMPLÊNCIA -->
                     <div id="subtab-crediario-rel" class="subtab-content hidden space-y-4">
                         <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-credit-card text-red-600 mr-2"></i> Controle de Inadimplência e Crediário</h3>
                         <div id="crediario-rel-list" class="space-y-2">
                             <p class="text-xs text-gray-400">Carregando relatórios de crediário...</p>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- CONFIGURAÇÕES & WHATSAPP & COBRANÇA -->
+            <!-- CONFIGURAÇÕES & WHATSAPP -->
             <section id="tab-config" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-gear text-verdePetroleo mr-2"></i> Configurações do Sistema</h2>
                     
-                    <!-- WhatsApp Config -->
                     <div class="space-y-2 border-b pb-4">
                         <label class="block text-xs font-semibold text-marromCafe">Número do WhatsApp para Pedidos (Ex: 5514999999999)</label>
                         <div class="flex gap-3">
@@ -499,7 +486,6 @@
                         </div>
                     </div>
 
-                    <!-- Mensagem de Cobrança Customizada -->
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold text-marromCafe">Modelo de Texto para Cobrança via WhatsApp</label>
                         <p class="text-[11px] text-gray-500">
@@ -518,7 +504,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN CONECTADO AO SUPABASE -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -541,6 +527,7 @@
                 loadConfigs();
                 loadCategoriesSelect();
                 loadClientesSelect();
+                loadEstoque();
                 return;
             }
 
@@ -551,6 +538,7 @@
                 loadConfigs();
                 loadCategoriesSelect();
                 loadClientesSelect();
+                loadEstoque();
                 return;
             }
 
@@ -563,6 +551,7 @@
                     loadConfigs();
                     loadCategoriesSelect();
                     loadClientesSelect();
+                    loadEstoque();
                 } else {
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('app-container').classList.add('hidden');
@@ -591,6 +580,7 @@
                         loadConfigs();
                         loadCategoriesSelect();
                         loadClientesSelect();
+                        loadEstoque();
                         return;
                     }
                 } catch (err) {}
@@ -605,6 +595,7 @@
                 loadConfigs();
                 loadCategoriesSelect();
                 loadClientesSelect();
+                loadEstoque();
             } else {
                 errEl.textContent = 'Credenciais inválidas. Verifique sua senha.';
                 errEl.classList.remove('hidden');
@@ -638,7 +629,6 @@
             if(tabId === 'config') loadConfigs();
         }
 
-        // --- CONTROLE DE SUB-ABAS DOS RELATÓRIOS ---
         function switchSubTab(subId) {
             document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.subtab-btn').forEach(btn => {
@@ -652,14 +642,13 @@
             if(subId === 'crediario-rel') renderRelatorioCrediario();
         }
 
-        // --- MOTOR DE CÁLCULO E RELATÓRIOS COM DADOS REAIS ---
         function loadRelatorios() {
             preencherFiltrosSelects();
             calcularIndicadoresGerais();
         }
 
         function preencherFiltrosSelects() {
-            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            let produtos = products;
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             
             const selProd = document.getElementById('filtro-produto');
@@ -679,10 +668,7 @@
             }
         }
 
-        function aplicarFiltrosRelatorio() {
-            calcularIndicadoresGerais();
-        }
-
+        function aplicarFiltrosRelatorio() { calcularIndicadoresGerais(); }
         function limparFiltrosRelatorio() {
             document.getElementById('filtro-periodo').value = '30';
             document.getElementById('filtro-produto').value = '';
@@ -695,20 +681,12 @@
         function calcularIndicadoresGerais() {
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            let produtos = products;
             
-            let prodFiltro = document.getElementById('filtro-produto').value;
             let cliFiltro = document.getElementById('filtro-cliente').value;
             let pagFiltro = document.getElementById('filtro-pagamento').value;
 
-            let faturamentoBruto = 0;
-            let qtdVendas = 0;
-            let unidadesVendidas = 0;
-            let valorRecebido = 0;
-            let contasAReceber = 0;
-            let contasAtrasadas = 0;
-            let custoTotalCMV = 0;
-
+            let faturamentoBruto = 0, qtdVendas = 0, unidadesVendidas = 0, valorRecebido = 0, contasAReceber = 0, contasAtrasadas = 0, custoTotalCMV = 0;
             const hoje = new Date().toISOString().split('T')[0];
 
             pedidos.forEach(p => {
@@ -735,16 +713,12 @@
 
             credList.forEach(venda => {
                 if (cliFiltro && venda.cliente !== cliFiltro) return;
-
                 venda.parcelas.forEach(parc => {
                     let saldoParc = parc.valorOriginal - parc.valorPago;
                     valorRecebido += parc.valorPago;
-
                     if (saldoParc > 0) {
                         contasAReceber += saldoParc;
-                        if (parc.vencimento < hoje) {
-                            contasAtrasadas += saldoParc;
-                        }
+                        if (parc.vencimento < hoje) contasAtrasadas += saldoParc;
                     }
                 });
             });
@@ -773,13 +747,11 @@
         function renderGraficoDesempenho(pedidos) {
             const ctx = document.getElementById('salesChart').getContext('2d');
             if (myChart) myChart.destroy();
-
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
                 diasMap[dataStr] = (diasMap[dataStr] || 0) + p.valorTotal;
             });
-
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
 
@@ -787,47 +759,28 @@
                 type: 'bar',
                 data: {
                     labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                    datasets: [{
-                        label: 'Faturamento (R$)',
-                        data: dataVals.length > 0 ? dataVals : [0],
-                        backgroundColor: '#008B74',
-                        borderRadius: 8
-                    }]
+                    datasets: [{ label: 'Faturamento (R$)', data: dataVals.length > 0 ? dataVals : [0], backgroundColor: '#008B74', borderRadius: 8 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
 
         function renderRankingProdutos() {
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             let mapProd = {};
-
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado') return;
                 if(p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
-                        if(!mapProd[item.nome]) {
-                            mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        }
+                        if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
                         mapProd[item.nome].qtd += item.qtd;
                         mapProd[item.nome].fat += (item.preco * item.qtd);
                     });
                 }
             });
-
             let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
             const tbody = document.getElementById('ranking-produtos-tbody');
-
-            if(arr.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado no período.</td></tr>`;
-                return;
-            }
-
+            if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
             tbody.innerHTML = arr.map((item, idx) => `
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-2.5 font-bold">#${idx + 1}</td>
@@ -844,28 +797,18 @@
         function renderRankingClientes() {
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             let mapCli = {};
-
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
                 mapCli[p.cliente].total += p.valorTotal;
                 mapCli[p.cliente].pedidos++;
             });
-
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
             const listEl = document.getElementById('ranking-clientes-list');
-
-            if(arr.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente registrado.</p>`;
-                return;
-            }
-
+            if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
             listEl.innerHTML = arr.map((c, idx) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div>
-                        <b>#${idx + 1} - ${c.nome}</b>
-                        <p class="text-gray-500">${c.pedidos} pedido(s) realizado(s)</p>
-                    </div>
+                    <div><b>#${idx + 1} - ${c.nome}</b><p class="text-gray-500">${c.pedidos} pedido(s)</p></div>
                     <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
                 </div>
             `).join('');
@@ -874,76 +817,63 @@
         function renderRelatorioCrediario() {
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             const listEl = document.getElementById('crediario-rel-list');
-
-            if(credList.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato de crediário ativo.</p>`;
-                return;
-            }
-
+            if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
             listEl.innerHTML = credList.map(v => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
                     <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${v.valorTotal.toFixed(2).replace('.', ',')}</div>
                     <p class="text-gray-500">Produtos: ${v.produtos}</p>
-                    <p class="text-xs text-verdePetroleo font-semibold">Qtd de Parcelas: ${v.parcelas.length}</p>
                 </div>
             `).join('');
         }
 
-        function exportRelatorio(formato) {
-            alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso com base nos filtros aplicados!`);
-        }
+        function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
 
-        // Upload Imagem
-        const imageFileInput = document.getElementById('imagem-file');
-        if(imageFileInput) {
-            imageFileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) { document.getElementById('imagem-base64').value = evt.target.result; };
-                    reader.readAsDataURL(file);
+        // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
+        async function loadEstoque() {
+            const listEl = document.getElementById('estoque-list');
+            if (supabaseClient) {
+                const { data, error } = await supabaseClient.from('produtos').select('*');
+                if (!error && data) {
+                    products = data;
+                    localStorage.setItem('helcinho_produtos', JSON.stringify(products));
+                } else {
+                    products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                 }
-            });
-        }
-
-        // --- CATEGORIAS DINÂMICAS ---
-        function loadCategoriesSelect() {
-            const select = document.getElementById('categoria');
-            if(!select) return;
-            
-            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
-            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
-            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            let catsProdutos = produtos.map(p => p.categoria).filter(Boolean);
-            
-            let todas = [...new Set([...categoriasPadrao, ...savedCats, ...catsProdutos])].sort();
-            
-            select.innerHTML = todas.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-
-        function adicionarNovaCategoria() {
-            let nova = prompt("Digite o nome da nova categoria (Ex: Hidratantes, Maquiagem):");
-            if(nova && nova.trim() !== '') {
-                nova = nova.trim();
-                let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
-                if(!savedCats.includes(nova)) {
-                    savedCats.push(nova);
-                    localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats));
-                }
-                loadCategoriesSelect();
-                document.getElementById('categoria').value = nova;
-                alert(`Categoria "${nova}" criada com sucesso!`);
+            } else {
+                products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             }
+
+            if (products.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado na nuvem.</p>';
+                return;
+            }
+
+            listEl.innerHTML = products.map(p => `
+                <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20 text-xs">
+                    <div class="flex items-center gap-3">
+                        <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
+                        <div>
+                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
+                            <p class="text-gray-500">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // --- PRODUTOS ---
         async function saveProduct(e) {
             e.preventDefault();
             const productId = document.getElementById('product-id').value;
             const productData = {
                 id: productId ? Number(productId) : Date.now(),
                 nome: document.getElementById('nome').value,
+                sku: document.getElementById('sku').value || null,
                 categoria: document.getElementById('categoria').value,
+                estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
                 descricao: document.getElementById('descricao').value,
                 preco: parseFloat(document.getElementById('preco').value),
                 imagem: document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
@@ -959,55 +889,47 @@
                 }
             }
 
+            // Atualizar cache local
+            let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            if (productId) {
+                localProducts = localProducts.map(p => p.id == productId ? productData : p);
+            } else {
+                localProducts.push(productData);
+            }
+            localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
+
             alert(productId ? 'Produto atualizado com sucesso na nuvem!' : 'Produto cadastrado com sucesso na nuvem!');
             resetProductForm();
             loadEstoque();
             loadCategoriesSelect();
         }
 
-        function loadEstoque() {
-            const listEl = document.getElementById('estoque-list');
-            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            if (products.length === 0) {
-                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
-                return;
-            }
-            listEl.innerHTML = products.map(p => `
-                <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20 text-xs">
-                    <div class="flex items-center gap-3">
-                        <img src="${p.imagem}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
-                        <div>
-                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
-                            <p class="text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200" title="Editar Produto"><i class="fa-solid fa-pen"></i> Editar</button>
-                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         function editProduct(id) {
             const p = products.find(item => item.id == id);
             if (!p) return;
             document.getElementById('product-id').value = p.id;
-            document.getElementById('nome').value = p.nome;
+            document.getElementById('nome').value = p.nome || '';
             document.getElementById('sku').value = p.sku || '';
             loadCategoriesSelect();
-            document.getElementById('categoria').value = p.categoria;
+            document.getElementById('categoria').value = p.categoria || '';
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
-            document.getElementById('descricao').value = p.descricao;
-            document.getElementById('preco').value = p.preco;
-            document.getElementById('imagem-base64').value = p.imagem;
+            document.getElementById('descricao').value = p.descricao || '';
+            document.getElementById('preco').value = p.preco || '';
+            document.getElementById('imagem-base64').value = p.imagem || '';
             document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
             document.getElementById('product-btn-submit').textContent = 'Atualizar Produto';
             switchTab('produtos');
         }
 
-        function deleteProduct(id) {
-            if(!confirm('Excluir produto?')) return;
+        async function deleteProduct(id) {
+            if(!confirm('Excluir produto da nuvem?')) return;
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
+                if (error) {
+                    alert("Erro ao excluir na nuvem: " + error.message);
+                    return;
+                }
+            }
             products = products.filter(p => p.id != id);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
             loadEstoque();
@@ -1018,11 +940,11 @@
             document.getElementById('product-id').value = '';
             document.getElementById('imagem-base64').value = '';
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
-            document.getElementById('product-btn-submit').textContent = 'Salvar Produto';
+            document.getElementById('product-btn-submit').textContent = 'Salvar Produto na Nuvem';
             loadCategoriesSelect();
         }
 
-        // --- CLIENTES & SELECT ORDENADO ---
+        // --- CLIENTES ---
         function saveClient(e) {
             e.preventDefault();
             const index = document.getElementById('client-index').value;
@@ -1040,7 +962,6 @@
             const list = document.getElementById('clientes-list');
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             clientes.sort((a, b) => a.nome.localeCompare(b.nome));
-
             list.innerHTML = clientes.length === 0 ? '<p class="text-xs text-gray-400">Nenhum cliente cadastrado.</p>' : clientes.map((c, i) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
@@ -1060,10 +981,7 @@
             if (!selectEl) return;
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             clientes.sort((a, b) => a.nome.localeCompare(b.nome));
-
-            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `
-                <option value="${c.nome}">${c.nome}</option>
-            `).join('');
+            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         }
 
         function editClient(i) {
@@ -1105,7 +1023,7 @@
             const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
             const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
 
-            if(!cliente) return alert('Selecione um cliente da cartilha!');
+            if(!cliente) return alert('Selecione um cliente!');
             if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
 
             const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
@@ -1149,7 +1067,6 @@
                             let statusTxt = p.status;
                             if (saldo <= 0) statusTxt = 'Paga';
                             else if (p.vencimento < hoje) statusTxt = 'ATRASADA';
-
                             return `
                                 <div class="p-2 rounded border bg-white flex flex-col justify-between">
                                     <div>
@@ -1174,7 +1091,6 @@
             if(!valorPagoStr) return;
             let valorPago = parseFloat(valorPagoStr);
             if(isNaN(valorPago) || valorPago <= 0) return alert('Valor inválido!');
-
             parcela.valorPago += valorPago;
             parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
@@ -1249,15 +1165,7 @@
                             totalAtrasado += saldo;
                             let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
                             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({ 
-                                cliente: venda.cliente, 
-                                parcela: p.numero, 
-                                saldo, 
-                                vencimento: p.vencimento, 
-                                diasAtraso: diffDays, 
-                                vIndex, 
-                                pIndex 
-                            });
+                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays, vIndex, pIndex });
                         }
                     }
                 });
@@ -1276,7 +1184,6 @@
                     const isCritico = item.diasAtraso >= 5;
                     const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
                     const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
-
                     return `
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
                             <div>
@@ -1291,47 +1198,61 @@
                 }).join('');
         }
 
-        // --- CONFIGURAÇÕES DE WHATSAPP E MENSAGEM ---
-        function saveWhatsApp() {
-            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
-            alert('Número do WhatsApp salvo com sucesso!');
-        }
-
-        function saveTemplateCobrar() {
-            const template = document.getElementById('template-cobranca').value;
-            localStorage.setItem('helcinho_template_cobranca', template);
-            alert('Modelo de mensagem de cobrança salvo com sucesso!');
-        }
-
+        // --- CONFIGURAÇÕES DE WHATSAPP ---
+        function saveWhatsApp() { localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value); alert('Número do WhatsApp salvo!'); }
+        function saveTemplateCobrar() { localStorage.setItem('helcinho_template_cobranca', document.getElementById('template-cobranca').value); alert('Modelo salvo!'); }
         function loadConfigs() {
             document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
-            
-            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
-            
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
             document.getElementById('template-cobranca').value = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
         }
 
         function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
             let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
             let valorFormatado = saldo.toFixed(2).replace('.', ',');
-
-            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
-            
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*.`;
             let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
-
-            let msg = template
-                .replace(/{cliente}/g, cliente)
-                .replace(/{parcela}/g, parcela)
-                .replace(/{valor}/g, valorFormatado)
-                .replace(/{vencimento}/g, vencFormatado)
-                .replace(/{dias}/g, dias);
-
+            let msg = template.replace(/{cliente}/g, cliente).replace(/{parcela}/g, parcela).replace(/{valor}/g, valorFormatado).replace(/{vencimento}/g, vencFormatado).replace(/{dias}/g, dias);
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // --- CATEGORIAS & UPLOAD ---
+        function loadCategoriesSelect() {
+            const select = document.getElementById('categoria');
+            if(!select) return;
+            let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
+            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            let catsProdutos = products.map(p => p.categoria).filter(Boolean);
+            let todas = [...new Set([...categoriasPadrao, ...savedCats, ...catsProdutos])].sort();
+            select.innerHTML = todas.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function adicionarNovaCategoria() {
+            let nova = prompt("Digite o nome da nova categoria:");
+            if(nova && nova.trim() !== '') {
+                nova = nova.trim();
+                let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+                if(!savedCats.includes(nova)) { savedCats.push(nova); localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats)); }
+                loadCategoriesSelect();
+                document.getElementById('categoria').value = nova;
+                alert(`Categoria "${nova}" criada!`);
+            }
+        }
+
+        const imageFileInput = document.getElementById('imagem-file');
+        if(imageFileInput) {
+            imageFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) { document.getElementById('imagem-base64').value = evt.target.result; };
+                    reader.readAsDataURL(file);
+                }
+            });
         }
 
         // Calculadora
         function loadCalcSelect() {
-            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
         function loadProductForCalc() {
