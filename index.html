@@ -326,6 +326,45 @@
         }
 
         fetchProducts();
+        // Exemplo da função de finalização de compra na Loja Online (index.html)
+function finalizarCompra() {
+    // 1. Recolher os dados do carrinho e do cliente da sua vitrine
+    const carrinhoItens = JSON.parse(localStorage.getItem('carrinho_atual') || '[]');
+    
+    if (carrinhoItens.length === 0) {
+        alert('O seu carrinho está vazio!');
+        return;
+    }
+
+    // Calcular o valor total e formatar a lista de produtos
+    let valorTotal = 0;
+    let produtosDescricao = carrinhoItens.map(item => {
+        valorTotal += (item.preco * item.quantidade);
+        return `${item.quantidade}x ${item.nome}`;
+    }).join(', ');
+
+    // 2. Criar o objeto do pedido padronizado para o painel admin
+    const novoPedido = {
+        id: 'PED-' + Math.floor(1000 + Math.random() * 9000), // ID único aleatório de 4 dígitos
+        data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+        produtos: produtosDescricao,
+        valorTotal: valorTotal,
+        status: 'Novo', // O painel admin identifica automaticamente como "Novo"
+        presente: 'Não'
+    };
+
+    // 3. Salvar na chave compartilhada 'helcinho_pedidos'
+    let pedidosExistentes = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+    pedidosExistentes.unshift(novoPedido); // Adiciona o novo pedido no topo da lista
+    localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidosExistentes));
+
+    // 4. Limpar o carrinho e avisar o cliente
+    localStorage.removeItem('carrinho_atual');
+    alert('Pedido realizado com sucesso! Já foi enviado para o painel da loja.');
+    
+    // Redirecionar opcionalmente ou atualizar a tela
+    window.location.reload();
+}
     </script>
 </body>
 </html>
