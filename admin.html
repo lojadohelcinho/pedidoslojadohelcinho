@@ -41,7 +41,7 @@
                     <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
+                <p class="text-xs text-rosegold font-semibold">Autenticação Restrita</p>
             </div>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -53,9 +53,9 @@
                     <label class="block text-xs font-semibold mb-1">Senha</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
+                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow mt-2">Entrar no Sistema</button>
             </form>
-            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold"></div>
+            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
         </div>
     </div>
 
@@ -337,29 +337,24 @@
             if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error("Erro ao inicializar Supabase:", e);
+        }
 
         let products = [];
         let myChart = null;
 
-        // Verificação de Autenticação com Fallback Local (evita bloqueios por falhas de rede)
+        // Verificação de Sessão Ativa
         async function checkAuth() {
-            if (localStorage.getItem('helcinho_logged_local') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                return;
-            }
-
             if (!supabaseClient) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
+                showLoginError("Supabase não configurado corretamente.");
                 return;
             }
 
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+
                 if (session) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
@@ -369,52 +364,53 @@
                     document.getElementById('app-container').classList.add('hidden');
                 }
             } catch (err) {
-                // Em caso de erro de rede, mostra o login mas permite acesso local
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
         }
 
+        // Login Estrito com Supabase Auth
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             const errEl = document.getElementById('login-error');
 
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (!error) {
-                        errEl.classList.add('hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-container').classList.remove('hidden');
-                        loadDashboard();
-                        return;
-                    }
-                } catch (err) {
-                    console.warn("Supabase inacessível, utilizando fallback de segurança local.");
-                }
+            if (!supabaseClient) {
+                errEl.textContent = 'Erro: Cliente Supabase não inicializado.';
+                errEl.classList.remove('hidden');
+                return;
             }
 
-            // Fallback de login local para garantir funcionamento imediato
-            if (password.length >= 4) {
-                localStorage.setItem('helcinho_logged_local', 'true');
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
                 errEl.classList.add('hidden');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
-            } else {
-                errEl.textContent = 'Digite uma senha válida (mínimo 4 caracteres).';
+            } catch (err) {
+                let msg = err.message || 'E-mail ou senha incorretos.';
+                if (msg.includes('Invalid login credentials')) {
+                    msg = 'E-mail ou senha incorretos. Verifique se a conta já foi confirmada no Supabase.';
+                }
+                errEl.textContent = 'Erro ao entrar: ' + msg;
                 errEl.classList.remove('hidden');
             }
         }
 
         async function handleLogout() {
-            localStorage.removeItem('helcinho_logged_local');
             if (supabaseClient) {
                 try { await supabaseClient.auth.signOut(); } catch(e) {}
             }
             location.reload();
+        }
+
+        function showLoginError(msg) {
+            const errEl = document.getElementById('login-error');
+            errEl.textContent = msg;
+            errEl.classList.remove('hidden');
         }
 
         function switchTab(tabId) {
@@ -683,7 +679,7 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS ---
+        // --- GESTÃO DE PEDIDOS (Atualizado para mostrar o nome do cliente em destaque) ---
         function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -692,7 +688,8 @@
                     <div class="flex justify-between items-center border-b pb-2">
                         <div>
                             <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                            <p class="text-gray-600 font-medium">Produtos: ${p.produtos}</p>
+                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
+                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
                         </div>
                         <span class="font-bold text-sm text-verdePetroleo">R$ ${p.valorTotal.toFixed(2).replace('.', ',')}</span>
                     </div>
@@ -772,9 +769,9 @@
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             if (pedidos.length === 0) return alert('Nenhum dado para exportar!');
 
-            let csvContent = "data:text/csv;charset=utf-8,ID Pedido;Data;Produtos;Valor Total;Status;Presente\r\n";
+            let csvContent = "data:text/csv;charset=utf-8,ID Pedido;Cliente;Data;Produtos;Valor Total;Status;Presente\r\n";
             pedidos.forEach(p => {
-                let row = [p.id, p.data, `"${p.produtos}"`, p.valorTotal.toFixed(2), p.status, p.presente];
+                let row = [p.id, `"${p.cliente || 'N/A'}"`, p.data, `"${p.produtos}"`, p.valorTotal.toFixed(2), p.status, p.presente];
                 csvContent += row.join(";") + "\r\n";
             });
 
