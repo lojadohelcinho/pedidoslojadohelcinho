@@ -520,52 +520,98 @@
         }
 
         // Navegação do Menu Lateral
-        function switchTab(tabId) {
-            try {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
-                });
-                
-                const targetTab = document.getElementById(`tab-${tabId}`);
-                const targetBtn = document.getElementById(`btn-${tabId}`);
-                
-                if (targetTab) targetTab.classList.remove('hidden');
-                if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
-                
-                if(tabId === 'dashboard') loadDashboard();
-                if(tabId === 'pedidos') loadPedidos();
-                if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
-                if(tabId === 'estoque') loadEstoque();
-                if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
-                if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
-                if(tabId === 'calculadora') loadCalcSelect();
-                if(tabId === 'relatorios') loadRelatorios();
-                if(tabId === 'config') loadConfigs();
-            } catch (err) {
-                console.error("Erro ao alternar aba:", err);
-            }
-        }
+        
+// NAVEGAÇÃO PRINCIPAL DO SISTEMA
+window.switchTab = function(tabId) {
+    const tab = document.getElementById(`tab-${tabId}`);
+    const button = document.getElementById(`btn-${tabId}`);
 
-        function switchSubTab(subId) {
-            try {
-                document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.subtab-btn').forEach(btn => {
-                    btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
-                });
-                const targetSub = document.getElementById(`subtab-${subId}`);
-                const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+    if (!tab || !button) {
+        console.error('Aba não encontrada:', tabId);
+        return;
+    }
 
-                if (targetSub) targetSub.classList.remove('hidden');
-                if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
-                
-                if(subId === 'produtos-ranking') renderRankingProdutos();
-                if(subId === 'clientes-analise') renderRankingClientes();
-                if(subId === 'crediario-rel') renderRelatorioCrediario();
-            } catch (err) {
-                console.error("Erro ao alternar sub-aba:", err);
-            }
+    // Esconde todas as abas
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+    });
+
+    // Reseta os botões do menu
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
+    });
+
+    // Mostra a aba selecionada
+    tab.classList.remove('hidden');
+
+    // Destaca o botão selecionado
+    button.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+
+    // Carrega os dados da aba
+    try {
+        if (tabId === 'dashboard') loadDashboard();
+        if (tabId === 'pedidos') loadPedidos();
+        if (tabId === 'produtos') {
+            loadEstoque();
+            loadCategoriesSelect();
         }
+        if (tabId === 'estoque') loadEstoque();
+        if (tabId === 'clientes') {
+            loadClientes();
+            loadClientesSelect();
+        }
+        if (tabId === 'crediario') {
+            loadCrediario();
+            loadClientesSelect();
+        }
+        if (tabId === 'calculadora') loadCalcSelect();
+        if (tabId === 'relatorios') loadRelatorios();
+        if (tabId === 'config') loadConfigs();
+
+    } catch (error) {
+        console.error(`Erro ao carregar a aba "${tabId}":`, error);
+        alert('A aba abriu, mas ocorreu um erro ao carregar os dados. Consulte o Console (F12).');
+    }
+};
+
+
+// CONTROLE DAS SUB-ABAS DOS RELATÓRIOS
+window.switchSubTab = function(subId) {
+    const subTab = document.getElementById(`subtab-${subId}`);
+    const button = document.getElementById(`subbtn-${subId}`);
+
+    if (!subTab || !button) {
+        console.error('Sub-aba não encontrada:', subId);
+        return;
+    }
+
+    // Esconde todas as sub-abas
+    document.querySelectorAll('.subtab-content').forEach(el => {
+        el.classList.add('hidden');
+    });
+
+    // Reseta os botões
+    document.querySelectorAll('.subtab-btn').forEach(btn => {
+        btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+    });
+
+    // Mostra a sub-aba selecionada
+    subTab.classList.remove('hidden');
+
+    // Destaca o botão selecionado
+    button.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+
+    try {
+        if (subId === 'produtos-ranking') renderRankingProdutos();
+        if (subId === 'clientes-analise') renderRankingClientes();
+        if (subId === 'crediario-rel') renderRelatorioCrediario();
+
+    } catch (error) {
+        console.error(`Erro ao carregar a sub-aba "${subId}":`, error);
+        alert('A sub-aba abriu, mas ocorreu um erro ao carregar os dados. Consulte o Console (F12).');
+    }
+};
+
 
         function loadRelatorios() {
             preencherFiltrosSelects();
