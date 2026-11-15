@@ -821,15 +821,16 @@
             atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : atrasadasArr.map(item => `
                 <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200 text-xs">
                     <div><b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2)}) - ${item.diasAtraso} dias em atraso (Venc: ${item.vencimento.split('-').reverse().join('/')})</div>
-                    <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso})" class="bg-green-600 text-white px-3 py-1.5 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>
+                    <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>
                 </div>
             `).join('');
         }
 
-        function cobrarWhatsApp(cliente, parcela, saldo, dias) {
-            let msg = `Olá ${cliente}, notamos que a parcela ${parcela} no valor de R$ ${saldo.toFixed(2).replace('.', ',')} está com ${dias} dias em atraso na Loja do Helcinho. Poderia verificar?`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
+        function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
+    let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
+    let msg = `Olá *${cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc ${parcela}*) no valor de *R$ ${saldo.toFixed(2).replace('.', ',')}* com vencimento em *${vencFormatado}* (${dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
 
         // Calculadora
         function loadCalcSelect() {
