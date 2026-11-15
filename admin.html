@@ -256,7 +256,7 @@
                             <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                         </div>
                         <div class="flex items-end">
-                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition shadow">Gerar Parcelas</button>
+                            <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition shadow">Gerar Parcelas na Nuvem</button>
                         </div>
                     </form>
                 </div>
@@ -700,9 +700,16 @@
                 pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             }
 
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let credList = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('crediario').select('*');
+                if (data) credList = data;
+            }
+            if (credList.length === 0) {
+                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            }
+
             let produtos = products;
-            
             let cliFiltro = document.getElementById('filtro-cliente').value;
             let pagFiltro = document.getElementById('filtro-pagamento').value;
 
@@ -733,7 +740,7 @@
 
             credList.forEach(venda => {
                 if (cliFiltro && venda.cliente !== cliFiltro) return;
-                venda.parcelas.forEach(parc => {
+                (venda.parcelas || []).forEach(parc => {
                     let saldoParc = parc.valorOriginal - parc.valorPago;
                     valorRecebido += parc.valorPago;
                     if (saldoParc > 0) {
@@ -846,13 +853,19 @@
             `).join('');
         }
 
-        function renderRelatorioCrediario() {
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+        async function renderRelatorioCrediario() {
+            let credList = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('crediario').select('*');
+                if (data) credList = data;
+            }
+            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+
             const listEl = document.getElementById('crediario-rel-list');
             if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
             listEl.innerHTML = credList.map(v => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
-                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${v.valorTotal.toFixed(2).replace('.', ',')}</div>
+                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${Number(v.valorTotal || 0).toFixed(2).replace('.', ',')}</div>
                     <p class="text-gray-500">Produtos: ${v.produtos}</p>
                 </div>
             `).join('');
@@ -1073,8 +1086,8 @@
             loadClientesSelect();
         }
 
-        // --- CREDIÁRIO ---
-        function saveCrediario(e) {
+        // --- CREDIÁRIO NA NUVEM ---
+        async function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
             const produtos = document.getElementById('cred-produtos').value;
@@ -1101,26 +1114,49 @@
                 dataBase.setDate(dataBase.getDate() + 30);
             }
 
+            const vendaCrediario = {
+                id: 'CRED-' + Date.now(),
+                cliente,
+                produtos,
+                valorTotal,
+                parcelas
+            };
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('crediario').upsert([vendaCrediario]);
+                if (error) {
+                    console.error("Erro ao salvar crediário na nuvem:", error);
+                }
+            }
+
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            credList.push({ id: Date.now(), cliente, produtos, valorTotal, parcelas });
+            credList.push(vendaCrediario);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
 
-            alert('Venda parcelada gerada com sucesso!');
+            alert('Venda parcelada gerada e salva na nuvem com sucesso!');
             e.target.reset();
             loadCrediario();
         }
 
-        function loadCrediario() {
+        async function loadCrediario() {
             const list = document.getElementById('crediario-list');
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let credList = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
+                if (data) credList = data;
+            }
+            if (credList.length === 0) {
+                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            }
+
             list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>' : credList.map((venda, vIndex) => `
                 <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
                     <div class="flex justify-between items-center font-bold border-b pb-1">
-                        <span>${venda.cliente} — R$ ${venda.valorTotal.toFixed(2).replace('.', ',')} (${venda.produtos})</span>
-                        <button onclick="deleteContrato(${vIndex})" class="text-red-500 hover:text-red-700">Excluir Venda</button>
+                        <span>${venda.cliente} — R$ ${Number(venda.valorTotal || 0).toFixed(2).replace('.', ',')} (${venda.produtos})</span>
+                        <button onclick="deleteContrato('${venda.id}', ${vIndex})" class="text-red-500 hover:text-red-700">Excluir Venda</button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        ${venda.parcelas.map((p, pIndex) => {
+                        ${(venda.parcelas || []).map((p, pIndex) => {
                             const hoje = new Date().toISOString().split('T')[0];
                             let saldo = p.valorOriginal - p.valorPago;
                             let statusTxt = p.status;
@@ -1133,7 +1169,7 @@
                                         Venc: ${p.vencimento.split('-').reverse().join('/')}<br>
                                         Status: <span class="${statusTxt === 'ATRASADA' ? 'text-red-600 font-bold' : ''}">${statusTxt}</span>
                                     </div>
-                                    ${saldo > 0 ? `<button onclick="baixarParcela(${vIndex}, ${pIndex})" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
+                                    ${saldo > 0 ? `<button onclick="baixarParcela('${venda.id}', ${pIndex})" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
                                 </div>
                             `;
                         }).join('')}
@@ -1142,23 +1178,42 @@
             `).join('');
         }
 
-        function baixarParcela(vIndex, pIndex) {
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-            let parcela = credList[vIndex].parcelas[pIndex];
+        async function baixarParcela(vendaId, pIndex) {
+            let credList = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('crediario').select('*');
+                if (data) credList = data;
+            }
+            if (credList.length === 0) {
+                credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            }
+
+            let venda = credList.find(v => v.id == vendaId) || credList[vendaId];
+            if (!venda) return;
+
+            let parcela = venda.parcelas[pIndex];
             let saldo = parcela.valorOriginal - parcela.valorPago;
             let valorPagoStr = prompt(`Valor a baixar (Saldo: R$ ${saldo.toFixed(2)})`, saldo);
             if(!valorPagoStr) return;
             let valorPago = parseFloat(valorPagoStr);
             if(isNaN(valorPago) || valorPago <= 0) return alert('Valor inválido!');
+            
             parcela.valorPago += valorPago;
             parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
+
+            if (supabaseClient) {
+                await supabaseClient.from('crediario').upsert([venda]);
+            }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
-            alert('Baixa registrada!');
+            alert('Baixa registrada com sucesso!');
         }
 
-        function deleteContrato(vIndex) {
+        async function deleteContrato(vendaId, vIndex) {
             if(!confirm('Deseja excluir este contrato?')) return;
+            if (supabaseClient) {
+                await supabaseClient.from('crediario').delete().eq('id', vendaId);
+            }
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
@@ -1221,22 +1276,26 @@
 
         // --- DASHBOARD & ATRASADOS ---
         async function loadDashboard() {
-            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let credList = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('crediario').select('*');
+                if (data) credList = data;
+            }
+            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+
             let pedidos = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('pedidos').select('*');
                 if (data) pedidos = data;
             }
-            if (pedidos.length === 0) {
-                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
 
             let totalAberto = 0, totalAtrasado = 0;
             let atrasadasArr = [];
             const hoje = new Date().toISOString().split('T')[0];
 
             credList.forEach((venda) => {
-                venda.parcelas.forEach((p) => {
+                (venda.parcelas || []).forEach((p) => {
                     let saldo = p.valorOriginal - p.valorPago;
                     if (saldo > 0) {
                         totalAberto += saldo;
@@ -1326,26 +1385,39 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // --- CATEGORIAS & UPLOAD ---
-        function loadCategoriesSelect() {
+        // --- CATEGORIAS NA NUVEM ---
+        async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             if(!select) return;
             let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Masculino", "Feminino", "Presentes"];
-            let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            let savedCats = [];
+            if (supabaseClient) {
+                const { data } = await supabaseClient.from('categorias').select('*');
+                if (data) savedCats = data.map(c => c.nome || c.categoria).filter(Boolean);
+            }
+            if (savedCats.length === 0) {
+                savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+            }
             let catsProdutos = products.map(p => p.categoria).filter(Boolean);
             let todas = [...new Set([...categoriasPadrao, ...savedCats, ...catsProdutos])].sort();
             select.innerHTML = todas.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
-        function adicionarNovaCategoria() {
+        async function adicionarNovaCategoria() {
             let nova = prompt("Digite o nome da nova categoria:");
             if(nova && nova.trim() !== '') {
                 nova = nova.trim();
+                if (supabaseClient) {
+                    await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
+                }
                 let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
-                if(!savedCats.includes(nova)) { savedCats.push(nova); localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats)); }
+                if(!savedCats.includes(nova)) { 
+                    savedCats.push(nova); 
+                    localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats)); 
+                }
                 loadCategoriesSelect();
                 document.getElementById('categoria').value = nova;
-                alert(`Categoria "${nova}" criada!`);
+                alert(`Categoria "${nova}" criada e salva na nuvem!`);
             }
         }
 
