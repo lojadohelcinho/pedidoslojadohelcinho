@@ -272,7 +272,7 @@
             subtotalEl.textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
         }
 
-        function checkoutWhatsApp() {
+        async function checkoutWhatsApp() {
             if (cart.length === 0) return alert('Sua sacola está vazia!');
             
             const nomeCliente = document.getElementById('cliente-nome') ? document.getElementById('cliente-nome').value.trim() : '';
@@ -282,7 +282,6 @@
                 return;
             }
 
-            const whatsappNumber = localStorage.getItem('helcinho_whatsapp') || '5514999999999';
             const isGift = document.getElementById('is-gift').checked;
             const numeroPedido = 'PED-' + Math.floor(100000 + Math.random() * 900000);
             
@@ -302,6 +301,17 @@
                 presente: isGift ? 'Sim' : 'Não'
             };
 
+            // Salva na nuvem do Supabase para aparecer no admin.html
+            try {
+                const { error } = await supabaseClient.from('pedidos').insert([novoPedido]);
+                if (error) {
+                    console.error("Erro ao enviar pedido para o Supabase:", error);
+                }
+            } catch (err) {
+                console.error("Erro de rede ao salvar pedido:", err);
+            }
+
+            // Também guarda no localStorage local para redundância
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             pedidos.unshift(novoPedido);
             localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidos));
@@ -315,7 +325,7 @@
             text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
 
             const zapLoja = localStorage.getItem('helcinho_whatsapp') || '5516981035241';
-window.open(`https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`, '_blank');
+            window.open(`https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`, '_blank');
             
             cart = [];
             updateBadge();
