@@ -952,6 +952,16 @@
                 ativo: true
             };
 
+            // Enviar para o Supabase (Nuvem) se estiver ativo
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('produtos').upsert([productData]);
+                } catch (err) {
+                    console.error("Erro ao enviar para o Supabase:", err);
+                }
+            }
+
+            // Salvar também localmente no navegador
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             if (productId) {
                 localProducts = localProducts.map(p => p.id == productId ? productData : p);
