@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta - Sem Tela de Login) -->
+    <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -504,14 +504,14 @@
         let products = [];
         let myChart = null;
 
-        // Inicialização automática ao abrir a página
+        // Inicialização automática ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-            loadConfigs();
-            loadCategoriesSelect();
-            loadClientes();
-            loadClientesSelect();
-            loadEstoque();
+            try { loadDashboard(); } catch(e){}
+            try { loadConfigs(); } catch(e){}
+            try { loadCategoriesSelect(); } catch(e){}
+            try { loadClientes(); } catch(e){}
+            try { loadClientesSelect(); } catch(e){}
+            try { loadEstoque(); } catch(e){}
         });
 
         function handleLogout() {
@@ -520,41 +520,50 @@
 
         // Navegação do Menu Lateral
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
-            });
-            const targetTab = document.getElementById(`tab-${tabId}`);
-            const targetBtn = document.getElementById(`btn-${tabId}`);
-            
-            if (targetTab) targetTab.classList.remove('hidden');
-            if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
-            
-            if(tabId === 'dashboard') loadDashboard();
-            if(tabId === 'pedidos') loadPedidos();
-            if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
-            if(tabId === 'estoque') loadEstoque();
-            if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
-            if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
-            if(tabId === 'calculadora') loadCalcSelect();
-            if(tabId === 'relatorios') loadRelatorios();
-            if(tabId === 'config') loadConfigs();
+            try {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
+                });
+                
+                const targetTab = document.getElementById(`tab-${tabId}`);
+                const targetBtn = document.getElementById(`btn-${tabId}`);
+                
+                if (targetTab) targetTab.classList.remove('hidden');
+                if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+                
+                if(tabId === 'dashboard') loadDashboard();
+                if(tabId === 'pedidos') loadPedidos();
+                if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
+                if(tabId === 'estoque') loadEstoque();
+                if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
+                if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
+                if(tabId === 'calculadora') loadCalcSelect();
+                if(tabId === 'relatorios') loadRelatorios();
+                if(tabId === 'config') loadConfigs();
+            } catch(err) {
+                console.error("Erro ao alternar aba:", err);
+            }
         }
 
         function switchSubTab(subId) {
-            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.subtab-btn').forEach(btn => {
-                btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
-            });
-            const targetSub = document.getElementById(`subtab-${subId}`);
-            const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+            try {
+                document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.subtab-btn').forEach(btn => {
+                    btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+                });
+                const targetSub = document.getElementById(`subtab-${subId}`);
+                const targetSubBtn = document.getElementById(`subbtn-${subId}`);
 
-            if (targetSub) targetSub.classList.remove('hidden');
-            if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
-            
-            if(subId === 'produtos-ranking') renderRankingProdutos();
-            if(subId === 'clientes-analise') renderRankingClientes();
-            if(subId === 'crediario-rel') renderRelatorioCrediario();
+                if (targetSub) targetSub.classList.remove('hidden');
+                if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+                
+                if(subId === 'produtos-ranking') renderRankingProdutos();
+                if(subId === 'clientes-analise') renderRankingClientes();
+                if(subId === 'crediario-rel') renderRelatorioCrediario();
+            } catch(err) {
+                console.error("Erro ao alternar sub-aba:", err);
+            }
         }
 
         function loadRelatorios() {
@@ -566,8 +575,10 @@
             let produtos = products;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*');
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*');
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -603,8 +614,10 @@
         async function calcularIndicadoresGerais() {
             let pedidos = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
             }
             if (pedidos.length === 0) {
                 pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -612,8 +625,10 @@
 
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -786,12 +801,17 @@
         // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
+            if (!listEl) return;
             if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('produtos').select('*');
-                if (!error && data) {
-                    products = data;
-                    localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-                } else {
+                try {
+                    const { data, error } = await supabaseClient.from('produtos').select('*');
+                    if (!error && data) {
+                        products = data;
+                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
+                    } else {
+                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+                    }
+                } catch(e) {
                     products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                 }
             } else {
@@ -926,6 +946,7 @@
 
         async function loadClientes() {
             const list = document.getElementById('clientes-list');
+            if (!list) return;
             let clientes = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
@@ -1052,6 +1073,7 @@
 
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
+            if (!list) return;
             let credList = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
@@ -1207,7 +1229,7 @@
 
         // Calculadora
         function loadCalcSelect() {
-            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.link(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
         function loadProductForCalc() {
             const p = products.find(i => i.id == document.getElementById('calc-produto').value);
@@ -1220,16 +1242,6 @@
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
-
-        // Inicialização direta do painel sem login
-        window.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-            loadConfigs();
-            loadCategoriesSelect();
-            loadClientes();
-            loadClientesSelect();
-            loadEstoque();
-        });
     </script>
 </body>
 </html>
