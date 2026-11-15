@@ -344,7 +344,6 @@
 
         // Verificação de Autenticação ao carregar a página
         async function checkAuth() {
-            // Se já estiver logado localmente na sessão atual
             if (localStorage.getItem('helcinho_logged_local') === 'true') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
@@ -397,7 +396,6 @@
                 }
             }
 
-            // Fallback de segurança para garantir acesso imediato com senha válida
             if (password.length >= 4) {
                 localStorage.setItem('helcinho_logged_local', 'true');
                 errEl.classList.add('hidden');
@@ -684,7 +682,7 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS (Exibe o nome do cliente em destaque) ---
+        // --- GESTÃO DE PEDIDOS ---
         function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -789,7 +787,7 @@
             document.body.removeChild(link);
         }
 
-        // --- DASHBOARD & ATRASADOS ---
+        // --- DASHBOARD & ATRASADOS (Atualizado com destaque crítico para 5+ dias) ---
         function loadDashboard() {
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -806,7 +804,15 @@
                             totalAtrasado += saldo;
                             let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
                             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays, vIndex, pIndex });
+                            atrasadasArr.push({ 
+                                cliente: venda.cliente, 
+                                parcela: p.numero, 
+                                saldo, 
+                                vencimento: p.vencimento, 
+                                diasAtraso: diffDays, 
+                                vIndex, 
+                                pIndex 
+                            });
                         }
                     }
                 });
@@ -818,19 +824,33 @@
 
             const atrasadasListEl = document.getElementById('atrasadas-list');
             document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
-            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : atrasadasArr.map(item => `
-                <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200 text-xs">
-                    <div><b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2)}) - ${item.diasAtraso} dias em atraso (Venc: ${item.vencimento.split('-').reverse().join('/')})</div>
-                    <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>
-                </div>
-            `).join('');
+            
+            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
+                '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
+                atrasadasArr.map(item => {
+                    const isCritico = item.diasAtraso >= 5;
+                    const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
+                    const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
+
+                    return `
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
+                            <div>
+                                <b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',')}) 
+                                <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${item.vencimento.split('-').reverse().join('/')}) ${badgeCritico}
+                            </div>
+                            <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
+                            </button>
+                        </div>
+                    `;
+                }).join('');
         }
 
         function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
-    let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
-    let msg = `Olá *${cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc ${parcela}*) no valor de *R$ ${saldo.toFixed(2).replace('.', ',')}* com vencimento em *${vencFormatado}* (${dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-}
+            let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
+            let msg = `Olá *${cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc ${parcela}*) no valor de *R$ ${saldo.toFixed(2).replace('.', ',')}* com vencimento em *${vencFormatado}* (${dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor? Qualquer dúvida estou à disposição!`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
 
         // Calculadora
         function loadCalcSelect() {
