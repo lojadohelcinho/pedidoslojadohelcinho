@@ -1267,12 +1267,17 @@
         }
 
         async function deletePedido(id) {
-            if(!confirm('Excluir pedido?')) return;
-            if (supabaseClient) {
-                await supabaseClient.from('pedidos').delete().eq('id', id);
-            }
-            loadPedidos();
+    if(!confirm('Deseja realmente excluir este pedido?')) return;
+    if (supabaseClient) {
+        const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
+        if (error) {
+            alert("Erro ao excluir no Supabase: " + error.message);
+            return;
         }
+    }
+    alert('Pedido excluído com sucesso!');
+    loadPedidos();
+}
 
         // --- DASHBOARD & ATRASADOS ---
         async function loadDashboard() {
