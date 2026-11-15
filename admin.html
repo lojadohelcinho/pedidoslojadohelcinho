@@ -41,7 +41,13 @@
             </div>
 
             <nav class="p-3 space-y-1">
-                <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
+                </button>
+                <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
+                </button>
+                <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
                 </button>
                 <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
@@ -51,16 +57,13 @@
                     <i class="fa-solid fa-address-book w-5 text-center"></i> Cartilha de Clientes
                 </button>
                 <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário / Fiado
+                    <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
                 </button>
                 <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
                 </button>
                 <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-chart-line w-5 text-center"></i> Vendas Mensais
-                </button>
-                <button onclick="switchTab('mais-vendidos')" id="btn-mais-vendidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
-                    <i class="fa-solid fa-fire w-5 text-center"></i> Produto Mais Vendido
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
                 </button>
                 <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                     <i class="fa-brands fa-whatsapp w-5 text-center text-green-600"></i> Configurar WhatsApp
@@ -78,90 +81,90 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
 
-        <!-- ABA 1: CADASTRO DE PRODUTOS -->
-        <section id="tab-produtos" class="tab-content space-y-6">
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
+                    <h3 id="dash-total-aberto" class="text-2xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                    <p class="text-xs text-red-600 uppercase font-semibold">Total Atrasado</p>
+                    <h3 id="dash-total-atrasado" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
+                    <p class="text-xs text-emerald-600 uppercase font-semibold">Pedidos Novos do Site</p>
+                    <h3 id="dash-total-pedidos" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <h2 class="font-bold text-base text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Contas Atrasadas</h2>
+                    <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
+                </div>
+                <div id="atrasadas-list" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- GESTÃO DE PEDIDOS -->
+        <section id="tab-pedidos" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-bag-shopping text-rosegold mr-2"></i> Pedidos Recebidos da Loja Online</h2>
+                <div id="pedidos-list" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- CADASTRO / EDIÇÃO DE PRODUTOS -->
+        <section id="tab-produtos" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-plus-circle text-rosegold mr-2"></i> <span id="form-title">Cadastrar / Editar Produto</span></h2>
-                    <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200">Limpar Formulário</button>
+                    <button type="button" onclick="resetProductForm()" class="text-xs bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600">Limpar</button>
                 </div>
-                
                 <form id="product-form" onsubmit="saveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input type="hidden" id="product-id">
-                    
                     <div>
                         <label class="block text-xs font-semibold mb-1">Nome do Produto</label>
-                        <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <input type="text" id="nome" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
-
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Código SKU / Referência</label>
-                        <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <label class="block text-xs font-semibold mb-1">Código SKU</label>
+                        <input type="text" id="sku" placeholder="Ex: PERF-001" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Marca</label>
-                        <input type="text" id="marca" placeholder="Ex: O Boticário" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-
                     <div>
                         <label class="block text-xs font-semibold mb-1">Categoria</label>
-                        <select id="categoria" onchange="checkNewCategory(this)" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <select id="categoria" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                             <option value="Masculino">Masculino</option>
                             <option value="Feminino">Feminino</option>
-                            <option value="nova">➕ Criar nova categoria...</option>
+                            <option value="Presentes">Presentes</option>
                         </select>
                     </div>
-
-                    <div id="new-category-box" class="hidden sm:col-span-2">
-                        <label class="block text-xs font-semibold mb-1 text-verdePetroleo">Nome da Nova Categoria</label>
-                        <input type="text" id="nova-categoria-input" placeholder="Digite a nova categoria..." class="w-full bg-creme border border-verdePetroleo rounded-xl px-4 py-2 text-sm">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Estoque Atual</label>
+                        <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
-
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold mb-1">Descrição / Detalhes</label>
-                        <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <label class="block text-xs font-semibold mb-1">Descrição</label>
+                        <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
-
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Custo de Aquisição (R$)</label>
-                        <input type="number" step="0.01" id="custo" placeholder="0.00" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                        <label class="block text-xs font-semibold mb-1">Preço de Venda (R$)</label>
+                        <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
-
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Preço de Venda Atual (R$)</label>
-                        <input type="number" step="0.01" id="preco" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Preço Antigo / Riscado (R$)</label>
-                        <input type="number" step="0.01" id="preco_antigo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Estoque Inicial / Atual</label>
-                        <input type="number" id="estoque_atual" value="10" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Imagem do Produto (Arquivo)</label>
-                        <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs text-gray-600 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-verdePetroleo file:text-white hover:file:bg-verdeHover">
+                        <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
+                        <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
                         <input type="hidden" id="imagem-base64">
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Desconto em % (Ex: -50%)</label>
-                        <input type="text" id="desconto" placeholder="Ex: -20%" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    </div>
-
                     <div class="sm:col-span-2 pt-2">
-                        <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Salvar Produto no Sistema</button>
+                        <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto</button>
                     </div>
                 </form>
             </div>
         </section>
 
-        <!-- ABA 2: ESTOQUE E STATUS -->
+        <!-- ESTOQUE (COM EDIÇÃO POR LÁPIS) -->
         <section id="tab-estoque" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos</h2>
@@ -169,16 +172,16 @@
             </div>
         </section>
 
-        <!-- ABA 3: CARTILHA DE CLIENTES -->
+        <!-- CARTILHA DE CLIENTES (COM EDIÇÃO POR LÁPIS) -->
         <section id="tab-clientes" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-address-book text-rosegold mr-2"></i> <span id="client-form-title">Cadastrar Novo Cliente</span></h2>
                 <form onsubmit="saveClient(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input type="hidden" id="client-index" value="">
                     <input type="text" id="cli-nome" placeholder="Nome Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cli-zap" placeholder="WhatsApp (DDD + Número)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="text" id="cli-end" placeholder="Endereço Completo" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Salvar Cliente</button>
+                    <input type="text" id="cli-zap" placeholder="WhatsApp" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="text" id="cli-end" placeholder="Endereço" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <button type="submit" id="client-btn-submit" class="sm:col-span-3 bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Salvar Cliente</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
@@ -187,7 +190,7 @@
             </div>
         </section>
 
-        <!-- ABA 4: CREDIÁRIO / FIADO -->
+        <!-- CREDIÁRIO & PARCELAS INDIVIDUAIS (COM EDIÇÃO POR LÁPIS) -->
         <section id="tab-crediario" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-rosegold mr-2"></i> <span id="cred-form-title">Registrar Venda no Crediário</span></h2>
@@ -195,95 +198,80 @@
                     <input type="hidden" id="cred-index" value="">
                     <input type="text" id="cred-cliente" placeholder="Nome do Cliente" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
                     <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total da Venda (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <input type="number" id="cred-parcelas" placeholder="Quantidade de Parcelas" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
-                    <button type="submit" id="cred-btn-submit" class="sm:col-span-2 bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl font-semibold text-xs transition">Lançar no Crediário</button>
+                    <input type="number" step="0.01" id="cred-valor" placeholder="Valor Total (R$)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <input type="number" id="cred-parcelas" placeholder="Qtd de Parcelas (Ex: 3)" required class="bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-gray-500">Data do 1º Vencimento</label>
+                        <input type="date" id="cred-vencimento-inicial" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" id="cred-btn-submit" class="w-full bg-verdePetroleo text-white py-2.5 rounded-xl font-semibold text-xs">Gerar Parcelas</button>
+                    </div>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe">💳 Vendas Ativas no Crediário</h2>
-                <div id="crediario-list" class="space-y-3"></div>
+                <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
+                <div id="crediario-list" class="space-y-4"></div>
             </div>
         </section>
 
-        <!-- ABA 5: CALCULADORA DE CUSTOS -->
+        <!-- CALCULADORA DE CUSTOS -->
         <section id="tab-calculadora" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                 <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-calculator text-rosegold mr-2"></i> Simulador e Precificação</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Selecionar Produto da Loja</label>
+                        <label class="block text-xs font-semibold mb-1">Selecionar Produto</label>
                         <select id="calc-produto" onchange="loadProductForCalc()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
-                            <option value="">Selecione um produto...</option>
+                            <option value="">Selecione...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Custo de Aquisição / Produção (R$)</label>
-                        <input type="number" step="0.01" id="calc-custo" placeholder="0.00" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        <label class="block text-xs font-semibold mb-1">Custo (R$)</label>
+                        <input type="number" step="0.01" id="calc-custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold mb-1">Margem de Lucro Desejada (%)</label>
-                        <input type="number" id="calc-margem" placeholder="Ex: 50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm" value="50">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold mb-1">Custos Operacionais / Embalagem (R$)</label>
-                        <input type="number" step="0.01" id="calc-extras" placeholder="0.00" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm" value="5.00">
+                        <label class="block text-xs font-semibold mb-1">Margem Desejada (%)</label>
+                        <input type="number" id="calc-margem" value="50" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                     </div>
                     <div class="sm:col-span-2">
-                        <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm transition">Calcular Preço de Venda Sugerido</button>
+                        <button type="button" onclick="calcularPrecoIdeal()" class="w-full bg-marromCafe text-white py-3 rounded-xl font-semibold text-sm">Calcular Preço Sugerido</button>
                     </div>
                 </div>
-                <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border border-verdePetroleo/30 p-4 rounded-xl text-center space-y-1">
-                    <p class="text-xs text-gray-600">Preço de Venda Sugerido:</p>
+                <div id="calc-resultado" class="hidden bg-verdePetroleo/10 border p-4 rounded-xl text-center">
                     <h3 id="calc-preco-sugerido" class="font-bold text-xl text-verdePetroleo">R$ 0,00</h3>
-                    <p id="calc-lucro-rs" class="text-xs text-marromCafe font-medium"></p>
                 </div>
             </div>
         </section>
 
-        <!-- ABA 6: RELATÓRIO -->
+        <!-- RELATÓRIOS & VENDAS -->
         <section id="tab-relatorios" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatório de Vendas Mensais</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-chart-line text-rosegold mr-2"></i> Relatórios e Indicadores de Vendas</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
-                        <p class="text-xs text-gray-500">Faturamento Total do Mês</p>
-                        <h3 class="font-bold text-2xl text-marromCafe mt-1">R$ 4.890,00</h3>
+                        <p class="text-xs text-gray-500">Faturamento Total Acumulado</p>
+                        <h3 id="rel-faturamento" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
                     </div>
                     <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
                         <p class="text-xs text-gray-500">Total de Pedidos Realizados</p>
-                        <h3 class="font-bold text-2xl text-verdePetroleo mt-1">28 Pedidos</h3>
+                        <h3 id="rel-qtd-pedidos" class="font-bold text-2xl text-verdePetroleo mt-1">0</h3>
+                    </div>
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-center">
+                        <p class="text-xs text-gray-500">Ticket Médio por Venda</p>
+                        <h3 id="rel-ticket" class="font-bold text-2xl text-marromCafe mt-1">R$ 0,00</h3>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ABA 7: MAIS VENDIDOS -->
-        <section id="tab-mais-vendidos" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-fire text-orange-600 mr-2"></i> Ranking de Produtos Mais Vendidos</h2>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between bg-creme p-4 rounded-xl border border-rosegold/20">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-full bg-verdePetroleo text-white flex items-center justify-center font-bold text-xs">1º</span>
-                            <div>
-                                <h4 class="font-bold text-sm uppercase">UOMINI</h4>
-                                <p class="text-xs text-gray-500">Spirit Desodorante Colônia 100ml</p>
-                            </div>
-                        </div>
-                        <span class="bg-verdePetroleo/10 text-verdePetroleo px-3 py-1 rounded-lg text-xs font-bold">14 unidades vendidas</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ABA 8: WHATSAPP -->
+        <!-- WHATSAPP -->
         <section id="tab-config" class="tab-content hidden space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar Número do WhatsApp</h2>
+                <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> Configurar WhatsApp</h2>
                 <div class="flex gap-3">
-                    <input type="text" id="whatsapp-input" placeholder="Ex: 5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
-                    <button onclick="saveWhatsApp()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition">Salvar Número</button>
+                    <input type="text" id="whatsapp-input" placeholder="Ex: 5514999999999" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                    <button onclick="saveWhatsApp()" class="bg-verdePetroleo text-white px-6 py-2.5 rounded-xl font-semibold text-sm">Salvar</button>
                 </div>
             </div>
         </section>
@@ -294,13 +282,12 @@
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
-        
         let supabaseClient = null;
         try {
             if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
-        } catch (e) { console.warn("Supabase não configurado."); }
+        } catch (e) {}
 
         let products = [];
 
@@ -312,127 +299,83 @@
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
             
+            if(tabId === 'dashboard') loadDashboard();
+            if(tabId === 'pedidos') loadPedidos();
             if(tabId === 'estoque') loadEstoque();
             if(tabId === 'clientes') loadClientes();
             if(tabId === 'crediario') loadCrediario();
             if(tabId === 'calculadora') loadCalcSelect();
+            if(tabId === 'relatorios') loadRelatorios();
         }
 
+        // Upload Imagem
         const imageFileInput = document.getElementById('imagem-file');
-        imageFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    document.getElementById('imagem-base64').value = uploadEvent.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        function checkNewCategory(selectEl) {
-            const newBox = document.getElementById('new-category-box');
-            if (selectEl.value === 'nova') {
-                newBox.classList.remove('hidden');
-                document.getElementById('nova-categoria-input').focus();
-            } else {
-                newBox.classList.add('hidden');
-            }
+        if(imageFileInput) {
+            imageFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) { document.getElementById('imagem-base64').value = evt.target.result; };
+                    reader.readAsDataURL(file);
+                }
+            });
         }
 
+        // --- PRODUTOS ---
         async function saveProduct(e) {
             e.preventDefault();
-            let cat = document.getElementById('categoria').value;
-            if (cat === 'nova') {
-                cat = document.getElementById('nova-categoria-input').value.trim();
-                if (!cat) return alert('Digite o nome da nova categoria!');
-            }
-
             const productId = document.getElementById('product-id').value;
-            const imgBase64 = document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500';
-
             const productData = {
+                id: productId ? Number(productId) : Date.now(),
                 nome: document.getElementById('nome').value,
                 sku: document.getElementById('sku').value || null,
-                marca: document.getElementById('marca').value || null,
-                categoria: cat,
-                descricao: document.getElementById('descricao').value,
-                custo: parseFloat(document.getElementById('custo').value) || 0,
-                preco: parseFloat(document.getElementById('preco').value),
-                preco_antigo: document.getElementById('preco_antigo').value ? parseFloat(document.getElementById('preco_antigo').value) : null,
+                categoria: document.getElementById('categoria').value,
                 estoque_atual: parseInt(document.getElementById('estoque_atual').value) || 0,
-                imagem: imgBase64,
-                desconto: document.getElementById('desconto').value || null,
+                descricao: document.getElementById('descricao').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                imagem: document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
                 ativo: true
             };
 
-            // Salva no Supabase se disponível, com fallback local
-            if (supabaseClient) {
-                try {
-                    if (productId) {
-                        const { error } = await supabaseClient.from('produtos').update(productData).eq('id', productId);
-                        if (error) throw error;
-                    } else {
-                        const { error } = await supabaseClient.from('produtos').insert([productData]);
-                        if (error) throw error;
-                    }
-                } catch(err) {
-                    console.warn("Erro no Supabase, salvando localmente:", err.message);
-                }
-            }
-
-            // Sincroniza localmente
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             if (productId) {
-                productData.id = Number(productId);
                 localProducts = localProducts.map(p => p.id == productId ? productData : p);
             } else {
-                productData.id = Date.now();
                 localProducts.push(productData);
             }
             localStorage.setItem('helcinho_produtos', JSON.stringify(localProducts));
+
+            if (supabaseClient) {
+                try {
+                    if (productId) await supabaseClient.from('produtos').update(productData).eq('id', productId);
+                    else await supabaseClient.from('produtos').insert([productData]);
+                } catch(err) {}
+            }
 
             alert(productId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             resetProductForm();
             loadEstoque();
         }
 
-        async function loadEstoque() {
+        function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
-            products = [];
-
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.from('produtos').select('*');
-                    if (!error && data) {
-                        products = data;
-                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-                    }
-                } catch(e) {}
-            }
-
-            if (products.length === 0) {
-                products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            }
-
+            products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
             if (products.length === 0) {
                 listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado.</p>';
                 return;
             }
-
             listEl.innerHTML = products.map(p => `
-                <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20">
+                <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20 text-xs">
                     <div class="flex items-center gap-3">
-                        <img src="${p.imagem}" class="w-12 h-12 object-contain bg-white rounded-lg p-1">
+                        <img src="${p.imagem}" class="w-10 h-10 object-contain bg-white rounded-lg p-1">
                         <div>
-                            <h4 class="font-bold text-xs uppercase">${p.nome} (${p.categoria}) ${p.sku ? `- SKU: ${p.sku}` : ''}</h4>
-                            <p class="text-xs text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Estoque: <span class="font-bold">${p.estoque_atual ?? 10}</span> | Status: <span class="${p.ativo !== false ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}">${p.ativo !== false ? 'Ativo' : 'Desativado'}</span></p>
+                            <h4 class="font-bold uppercase">${p.nome} (${p.categoria})</h4>
+                            <p class="text-gray-500">R$ ${Number(p.preco).toFixed(2).replace('.', ',')} | Estoque: ${p.estoque_atual ?? 10}</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-200"><i class="fa-solid fa-pen"></i> Editar</button>
-                        <button onclick="toggleStatus(${p.id}, ${p.ativo !== false})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.ativo !== false ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}">${p.ativo !== false ? 'Desativar' : 'Ativar'}</button>
-                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200" title="Editar Produto"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `).join('');
@@ -444,36 +387,20 @@
             document.getElementById('product-id').value = p.id;
             document.getElementById('nome').value = p.nome;
             document.getElementById('sku').value = p.sku || '';
-            document.getElementById('marca').value = p.marca || '';
             document.getElementById('categoria').value = p.categoria;
-            document.getElementById('descricao').value = p.descricao;
-            document.getElementById('custo').value = p.custo || '';
-            document.getElementById('preco').value = p.preco;
-            document.getElementById('preco_antigo').value = p.preco_antigo || '';
             document.getElementById('estoque_atual').value = p.estoque_atual ?? 10;
-            document.getElementById('desconto').value = p.desconto || '';
+            document.getElementById('descricao').value = p.descricao;
+            document.getElementById('preco').value = p.preco;
             document.getElementById('imagem-base64').value = p.imagem;
             document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
             document.getElementById('product-btn-submit').textContent = 'Atualizar Produto';
             switchTab('produtos');
         }
 
-        async function toggleStatus(id, currentStatus) {
-            products = products.map(p => p.id == id ? { ...p, ativo: !currentStatus } : p);
-            localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-            if (supabaseClient) {
-                try { await supabaseClient.from('produtos').update({ ativo: !currentStatus }).eq('id', id); } catch(e){}
-            }
-            loadEstoque();
-        }
-
-        async function deleteProduct(id) {
-            if (!confirm('Deseja excluir este produto?')) return;
+        function deleteProduct(id) {
+            if(!confirm('Excluir produto?')) return;
             products = products.filter(p => p.id != id);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-            if (supabaseClient) {
-                try { await supabaseClient.from('produtos').delete().eq('id', id); } catch(e){}
-            }
             loadEstoque();
         }
 
@@ -482,11 +409,10 @@
             document.getElementById('product-id').value = '';
             document.getElementById('imagem-base64').value = '';
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
-            document.getElementById('product-btn-submit').textContent = 'Salvar Produto no Sistema';
-            document.getElementById('new-category-box').classList.add('hidden');
+            document.getElementById('product-btn-submit').textContent = 'Salvar Produto';
         }
 
-        // Funções de Clientes, Crediário e Calculadora mantidas intactas com edição por ícone de lápis
+        // --- CLIENTES ---
         function saveClient(e) {
             e.preventDefault();
             const index = document.getElementById('client-index').value;
@@ -494,7 +420,7 @@
             let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
             if (index !== "") clientes[index] = cliente; else clientes.push(cliente);
             localStorage.setItem('helcinho_clientes', JSON.stringify(clientes));
-            alert('Cliente salvo com sucesso!');
+            alert(index !== "" ? 'Cliente atualizado!' : 'Cliente cadastrado!');
             resetClientForm();
             loadClientes();
         }
@@ -506,12 +432,12 @@
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
                     <div>
                         <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editClient(${i})" class="text-blue-600"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="editClient(${i})" class="text-blue-600 hover:text-blue-800" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             ${c.nome}
                         </h4>
                         <p class="text-gray-500">${c.whatsapp} | ${c.endereco}</p>
                     </div>
-                    <button onclick="deleteClient(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteClient(${i})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
         }
@@ -545,97 +471,217 @@
             loadClientes();
         }
 
+        // --- CREDIÁRIO & PARCELAS ---
         function saveCrediario(e) {
             e.preventDefault();
-            const index = document.getElementById('cred-index').value;
-            const item = { cliente: document.getElementById('cred-cliente').value, produtos: document.getElementById('cred-produtos').value, valor: parseFloat(document.getElementById('cred-valor').value), parcelas: parseInt(document.getElementById('cred-parcelas').value) };
-            let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            if (index !== "") cred[index] = item; else cred.push(item);
-            localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
-            alert('Crediário salvo com sucesso!');
-            resetCrediarioForm();
+            const cliente = document.getElementById('cred-cliente').value;
+            const produtos = document.getElementById('cred-produtos').value;
+            const valorTotal = parseFloat(document.getElementById('cred-valor').value);
+            const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
+            const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
+
+            if(!dataInicialStr) return alert('Informe a data do primeiro vencimento!');
+
+            const valorParcela = Number((valorTotal / qtdParcelas).toFixed(2));
+            let parcelas = [];
+            let dataBase = new Date(dataInicialStr + 'T00:00:00');
+
+            for (let i = 1; i <= qtdParcelas; i++) {
+                parcelas.push({
+                    id: Date.now() + i,
+                    numero: `${i}/${qtdParcelas}`,
+                    valorOriginal: valorParcela,
+                    valorPago: 0,
+                    vencimento: dataBase.toISOString().split('T')[0],
+                    status: 'Pendente'
+                });
+                dataBase.setDate(dataBase.getDate() + 30);
+            }
+
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            credList.push({ id: Date.now(), cliente, produtos, valorTotal, parcelas });
+            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
+
+            alert('Venda parcelada gerada com sucesso!');
+            e.target.reset();
             loadCrediario();
         }
 
         function loadCrediario() {
             const list = document.getElementById('crediario-list');
-            const cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            list.innerHTML = cred.length === 0 ? '<p class="text-xs text-gray-400">Nenhum registro no crediário.</p>' : cred.map((c, i) => `
-                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold uppercase text-marromCafe flex items-center gap-2">
-                            <button onclick="editCrediario(${i})" class="text-blue-600"><i class="fa-solid fa-pen"></i></button>
-                            ${c.cliente}
-                        </h4>
-                        <p class="text-gray-600">Produtos: ${c.produtos}</p>
-                        <p class="text-verdePetroleo font-bold">R$ ${c.valor.toFixed(2).replace('.', ',')} (${c.parcelas}x)</p>
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>' : credList.map((venda, vIndex) => `
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
+                    <div class="flex justify-between items-center font-bold border-b pb-1">
+                        <span>${venda.cliente} — R$ ${venda.valorTotal.toFixed(2).replace('.', ',')} (${venda.produtos})</span>
+                        <button onclick="deleteContrato(${vIndex})" class="text-red-500 hover:text-red-700">Excluir Venda</button>
                     </div>
-                    <button onclick="deleteCrediario(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        ${venda.parcelas.map((p, pIndex) => {
+                            const hoje = new Date().toISOString().split('T')[0];
+                            let saldo = p.valorOriginal - p.valorPago;
+                            let statusTxt = p.status;
+                            if (saldo <= 0) statusTxt = 'Paga';
+                            else if (p.vencimento < hoje) statusTxt = 'ATRASADA';
+
+                            return `
+                                <div class="p-2 rounded border bg-white flex flex-col justify-between">
+                                    <div>
+                                        <b>Parc ${p.numero}</b> | R$ ${saldo.toFixed(2).replace('.', ',')}<br>
+                                        Venc: ${p.vencimento.split('-').reverse().join('/')}<br>
+                                        Status: <span class="${statusTxt === 'ATRASADA' ? 'text-red-600 font-bold' : ''}">${statusTxt}</span>
+                                    </div>
+                                    ${saldo > 0 ? `<button onclick="baixarParcela(${vIndex}, ${pIndex})" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `).join('');
         }
 
-        function editCrediario(i) {
-            let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            const c = cred[i];
-            if(!c) return;
-            document.getElementById('cred-index').value = i;
-            document.getElementById('cred-cliente').value = c.cliente;
-            document.getElementById('cred-produtos').value = c.produtos;
-            document.getElementById('cred-valor').value = c.valor;
-            document.getElementById('cred-parcelas').value = c.parcelas;
-            document.getElementById('cred-form-title').textContent = 'Editar Crediário (' + c.cliente + ')';
-            document.getElementById('cred-btn-submit').textContent = 'Atualizar Crediário';
+        function baixarParcela(vIndex, pIndex) {
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let parcela = credList[vIndex].parcelas[pIndex];
+            let saldo = parcela.valorOriginal - parcela.valorPago;
+            let valorPagoStr = prompt(`Valor a baixar (Saldo: R$ ${saldo.toFixed(2)})`, saldo);
+            if(!valorPagoStr) return;
+            let valorPago = parseFloat(valorPagoStr);
+            if(isNaN(valorPago) || valorPago <= 0) return alert('Valor inválido!');
+
+            parcela.valorPago += valorPago;
+            parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
+            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
+            loadCrediario();
+            alert('Baixa registrada!');
         }
 
-        function resetCrediarioForm() {
-            document.getElementById('cred-index').value = '';
-            document.getElementById('cred-cliente').value = '';
-            document.getElementById('cred-produtos').value = '';
-            document.getElementById('cred-valor').value = '';
-            document.getElementById('cred-parcelas').value = '';
-            document.getElementById('cred-form-title').textContent = 'Registrar Venda no Crediário';
-            document.getElementById('cred-btn-submit').textContent = 'Lançar no Crediário';
-        }
-
-        function deleteCrediario(i) {
-            if(!confirm('Excluir crediário?')) return;
-            let cred = JSON.parse(localStorage.getItem('helcinho_crediario') || '[]');
-            cred.splice(i, 1);
-            localStorage.setItem('helcinho_crediario', JSON.stringify(cred));
+        function deleteContrato(vIndex) {
+            if(!confirm('Deseja excluir este contrato?')) return;
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            credList.splice(vIndex, 1);
+            localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
         }
 
-        async function loadCalcSelect() {
-            const select = document.getElementById('calc-produto');
+        // --- GESTÃO DE PEDIDOS ---
+        function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p, index) => `
+                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <div>
+                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                            <p class="text-gray-600 font-medium">Produtos: ${p.produtos}</p>
+                        </div>
+                        <span class="font-bold text-sm text-verdePetroleo">R$ ${p.valorTotal.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1">
+                        <select onchange="updatePedidoStatus(${index}, this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                        </select>
+                        <button onclick="deletePedido(${index})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updatePedidoStatus(index, val) {
+            let p = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            p[index].status = val;
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(p));
+        }
+
+        function deletePedido(index) {
+            if(!confirm('Excluir pedido?')) return;
+            let p = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            p.splice(index, 1);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(p));
+            loadPedidos();
+        }
+
+        // --- RELATÓRIOS ---
+        function loadRelatorios() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let faturamento = 0, qtd = 0;
+            pedidos.forEach(p => { if (p.status !== 'Cancelado') { faturamento += p.valorTotal; qtd++; } });
+            let ticket = qtd > 0 ? faturamento / qtd : 0;
+            document.getElementById('rel-faturamento').textContent = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
+            document.getElementById('rel-qtd-pedidos').textContent = qtd;
+            document.getElementById('rel-ticket').textContent = `R$ ${ticket.toFixed(2).replace('.', ',')}`;
+        }
+
+        // --- DASHBOARD & ATRASADOS ---
+        function loadDashboard() {
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let totalAberto = 0, totalAtrasado = 0;
+            let atrasadasArr = [];
+            const hoje = new Date().toISOString().split('T')[0];
+
+            credList.forEach((venda, vIndex) => {
+                venda.parcelas.forEach((p, pIndex) => {
+                    let saldo = p.valorOriginal - p.valorPago;
+                    if (saldo > 0) {
+                        totalAberto += saldo;
+                        if (p.vencimento < hoje) {
+                            totalAtrasado += saldo;
+                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
+                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays, vIndex, pIndex });
+                        }
+                    }
+                });
+            });
+
+            document.getElementById('dash-total-aberto').textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('dash-total-atrasado').textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('dash-total-pedidos').textContent = pedidos.filter(p => p.status === 'Novo').length;
+
+            const atrasadasListEl = document.getElementById('atrasadas-list');
+            document.getElementById('atrasadas-badge').textContent = `${atrasadasArr.length} parcelas`;
+            atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : atrasadasArr.map(item => `
+                <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200 text-xs">
+                    <div><b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2)}) - ${item.diasAtraso} dias em atraso (Venc: ${item.vencimento.split('-').reverse().join('/')})</div>
+                    <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso})" class="bg-green-600 text-white px-3 py-1.5 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Cobrar</button>
+                </div>
+            `).join('');
+        }
+
+        function cobrarWhatsApp(cliente, parcela, saldo, dias) {
+            let msg = `Olá ${cliente}, notamos que a parcela ${parcela} no valor de R$ ${saldo.toFixed(2).replace('.', ',')} está com ${dias} dias em atraso na Loja do Helcinho. Poderia verificar?`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // Calculadora
+        function loadCalcSelect() {
             products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-            select.innerHTML = '<option value="">Selecione um produto...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
-
         function loadProductForCalc() {
-            const id = document.getElementById('calc-produto').value;
-            const prod = products.find(p => p.id == id);
-            if(prod) document.getElementById('calc-custo').value = prod.custo || (prod.preco * 0.4).toFixed(2);
+            const p = products.find(i => i.id == document.getElementById('calc-produto').value);
+            if(p) document.getElementById('calc-custo').value = (p.preco * 0.4).toFixed(2);
         }
-
         function calcularPrecoIdeal() {
             const custo = parseFloat(document.getElementById('calc-custo').value) || 0;
             const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
-            const extras = parseFloat(document.getElementById('calc-extras').value) || 0;
-            const precoSugerido = (custo + extras) * (1 + (margem / 100));
-            const lucroRs = precoSugerido - (custo + extras);
+            const sugerido = custo * (1 + (margem / 100));
             document.getElementById('calc-resultado').classList.remove('hidden');
-            document.getElementById('calc-preco-sugerido').textContent = `R$ ${precoSugerido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('calc-lucro-rs').textContent = `Lucro estimado: R$ ${lucroRs.toFixed(2).replace('.', ',')}`;
+            document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
+        }
+
+        function saveWhatsApp() {
+            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
+            alert('WhatsApp salvo com sucesso!');
         }
 
         document.getElementById('whatsapp-input').value = localStorage.getItem('helcinho_whatsapp') || '';
-        function saveWhatsApp() {
-            localStorage.setItem('helcinho_whatsapp', document.getElementById('whatsapp-input').value);
-            alert('WhatsApp atualizado!');
-        }
-
-        loadEstoque();
+        loadDashboard();
     </script>
 </body>
 </html>
