@@ -314,7 +314,8 @@
             if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
             text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
 
-            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank');
+            const zapLoja = localStorage.getItem('helcinho_whatsapp') || '5516981035241';
+window.open(`https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`, '_blank');
             
             cart = [];
             updateBadge();
