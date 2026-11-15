@@ -141,12 +141,7 @@
         let cart = [];
         let currentCategory = 'todos';
 
-        const defaultProducts = [
-            { id: 1, nome: "UOMINI", descricao: "Spirit Desodorante Colônia 100ml", preco: 103.90, preco_antigo: 209.90, categoria: "Masculino", imagem: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500", desconto: "-51%", ativo: true },
-            { id: 2, nome: "COFFEE", descricao: "Man Seduction Amadeirado 100ml", preco: 171.90, preco_antigo: 229.90, categoria: "Masculino", imagem: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500", desconto: "-25%", ativo: true },
-            { id: 3, nome: "214", descricao: "African Sunrise Eau De Parfum 75ml", preco: 189.90, preco_antigo: 239.90, categoria: "Feminino", imagem: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500", desconto: "-20%", ativo: true },
-            { id: 4, nome: "EGEO", descricao: "Dolce Desodorante Colônia 90ml", preco: 89.90, preco_antigo: 149.90, categoria: "Feminino", imagem: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=500", desconto: "-40%", ativo: true }
-        ];
+        const defaultProducts = [];
 
         async function fetchProducts() {
             document.getElementById('loading-spinner').classList.remove('hidden');
