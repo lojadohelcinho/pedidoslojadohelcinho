@@ -296,194 +296,194 @@
             </section>
 
             <!-- RELATÓRIOS & VENDAS (PAINEL COMPLETO) -->
-<section id="tab-relatorios" class="tab-content hidden space-y-6">
-    <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
-        
-        <!-- CABEÇALHO E EXPORTAÇÃO -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-            <div>
-                <h2 class="font-bold text-lg text-marromCafe"><i class="fa-solid fa-chart-line text-verdePetroleo mr-2"></i> Relatórios & Inteligência Comercial</h2>
-                <p class="text-xs text-gray-500">Análise de desempenho, faturamento, lucro e crediário com dados reais.</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="exportRelatorio('csv')" class="bg-verdePetroleo hover:bg-verdeHover text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                    <i class="fa-solid fa-file-csv"></i> CSV
-                </button>
-                <button onclick="exportRelatorio('pdf')" class="bg-marromCafe hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                    <i class="fa-solid fa-file-pdf"></i> PDF
-                </button>
-            </div>
-        </div>
+            <section id="tab-relatorios" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
+                    
+                    <!-- CABEÇALHO E EXPORTAÇÃO -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
+                        <div>
+                            <h2 class="font-bold text-lg text-marromCafe"><i class="fa-solid fa-chart-line text-verdePetroleo mr-2"></i> Relatórios & Inteligência Comercial</h2>
+                            <p class="text-xs text-gray-500">Análise de desempenho, faturamento, lucro e crediário com dados reais.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportRelatorio('csv')" class="bg-verdePetroleo hover:bg-verdeHover text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
+                                <i class="fa-solid fa-file-csv"></i> CSV
+                            </button>
+                            <button onclick="exportRelatorio('pdf')" class="bg-marromCafe hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
 
-        <!-- 1. FILTROS GERAIS -->
-        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-xs uppercase text-marromCafe tracking-wider"><i class="fa-solid fa-filter mr-1"></i> Filtros de Análise</h3>
-                <button onclick="limparFiltrosRelatorio()" class="text-[11px] text-red-600 font-semibold hover:underline">Limpar Filtros</button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-                <div>
-                    <label class="block font-semibold mb-1 text-gray-600">Período</label>
-                    id="filtro-periodo" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                        <option value="30">Últimos 30 dias</option>
-                        <option value="7">Últimos 7 dias</option>
-                        <option value="hoje">Hoje</option>
-                        <option value="ontem">Ontem</option>
-                        <option value="mes_atual">Este mês</option>
-                        <option value="mes_anterior">Mês anterior</option>
-                        <option value="ano_atual">Este ano</option>
-                        <option value="todos">Todo o período</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1 text-gray-600">Produto</label>
-                    <select id="filtro-produto" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                        <option value="">Todos os produtos</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1 text-gray-600">Categoria</label>
-                    <select id="filtro-categoria" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                        <option value="">Todas as categorias</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1 text-gray-600">Cliente</label>
-                    <select id="filtro-cliente" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                        <option value="">Todos os clientes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1 text-gray-600">Forma de Pagamento</label>
-                    <select id="filtro-pagamento" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
-                        <option value="">Todas as formas</option>
-                        <option value="Pix">Pix</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                        <option value="Cartão">Cartão</option>
-                        <option value="Crediário">Crediário</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+                    <!-- 1. FILTROS GERAIS -->
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-xs uppercase text-marromCafe tracking-wider"><i class="fa-solid fa-filter mr-1"></i> Filtros de Análise</h3>
+                            <button onclick="limparFiltrosRelatorio()" class="text-[11px] text-red-600 font-semibold hover:underline">Limpar Filtros</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                            <div>
+                                <label class="block font-semibold mb-1 text-gray-600">Período</label>
+                                <select id="filtro-periodo" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
+                                    <option value="30">Últimos 30 dias</option>
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="hoje">Hoje</option>
+                                    <option value="ontem">Ontem</option>
+                                    <option value="mes_atual">Este mês</option>
+                                    <option value="mes_anterior">Mês anterior</option>
+                                    <option value="ano_atual">Este ano</option>
+                                    <option value="todos">Todo o período</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1 text-gray-600">Produto</label>
+                                <select id="filtro-produto" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
+                                    <option value="">Todos os produtos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1 text-gray-600">Categoria</label>
+                                <select id="filtro-categoria" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
+                                    <option value="">Todas as categorias</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1 text-gray-600">Cliente</label>
+                                <select id="filtro-cliente" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
+                                    <option value="">Todos os clientes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1 text-gray-600">Forma de Pagamento</label>
+                                <select id="filtro-pagamento" onchange="aplicarFiltrosRelatorio()" class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2">
+                                    <option value="">Todas as formas</option>
+                                    <option value="Pix">Pix</option>
+                                    <option value="Dinheiro">Dinheiro</option>
+                                    <option value="Cartão">Cartão</option>
+                                    <option value="Crediário">Crediário</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- ABAS INTERNAS DO RELATÓRIO -->
-        <div class="flex gap-2 border-b pb-3 overflow-x-auto">
-            <button onclick="switchSubTab('visao-geral')" id="subbtn-visao-geral" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm">Visão Geral</button>
-            <button onclick="switchSubTab('produtos-ranking')" id="subbtn-produtos-ranking" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Ranking de Produtos</button>
-            <button onclick="switchSubTab('clientes-analise')" id="subbtn-clientes-analise" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Desempenho Clientes</button>
-            <button onclick="switchSubTab('financeiro')" id="subbtn-financeiro" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Resumo Financeiro</button>
-            <button onclick="switchSubTab('crediario-rel')" id="subbtn-crediario-rel" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Crediário & Inadimplência</button>
-        </div>
+                    <!-- ABAS INTERNAS DO RELATÓRIO -->
+                    <div class="flex gap-2 border-b pb-3 overflow-x-auto">
+                        <button onclick="switchSubTab('visao-geral')" id="subbtn-visao-geral" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm">Visão Geral</button>
+                        <button onclick="switchSubTab('produtos-ranking')" id="subbtn-produtos-ranking" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Ranking de Produtos</button>
+                        <button onclick="switchSubTab('clientes-analise')" id="subbtn-clientes-analise" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Desempenho Clientes</button>
+                        <button onclick="switchSubTab('financeiro')" id="subbtn-financeiro" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Resumo Financeiro</button>
+                        <button onclick="switchSubTab('crediario-rel')" id="subbtn-crediario-rel" class="subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap">Crediário & Inadimplência</button>
+                    </div>
 
-        <!-- CONTEÚDO DA SUB-ABA: VISÃO GERAL (8 CARDS PRINCIPAIS) -->
-        <div id="subtab-visao-geral" class="subtab-content space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- 1. Faturamento Bruto -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-gray-500 uppercase font-semibold">Faturamento Bruto</p>
-                    <h3 id="card-fat-bruto" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                </div>
-                <!-- 2. Lucro Estimado -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-emerald-700 uppercase font-semibold">Lucro Estimado</p>
-                    <h3 id="card-lucro" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</h3>
-                </div>
-                <!-- 3. Total de Vendas -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-gray-500 uppercase font-semibold">Total de Vendas</p>
-                    <h3 id="card-qtd-vendas" class="text-xl font-bold text-marromCafe mt-1">0</h3>
-                </div>
-                <!-- 4. Ticket Médio -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-gray-500 uppercase font-semibold">Ticket Médio</p>
-                    <h3 id="card-ticket" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
-                </div>
-                <!-- 5. Produtos Vendidos -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-gray-500 uppercase font-semibold">Unidades Comercializadas</p>
-                    <h3 id="card-unidades" class="text-xl font-bold text-marromCafe mt-1">0</h3>
-                </div>
-                <!-- 6. Valor Recebido -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-blue-700 uppercase font-semibold">Valor Recebido (Caixa)</p>
-                    <h3 id="card-recebido" class="text-xl font-bold text-blue-700 mt-1">R$ 0,00</h3>
-                </div>
-                <!-- 7. Contas a Receber -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-amber-700 uppercase font-semibold">Contas a Receber</p>
-                    <h3 id="card-a-receber" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</h3>
-                </div>
-                <!-- 8. Contas Atrasadas -->
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
-                    <p class="text-[11px] text-red-600 uppercase font-semibold">Contas Atrasadas</p>
-                    <h3 id="card-atrasadas" class="text-xl font-bold text-red-600 mt-1">R$ 0,00</h3>
-                </div>
-            </div>
+                    <!-- CONTEÚDO DA SUB-ABA: VISÃO GERAL (8 CARDS PRINCIPAIS) -->
+                    <div id="subtab-visao-geral" class="subtab-content space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- 1. Faturamento Bruto -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Faturamento Bruto</p>
+                                <h3 id="card-fat-bruto" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
+                            </div>
+                            <!-- 2. Lucro Estimado -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-emerald-700 uppercase font-semibold">Lucro Estimado</p>
+                                <h3 id="card-lucro" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</h3>
+                            </div>
+                            <!-- 3. Total de Vendas -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Total de Vendas</p>
+                                <h3 id="card-qtd-vendas" class="text-xl font-bold text-marromCafe mt-1">0</h3>
+                            </div>
+                            <!-- 4. Ticket Médio -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Ticket Médio</p>
+                                <h3 id="card-ticket" class="text-xl font-bold text-marromCafe mt-1">R$ 0,00</h3>
+                            </div>
+                            <!-- 5. Produtos Vendidos -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-gray-500 uppercase font-semibold">Unidades Comercializadas</p>
+                                <h3 id="card-unidades" class="text-xl font-bold text-marromCafe mt-1">0</h3>
+                            </div>
+                            <!-- 6. Valor Recebido -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-blue-700 uppercase font-semibold">Valor Recebido (Caixa)</p>
+                                <h3 id="card-recebido" class="text-xl font-bold text-blue-700 mt-1">R$ 0,00</h3>
+                            </div>
+                            <!-- 7. Contas a Receber -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-amber-700 uppercase font-semibold">Contas a Receber</p>
+                                <h3 id="card-a-receber" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</h3>
+                            </div>
+                            <!-- 8. Contas Atrasadas -->
+                            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 shadow-xs">
+                                <p class="text-[11px] text-red-600 uppercase font-semibold">Contas Atrasadas</p>
+                                <h3 id="card-atrasadas" class="text-xl font-bold text-red-600 mt-1">R$ 0,00</h3>
+                            </div>
+                        </div>
 
-            <!-- GRÁFICO DE DESEMPENHO -->
-            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-xs uppercase text-marromCafe">Evolução do Faturamento por Período</h3>
+                        <!-- GRÁFICO DE DESEMPENHO -->
+                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-xs uppercase text-marromCafe">Evolução do Faturamento por Período</h3>
+                            </div>
+                            <div class="relative h-64 w-full">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTEÚDO DA SUB-ABA: RANKING DE PRODUTOS -->
+                    <div id="subtab-produtos-ranking" class="subtab-content hidden space-y-4">
+                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Ranking de Produtos Mais Vendidos</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b bg-creme text-marromCafe font-bold">
+                                        <th class="p-2.5">Pos</th>
+                                        <th class="p-2.5">Produto</th>
+                                        <th class="p-2.5">Categoria</th>
+                                        <th class="p-2.5 text-center">Qtd Vendida</th>
+                                        <th class="p-2.5 text-right">Faturamento</th>
+                                        <th class="p-2.5 text-right">Lucro Estimado</th>
+                                        <th class="p-2.5 text-right">Margem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranking-produtos-tbody">
+                                    <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando ranking...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- CONTEÚDO DA SUB-ABA: DESEMPENHO CLIENTES -->
+                    <div id="subtab-clientes-analise" class="subtab-content hidden space-y-4">
+                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-users text-verdePetroleo mr-2"></i> Top Clientes por Faturamento</h3>
+                        <div id="ranking-clientes-list" class="space-y-2">
+                            <p class="text-xs text-gray-400">Carregando clientes...</p>
+                        </div>
+                    </div>
+
+                    <!-- CONTEÚDO DA SUB-ABA: RESUMO FINANCEIRO -->
+                    <div id="subtab-financeiro" class="subtab-content hidden space-y-4">
+                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-file-invoice-dollar text-verdePetroleo mr-2"></i> Demonstrativo Financeiro</h3>
+                        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-2 text-xs">
+                            <div class="flex justify-between border-b pb-2"><span>Faturamento Bruto Total:</span><span id="fin-fat" class="font-bold">R$ 0,00</span></div>
+                            <div class="flex justify-between border-b pb-2"><span>(-) Custo das Mercadorias (CMV):</span><span id="fin-cmv" class="text-red-600 font-bold">R$ 0,00</span></div>
+                            <div class="flex justify-between border-b pb-2 text-sm font-bold pt-1"><span>(=) Lucro Bruto Estimado:</span><span id="fin-lucro" class="text-emerald-700">R$ 0,00</span></div>
+                            <div class="flex justify-between border-b pb-2 pt-2"><span>Total Efetivamente Recebido (Caixa):</span><span id="fin-recebido" class="text-blue-700 font-bold">R$ 0,00</span></div>
+                            <div class="flex justify-between pb-2"><span>Total Pendente (Crediário a Receber):</span><span id="fin-pendente" class="text-amber-700 font-bold">R$ 0,00</span></div>
+                        </div>
+                    </div>
+
+                    <!-- CONTEÚDO DA SUB-ABA: CREDIÁRIO & INADIMPLÊNCIA -->
+                    <div id="subtab-crediario-rel" class="subtab-content hidden space-y-4">
+                        <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-credit-card text-red-600 mr-2"></i> Controle de Inadimplência e Crediário</h3>
+                        <div id="crediario-rel-list" class="space-y-2">
+                            <p class="text-xs text-gray-400">Carregando relatórios de crediário...</p>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="relative h-64 w-full">
-                    <canvas id="salesChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO DA SUB-ABA: RANKING DE PRODUTOS -->
-        <div id="subtab-produtos-ranking" class="subtab-content hidden space-y-4">
-            <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Ranking de Produtos Mais Vendidos</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b bg-creme text-marromCafe font-bold">
-                            <th class="p-2.5">Pos</th>
-                            <th class="p-2.5">Produto</th>
-                            <th class="p-2.5">Categoria</th>
-                            <th class="p-2.5 text-center">Qtd Vendida</th>
-                            <th class="p-2.5 text-right">Faturamento</th>
-                            <th class="p-2.5 text-right">Lucro Estimado</th>
-                            <th class="p-2.5 text-right">Margem</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ranking-produtos-tbody">
-                        <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando ranking...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO DA SUB-ABA: DESEMPENHO CLIENTES -->
-        <div id="subtab-clientes-analise" class="subtab-content hidden space-y-4">
-            <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-users text-verdePetroleo mr-2"></i> Top Clientes por Faturamento</h3>
-            <div id="ranking-clientes-list" class="space-y-2">
-                <p class="text-xs text-gray-400">Carregando clientes...</p>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO DA SUB-ABA: RESUMO FINANCEIRO -->
-        <div id="subtab-financeiro" class="subtab-content hidden space-y-4">
-            <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-file-invoice-dollar text-verdePetroleo mr-2"></i> Demonstrativo Financeiro</h3>
-            <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-2 text-xs">
-                <div class="flex justify-between border-b pb-2"><span>Faturamento Bruto Total:</span><span id="fin-fat" class="font-bold">R$ 0,00</span></div>
-                <div class="flex justify-between border-b pb-2"><span>(-) Custo das Mercadorias (CMV):</span><span id="fin-cmv" class="text-red-600 font-bold">R$ 0,00</span></div>
-                <div class="flex justify-between border-b pb-2 text-sm font-bold pt-1"><span>(=) Lucro Bruto Estimado:</span><span id="fin-lucro" class="text-emerald-700">R$ 0,00</span></div>
-                <div class="flex justify-between border-b pb-2 pt-2"><span>Total Efetivamente Recebido (Caixa):</span><span id="fin-recebido" class="text-blue-700 font-bold">R$ 0,00</span></div>
-                <div class="flex justify-between pb-2"><span>Total Pendente (Crediário a Receber):</span><span id="fin-pendente" class="text-amber-700 font-bold">R$ 0,00</span></div>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO DA SUB-ABA: CREDIÁRIO & INADIMPLÊNCIA -->
-        <div id="subtab-crediario-rel" class="subtab-content hidden space-y-4">
-            <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-credit-card text-red-600 mr-2"></i> Controle de Inadimplência e Crediário</h3>
-            <div id="crediario-rel-list" class="space-y-2">
-                <p class="text-xs text-gray-400">Carregando relatórios de crediário...</p>
-            </div>
-        </div>
-
-    </div>
-</section>
+            </section>
 
             <!-- CONFIGURAÇÕES & WHATSAPP & COBRANÇA -->
             <section id="tab-config" class="tab-content hidden space-y-6">
@@ -618,260 +618,6 @@
             }
             location.reload();
         }
-        // --- CONTROLE DE SUB-ABAS DOS RELATÓRIOS ---
-function switchSubTab(subId) {
-    document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.subtab-btn').forEach(btn => {
-        btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
-    });
-    document.getElementById(`subtab-${subId}`).classList.remove('hidden');
-    document.getElementById(`subbtn-${subId}`).className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
-    
-    if(subId === 'produtos-ranking') renderRankingProdutos();
-    if(subId === 'clientes-analise') renderRankingClientes();
-    if(subId === 'crediario-rel') renderRelatorioCrediario();
-}
-
-// --- MOTOR DE CÁLCULO E RELATÓRIOS COM DADOS REAIS ---
-function loadRelatorios() {
-    preencherFiltrosSelects();
-    calcularIndicadoresGerais();
-}
-
-function preencherFiltrosSelects() {
-    let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-    let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
-    
-    const selProd = document.getElementById('filtro-produto');
-    if(selProd) {
-        selProd.innerHTML = '<option value="">Todos os produtos</option>' + produtos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
-    }
-
-    const selCat = document.getElementById('filtro-categoria');
-    if(selCat) {
-        let cats = [...new Set(produtos.map(p => p.categoria))];
-        selCat.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-
-    const selCli = document.getElementById('filtro-cliente');
-    if(selCli) {
-        selCli.innerHTML = '<option value="">Todos os clientes</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-    }
-}
-
-function aplicarFiltrosRelatorio() {
-    calcularIndicadoresGerais();
-}
-
-function limparFiltrosRelatorio() {
-    document.getElementById('filtro-periodo').value = '30';
-    document.getElementById('filtro-produto').value = '';
-    document.getElementById('filtro-categoria').value = '';
-    document.getElementById('filtro-cliente').value = '';
-    document.getElementById('filtro-pagamento').value = '';
-    calcularIndicadoresGerais();
-}
-
-function calcularIndicadoresGerais() {
-    let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-    let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-    let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-    
-    let prodFiltro = document.getElementById('filtro-produto').value;
-    let cliFiltro = document.getElementById('filtro-cliente').value;
-    let pagFiltro = document.getElementById('filtro-pagamento').value;
-
-    let faturamentoBruto = 0;
-    let qtdVendas = 0;
-    let unidadesVendidas = 0;
-    let valorRecebido = 0;
-    let contasAReceber = 0;
-    let contasAtrasadas = 0;
-    let custoTotalCMV = 0;
-
-    const hoje = new Date().toISOString().split('T')[0];
-
-    pedidos.forEach(p => {
-        if (p.status === 'Cancelado') return;
-        if (cliFiltro && p.cliente !== cliFiltro) return;
-        if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
-
-        faturamentoBruto += p.valorTotal;
-        qtdVendas++;
-
-        if (p.itensDetalhados) {
-            p.itensDetalhados.forEach(item => {
-                unidadesVendidas += item.qtd;
-                let prodRef = produtos.find(pr => pr.id == item.id || pr.nome === item.nome);
-                let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                custoTotalCMV += (custoUnit * item.qtd);
-            });
-        }
-
-        if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-            valorRecebido += p.valorTotal;
-        }
-    });
-
-    credList.forEach(venda => {
-        if (cliFiltro && venda.cliente !== cliFiltro) return;
-
-        venda.parcelas.forEach(parc => {
-            let saldoParc = parc.valorOriginal - parc.valorPago;
-            valorRecebido += parc.valorPago;
-
-            if (saldoParc > 0) {
-                contasAReceber += saldoParc;
-                if (parc.vencimento < hoje) {
-                    contasAtrasadas += saldoParc;
-                }
-            }
-        });
-    });
-
-    let lucroEstimado = faturamentoBruto - custoTotalCMV;
-    let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
-
-    document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-    document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-    document.getElementById('card-qtd-vendas').textContent = qtdVendas;
-    document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
-    document.getElementById('card-unidades').textContent = unidadesVendidas;
-    document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-    document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-    document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
-
-    document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-    document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
-    document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-    document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-    document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-
-    renderGraficoDesempenho(pedidos);
-}
-
-function renderGraficoDesempenho(pedidos) {
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    if (myChart) myChart.destroy();
-
-    let diasMap = {};
-    pedidos.forEach(p => {
-        let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-        diasMap[dataStr] = (diasMap[dataStr] || 0) + p.valorTotal;
-    });
-
-    let labels = Object.keys(diasMap).slice(-7);
-    let dataVals = labels.map(l => diasMap[l]);
-
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels.length > 0 ? labels : ['Nenhum dado'],
-            datasets: [{
-                label: 'Faturamento (R$)',
-                data: dataVals.length > 0 ? dataVals : [0],
-                backgroundColor: '#008B74',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-}
-
-function renderRankingProdutos() {
-    let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-    let mapProd = {};
-
-    pedidos.forEach(p => {
-        if(p.status === 'Cancelado') return;
-        if(p.itensDetalhados) {
-            p.itensDetalhados.forEach(item => {
-                if(!mapProd[item.nome]) {
-                    mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                }
-                mapProd[item.nome].qtd += item.qtd;
-                mapProd[item.nome].fat += (item.preco * item.qtd);
-            });
-        }
-    });
-
-    let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
-    const tbody = document.getElementById('ranking-produtos-tbody');
-
-    if(arr.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado no período.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = arr.map((item, idx) => `
-        <tr class="border-b hover:bg-gray-50">
-            <td class="p-2.5 font-bold">#${idx + 1}</td>
-            <td class="p-2.5 font-semibold text-marromCafe">${item.nome}</td>
-            <td class="p-2.5 text-gray-500">${item.categoria}</td>
-            <td class="p-2.5 text-center font-bold">${item.qtd}</td>
-            <td class="p-2.5 text-right font-bold text-verdePetroleo">R$ ${item.fat.toFixed(2).replace('.', ',')}</td>
-            <td class="p-2.5 text-right text-emerald-700 font-semibold">R$ ${(item.fat * 0.6).toFixed(2).replace('.', ',')}</td>
-            <td class="p-2.5 text-right font-bold">60%</td>
-        </tr>
-    `).join('');
-}
-
-function renderRankingClientes() {
-    let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-    let mapCli = {};
-
-    pedidos.forEach(p => {
-        if(p.status === 'Cancelado' || !p.cliente) return;
-        if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-        mapCli[p.cliente].total += p.valorTotal;
-        mapCli[p.cliente].pedidos++;
-    });
-
-    let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
-    const listEl = document.getElementById('ranking-clientes-list');
-
-    if(arr.length === 0) {
-        listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente registrado.</p>`;
-        return;
-    }
-
-    listEl.innerHTML = arr.map((c, idx) => `
-        <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
-            <div>
-                <b>#${idx + 1} - ${c.nome}</b>
-                <p class="text-gray-500">${c.pedidos} pedido(s) realizado(s)</p>
-            </div>
-            <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
-        </div>
-    `).join('');
-}
-
-function renderRelatorioCrediario() {
-    let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
-    const listEl = document.getElementById('crediario-rel-list');
-
-    if(credList.length === 0) {
-        listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato de crediário ativo.</p>`;
-        return;
-    }
-
-    listEl.innerHTML = credList.map(v => `
-        <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
-            <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${v.valorTotal.toFixed(2).replace('.', ',')}</div>
-            <p class="text-gray-500">Produtos: ${v.produtos}</p>
-            <p class="text-xs text-verdePetroleo font-semibold">Qtd de Parcelas: ${v.parcelas.length}</p>
-        </div>
-    `).join('');
-}
-
-function exportRelatorio(formato) {
-    alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso com base nos filtros aplicados!`);
-}
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -890,6 +636,261 @@ function exportRelatorio(formato) {
             if(tabId === 'calculadora') loadCalcSelect();
             if(tabId === 'relatorios') loadRelatorios();
             if(tabId === 'config') loadConfigs();
+        }
+
+        // --- CONTROLE DE SUB-ABAS DOS RELATÓRIOS ---
+        function switchSubTab(subId) {
+            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.subtab-btn').forEach(btn => {
+                btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+            });
+            document.getElementById(`subtab-${subId}`).classList.remove('hidden');
+            document.getElementById(`subbtn-${subId}`).className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+            
+            if(subId === 'produtos-ranking') renderRankingProdutos();
+            if(subId === 'clientes-analise') renderRankingClientes();
+            if(subId === 'crediario-rel') renderRelatorioCrediario();
+        }
+
+        // --- MOTOR DE CÁLCULO E RELATÓRIOS COM DADOS REAIS ---
+        function loadRelatorios() {
+            preencherFiltrosSelects();
+            calcularIndicadoresGerais();
+        }
+
+        function preencherFiltrosSelects() {
+            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            let clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
+            
+            const selProd = document.getElementById('filtro-produto');
+            if(selProd) {
+                selProd.innerHTML = '<option value="">Todos os produtos</option>' + produtos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+            }
+
+            const selCat = document.getElementById('filtro-categoria');
+            if(selCat) {
+                let cats = [...new Set(produtos.map(p => p.categoria))];
+                selCat.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+
+            const selCli = document.getElementById('filtro-cliente');
+            if(selCli) {
+                selCli.innerHTML = '<option value="">Todos os clientes</option>' + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            }
+        }
+
+        function aplicarFiltrosRelatorio() {
+            calcularIndicadoresGerais();
+        }
+
+        function limparFiltrosRelatorio() {
+            document.getElementById('filtro-periodo').value = '30';
+            document.getElementById('filtro-produto').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-cliente').value = '';
+            document.getElementById('filtro-pagamento').value = '';
+            calcularIndicadoresGerais();
+        }
+
+        function calcularIndicadoresGerais() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            let produtos = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+            
+            let prodFiltro = document.getElementById('filtro-produto').value;
+            let cliFiltro = document.getElementById('filtro-cliente').value;
+            let pagFiltro = document.getElementById('filtro-pagamento').value;
+
+            let faturamentoBruto = 0;
+            let qtdVendas = 0;
+            let unidadesVendidas = 0;
+            let valorRecebido = 0;
+            let contasAReceber = 0;
+            let contasAtrasadas = 0;
+            let custoTotalCMV = 0;
+
+            const hoje = new Date().toISOString().split('T')[0];
+
+            pedidos.forEach(p => {
+                if (p.status === 'Cancelado') return;
+                if (cliFiltro && p.cliente !== cliFiltro) return;
+                if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
+
+                faturamentoBruto += p.valorTotal;
+                qtdVendas++;
+
+                if (p.itensDetalhados) {
+                    p.itensDetalhados.forEach(item => {
+                        unidadesVendidas += item.qtd;
+                        let prodRef = produtos.find(pr => pr.id == item.id || pr.nome === item.nome);
+                        let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
+                        custoTotalCMV += (custoUnit * item.qtd);
+                    });
+                }
+
+                if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
+                    valorRecebido += p.valorTotal;
+                }
+            });
+
+            credList.forEach(venda => {
+                if (cliFiltro && venda.cliente !== cliFiltro) return;
+
+                venda.parcelas.forEach(parc => {
+                    let saldoParc = parc.valorOriginal - parc.valorPago;
+                    valorRecebido += parc.valorPago;
+
+                    if (saldoParc > 0) {
+                        contasAReceber += saldoParc;
+                        if (parc.vencimento < hoje) {
+                            contasAtrasadas += saldoParc;
+                        }
+                    }
+                });
+            });
+
+            let lucroEstimado = faturamentoBruto - custoTotalCMV;
+            let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
+
+            document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-qtd-vendas').textContent = qtdVendas;
+            document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-unidades').textContent = unidadesVendidas;
+            document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
+            document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
+
+            document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
+            document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
+
+            renderGraficoDesempenho(pedidos);
+        }
+
+        function renderGraficoDesempenho(pedidos) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            let diasMap = {};
+            pedidos.forEach(p => {
+                let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + p.valorTotal;
+            });
+
+            let labels = Object.keys(diasMap).slice(-7);
+            let dataVals = labels.map(l => diasMap[l]);
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Nenhum dado'],
+                    datasets: [{
+                        label: 'Faturamento (R$)',
+                        data: dataVals.length > 0 ? dataVals : [0],
+                        backgroundColor: '#008B74',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function renderRankingProdutos() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let mapProd = {};
+
+            pedidos.forEach(p => {
+                if(p.status === 'Cancelado') return;
+                if(p.itensDetalhados) {
+                    p.itensDetalhados.forEach(item => {
+                        if(!mapProd[item.nome]) {
+                            mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
+                        }
+                        mapProd[item.nome].qtd += item.qtd;
+                        mapProd[item.nome].fat += (item.preco * item.qtd);
+                    });
+                }
+            });
+
+            let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
+            const tbody = document.getElementById('ranking-produtos-tbody');
+
+            if(arr.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado no período.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = arr.map((item, idx) => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2.5 font-bold">#${idx + 1}</td>
+                    <td class="p-2.5 font-semibold text-marromCafe">${item.nome}</td>
+                    <td class="p-2.5 text-gray-500">${item.categoria}</td>
+                    <td class="p-2.5 text-center font-bold">${item.qtd}</td>
+                    <td class="p-2.5 text-right font-bold text-verdePetroleo">R$ ${item.fat.toFixed(2).replace('.', ',')}</td>
+                    <td class="p-2.5 text-right text-emerald-700 font-semibold">R$ ${(item.fat * 0.6).toFixed(2).replace('.', ',')}</td>
+                    <td class="p-2.5 text-right font-bold">60%</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRankingClientes() {
+            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            let mapCli = {};
+
+            pedidos.forEach(p => {
+                if(p.status === 'Cancelado' || !p.cliente) return;
+                if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
+                mapCli[p.cliente].total += p.valorTotal;
+                mapCli[p.cliente].pedidos++;
+            });
+
+            let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
+            const listEl = document.getElementById('ranking-clientes-list');
+
+            if(arr.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente registrado.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = arr.map((c, idx) => `
+                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
+                    <div>
+                        <b>#${idx + 1} - ${c.nome}</b>
+                        <p class="text-gray-500">${c.pedidos} pedido(s) realizado(s)</p>
+                    </div>
+                    <span class="font-bold text-verdePetroleo text-sm">R$ ${c.total.toFixed(2).replace('.', ',')}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderRelatorioCrediario() {
+            let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            const listEl = document.getElementById('crediario-rel-list');
+
+            if(credList.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato de crediário ativo.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = credList.map(v => `
+                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
+                    <div class="font-bold text-marromCafe">Cliente: ${v.cliente} — Total: R$ ${v.valorTotal.toFixed(2).replace('.', ',')}</div>
+                    <p class="text-gray-500">Produtos: ${v.produtos}</p>
+                    <p class="text-xs text-verdePetroleo font-semibold">Qtd de Parcelas: ${v.parcelas.length}</p>
+                </div>
+            `).join('');
+        }
+
+        function exportRelatorio(formato) {
+            alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso com base nos filtros aplicados!`);
         }
 
         // Upload Imagem
@@ -1230,69 +1231,6 @@ function exportRelatorio(formato) {
             p.splice(index, 1);
             localStorage.setItem('helcinho_pedidos', JSON.stringify(p));
             loadPedidos();
-        }
-
-        // --- RELATÓRIOS & GRÁFICOS ---
-        function loadRelatorios() {
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            let faturamento = 0, qtd = 0;
-            let statusCount = { Novo: 0, Confirmado: 0, 'Em separação': 0, Entregue: 0, Cancelado: 0 };
-
-            pedidos.forEach(p => {
-                if (p.status !== 'Cancelado') {
-                    faturamento += p.valorTotal;
-                    qtd++;
-                }
-                if (statusCount[p.status] !== undefined) {
-                    statusCount[p.status]++;
-                }
-            });
-
-            let ticket = qtd > 0 ? faturamento / qtd : 0;
-            document.getElementById('rel-faturamento').textContent = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
-            document.getElementById('rel-qtd-pedidos').textContent = qtd;
-            document.getElementById('rel-ticket').textContent = `R$ ${ticket.toFixed(2).replace('.', ',')}`;
-
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            if (myChart) myChart.destroy();
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Novos', 'Confirmados', 'Em Separação', 'Entregues', 'Cancelados'],
-                    datasets: [{
-                        label: 'Quantidade de Pedidos',
-                        data: [statusCount.Novo, statusCount.Confirmado, statusCount['Em separação'], statusCount.Entregue, statusCount.Cancelado],
-                        backgroundColor: ['#008B74', '#3E2723', '#D49B85', '#10B981', '#EF4444'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-                }
-            });
-        }
-
-        function exportCSV() {
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            if (pedidos.length === 0) return alert('Nenhum dado para exportar!');
-
-            let csvContent = "data:text/csv;charset=utf-8,ID Pedido;Cliente;Data;Produtos;Valor Total;Status;Presente\r\n";
-            pedidos.forEach(p => {
-                let row = [p.id, `"${p.cliente || 'N/A'}"`, p.data, `"${p.produtos}"`, p.valorTotal.toFixed(2), p.status, p.presente];
-                csvContent += row.join(";") + "\r\n";
-            });
-
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "relatorio_vendas_helcinho.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         // --- DASHBOARD & ATRASADOS ---
