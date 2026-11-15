@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN -->
+    <!-- TELA DE LOGIN ESTREITA E SEGURA -->
     <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
@@ -41,7 +41,7 @@
                     <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
+                <p class="text-xs text-rosegold font-semibold">Autenticação Restrita</p>
             </div>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -53,17 +53,16 @@
                     <label class="block text-xs font-semibold mb-1">Senha</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
-                <!-- Link Esqueci a Senha -->
                 <div class="flex justify-end">
                     <button type="button" onclick="handleForgotPassword()" class="text-xs text-rosegold hover:text-marromCafe font-semibold transition">Esqueci a senha?</button>
                 </div>
                 <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
             </form>
-            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold"></div>
+            <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
         </div>
     </div>
 
-    <!-- APLICAÇÃO PRINCIPAL -->
+    <!-- APLICAÇÃO PRINCIPAL (Protegida) -->
     <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -331,7 +330,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN ESTRITO -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -341,29 +340,24 @@
             if (SUPABASE_URL && SUPABASE_URL !== 'SUA_URL_DO_SUPABASE') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error("Erro ao inicializar Supabase:", e);
+        }
 
         let products = [];
         let myChart = null;
 
-        // Verificação de Autenticação com Fallback Local
+        // Verificação de Sessão Ativa
         async function checkAuth() {
-            if (localStorage.getItem('helcinho_logged_local') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
-                return;
-            }
-
             if (!supabaseClient) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                loadDashboard();
+                showLoginError("Supabase não configurado corretamente no código.");
                 return;
             }
 
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+
                 if (session) {
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
@@ -378,50 +372,47 @@
             }
         }
 
+        // Login Estrito com Supabase Auth
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             const errEl = document.getElementById('login-error');
 
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (!error) {
-                        errEl.classList.add('hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app-container').classList.remove('hidden');
-                        loadDashboard();
-                        return;
-                    }
-                } catch (err) {
-                    console.warn("Supabase inacessível, utilizando fallback local.");
-                }
+            if (!supabaseClient) {
+                errEl.textContent = 'Erro: Cliente Supabase não inicializado.';
+                errEl.classList.remove('hidden');
+                return;
             }
 
-            if (password.length >= 4) {
-                localStorage.setItem('helcinho_logged_local', 'true');
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
                 errEl.classList.add('hidden');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 loadDashboard();
-            } else {
-                errEl.textContent = 'Digite uma senha válida (mínimo 4 caracteres).';
+            } catch (err) {
+                errEl.textContent = 'Credenciais inválidas: ' + (err.message || 'E-mail ou senha incorretos.');
                 errEl.classList.remove('hidden');
             }
         }
 
-        // Função "Esqueci a Senha" com Tratamento de Erro e Fallback Robusto
+        // Recuperação de Senha Real via Supabase
         async function handleForgotPassword() {
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
+            const errEl = document.getElementById('login-error');
+
             if (!email) {
-                alert('Por favor, digite o seu e-mail de acesso no campo acima primeiro.');
+                errEl.textContent = 'Digite o seu e-mail no campo acima para recuperar a senha.';
+                errEl.classList.remove('hidden');
                 document.getElementById('login-email').focus();
                 return;
             }
 
             if (!supabaseClient) {
-                alert('Modo local ativo: Como o sistema está em modo autónomo, pode entrar diretamente utilizando qualquer senha com 4 ou mais caracteres.');
+                alert('Supabase não configurado.');
                 return;
             }
 
@@ -430,23 +421,23 @@
                     redirectTo: window.location.href,
                 });
                 if (error) throw error;
-                alert('Instruções de recuperação enviadas para o seu e-mail! Verifique sua caixa de entrada.');
+                alert('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.');
             } catch (err) {
-                // Se falhar por falha de rede/fetch, informa o usuário de forma amigável sobre o acesso local
-                if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('network'))) {
-                    alert('Servidor online indisponível (Offline). Como o sistema possui acesso local de segurança, pode entrar diretamente utilizando qualquer senha com 4 ou mais caracteres.');
-                } else {
-                    alert('Aviso: ' + (err.message || 'Não foi possível enviar o e-mail. Utilize a senha local de 4+ caracteres para entrar.'));
-                }
+                alert('Erro ao enviar e-mail: ' + err.message);
             }
         }
 
         async function handleLogout() {
-            localStorage.removeItem('helcinho_logged_local');
             if (supabaseClient) {
                 try { await supabaseClient.auth.signOut(); } catch(e) {}
             }
             location.reload();
+        }
+
+        function showLoginError(msg) {
+            const errEl = document.getElementById('login-error');
+            errEl.textContent = msg;
+            errEl.classList.remove('hidden');
         }
 
         function switchTab(tabId) {
