@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL -->
+    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -504,7 +504,7 @@
         let products = [];
         let myChart = null;
 
-        // Inicialização automática ao carregar a página
+        // Inicialização robusta ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
             try { loadDashboard(); } catch(e){}
             try { loadConfigs(); } catch(e){}
@@ -566,6 +566,202 @@
             }
         }
 
+        // --- GESTÃO DE PEDIDOS ROBUSTA (Supabase + LocalStorage) ---
+        async function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            if (!listEl) return;
+
+            let pedidosSupabase = [];
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('pedidos').select('*');
+                    if (!error && data) {
+                        pedidosSupabase = data;
+                    }
+                } catch (err) {}
+            }
+
+            let pedidosLocal = [];
+            try {
+                pedidosLocal = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            } catch(e) {}
+
+            // Combina ambos sem duplicar por ID
+            let mapPedidos = {};
+            [...pedidosLocal, ...pedidosSupabase].forEach(p => {
+                if (p && p.id) mapPedidos[p.id] = p;
+            });
+            let pedidos = Object.values(mapPedidos);
+
+            // Atualiza o contador no dashboard
+            const badgePedidos = document.getElementById('dash-total-pedidos');
+            if (badgePedidos) {
+                badgePedidos.textContent = pedidos.filter(p => !p.status || p.status === 'Novo').length;
+            }
+
+            if (pedidos.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>';
+                return;
+            }
+
+            listEl.innerHTML = pedidos.map((p) => {
+                let totalVal = Number(p.valorTotal || p.valortotal || 0);
+                let statusAtual = p.status || 'Novo';
+                let itensHtml = '';
+                
+                if (p.itensDetalhados && Array.isArray(p.itensDetalhados) && p.itensDetalhados.length > 0) {
+                    itensHtml = p.itensDetalhados.map(item => `
+                        <div class="text-gray-600 ml-2">• ${item.qtd || 1}x ${item.nome || 'Produto'} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un</div>
+                    `).join('');
+                } else {
+                    itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos || 'Não especificado'}</p>`;
+                }
+
+                return `
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                        <div class="flex justify-between items-start border-b pb-2">
+                            <div>
+                                <h4 class="font-bold uppercase text-marromCafe text-sm">Pedido #${p.id} — ${p.data || 'Recente'}</h4>
+                                <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || p.nomeCliente || 'Não informado'}</p>
+                                <div class="mt-1 space-y-1">
+                                    ${itensHtml}
+                                </div>
+                            </div>
+                            <span class="font-bold text-base text-verdePetroleo">R$ ${totalVal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1">
+                            <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                                <option value="Novo" ${statusAtual === 'Novo' ? 'selected' : ''}>Novo</option>
+                                <option value="Confirmado" ${statusAtual === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                                <option value="Em separação" ${statusAtual === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                                <option value="Entregue" ${statusAtual === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                <option value="Cancelado" ${statusAtual === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                            <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function updatePedidoStatus(id, val) {
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+                } catch(e) {}
+            }
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.map(p => p.id == id ? {...p, status: val} : p);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
+        }
+
+        async function deletePedido(id) {
+            if(!confirm('Deseja realmente excluir este pedido?')) return;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('pedidos').delete().eq('id', id);
+                } catch(e) {}
+            }
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.filter(p => p.id != id);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
+
+            alert('Pedido excluído com sucesso!');
+            loadPedidos();
+            loadDashboard();
+        }
+
+        // --- DASHBOARD & CONTAS ATRASADAS ---
+        async function loadDashboard() {
+            let credSupabase = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credSupabase = data;
+                } catch(e) {}
+            }
+            let credLocal = [];
+            try {
+                credLocal = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+            } catch(e) {}
+
+            let mapCred = {};
+            [...credLocal, ...credSupabase].forEach(v => {
+                if(v && v.id) mapCred[v.id] = v;
+            });
+            let credList = Object.values(mapCred);
+
+            let pedidosSupabase = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidosSupabase = data;
+                } catch(e) {}
+            }
+            let pedidosLocal = [];
+            try {
+                pedidosLocal = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            } catch(e) {}
+
+            let mapPed = {};
+            [...pedidosLocal, ...pedidosSupabase].forEach(p => {
+                if(p && p.id) mapPed[p.id] = p;
+            });
+            let pedidos = Object.values(mapPed);
+
+            let totalAberto = 0, totalAtrasado = 0;
+            let atrasadasArr = [];
+            const hoje = new Date().toISOString().split('T')[0];
+
+            credList.forEach((venda) => {
+                (venda.parcelas || []).forEach((p) => {
+                    let saldo = Number(p.valorOriginal || p.valor || 0) - Number(p.valorPago || 0);
+                    if (saldo > 0) {
+                        totalAberto += saldo;
+                        if (p.vencimento && p.vencimento < hoje) {
+                            totalAtrasado += saldo;
+                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
+                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            atrasadasArr.push({ cliente: venda.cliente || venda.nomeCliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
+                        }
+                    }
+                });
+            });
+
+            const elAberto = document.getElementById('dash-total-aberto');
+            const elAtrasado = document.getElementById('dash-total-atrasado');
+            const elPedidos = document.getElementById('dash-total-pedidos');
+            const atrasadasBadge = document.getElementById('atrasadas-badge');
+            const atrasadasListEl = document.getElementById('atrasadas-list');
+
+            if (elAberto) elAberto.textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
+            if (elAtrasado) elAtrasado.textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
+            if (elPedidos) elPedidos.textContent = pedidos.filter(p => !p.status || p.status === 'Novo').length;
+            if (atrasadasBadge) atrasadasBadge.textContent = `${atrasadasArr.length} parcelas`;
+            
+            if (atrasadasListEl) {
+                atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
+                    '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
+                    atrasadasArr.map(item => {
+                        const isCritico = item.diasAtraso >= 5;
+                        const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
+                        const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
+                        return `
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
+                                <div>
+                                    <b>${item.cliente || 'Cliente'}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',)}) 
+                                    <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${String(item.vencimento).split('-').reverse().join('/')}) ${badgeCritico}
+                                </div>
+                                <button onclick="cobrarWhatsApp('${item.cliente || ''}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+            }
+        }
+
+        // --- RELATÓRIOS ---
         function loadRelatorios() {
             preencherFiltrosSelects();
             calcularIndicadoresGerais();
@@ -646,20 +842,20 @@
                 if (cliFiltro && p.cliente !== cliFiltro) return;
                 if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
 
-                faturamentoBruto += Number(p.valorTotal || 0);
+                faturamentoBruto += Number(p.valorTotal || p.valortotal || 0);
                 qtdVendas++;
 
                 if (p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
-                        unidadesVendidas += item.qtd;
+                        unidadesVendidas += (item.qtd || 1);
                         let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
                         let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                        custoTotalCMV += (custoUnit * item.qtd);
+                        custoTotalCMV += (custoUnit * (item.qtd || 1));
                     });
                 }
 
                 if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += Number(p.valorTotal || 0);
+                    valorRecebido += Number(p.valorTotal || p.valortotal || 0);
                 }
             });
 
@@ -702,7 +898,7 @@
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || p.valortotal || 0);
             });
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
@@ -731,13 +927,14 @@
                 if(p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
                         if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        mapProd[item.nome].qtd += item.qtd;
-                        mapProd[item.nome].fat += (item.preco * item.qtd);
+                        mapProd[item.nome].qtd += (item.qtd || 1);
+                        mapProd[item.nome].fat += ((item.preco || 0) * (item.qtd || 1));
                     });
                 }
             });
             let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
             const tbody = document.getElementById('ranking-produtos-tbody');
+            if(!tbody) return;
             if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
             tbody.innerHTML = arr.map((item, idx) => `
                 <tr class="border-b hover:bg-gray-50">
@@ -764,11 +961,12 @@
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || 0);
+                mapCli[p.cliente].total += Number(p.valorTotal || p.valortotal || 0);
                 mapCli[p.cliente].pedidos++;
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
             const listEl = document.getElementById('ranking-clientes-list');
+            if(!listEl) return;
             if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
             listEl.innerHTML = arr.map((c, idx) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
@@ -787,6 +985,7 @@
             if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
 
             const listEl = document.getElementById('crediario-rel-list');
+            if(!listEl) return;
             if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
             listEl.innerHTML = credList.map(v => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
@@ -803,15 +1002,11 @@
             const listEl = document.getElementById('estoque-list');
             if (!listEl) return;
             if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.from('produtos').select('*');
-                    if (!error && data) {
-                        products = data;
-                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-                    } else {
-                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
-                    }
-                } catch(e) {
+                const { data, error } = await supabaseClient.from('produtos').select('*');
+                if (!error && data) {
+                    products = data;
+                    localStorage.setItem('helcinho_produtos', JSON.stringify(products));
+                } else {
                     products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                 }
             } else {
@@ -1069,6 +1264,7 @@
             alert('Venda parcelada gerada e salva na nuvem com sucesso!');
             e.target.reset();
             loadCrediario();
+            loadDashboard();
         }
 
         async function loadCrediario() {
@@ -1076,7 +1272,7 @@
             if (!list) return;
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
+                const { data } = await supabaseClient.from('crediario').select('*');
                 if (data) credList = data;
             }
             if (credList.length === 0) {
@@ -1140,6 +1336,7 @@
             }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
             alert('Baixa registrada com sucesso!');
         }
 
@@ -1152,6 +1349,60 @@
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+            loadDashboard();
+        }
+
+        // --- CONFIGURAÇÕES DE WHATSAPP NA NUVEM ---
+        async function saveWhatsApp() {
+            const zapVal = document.getElementById('whatsapp-input').value;
+            if (supabaseClient) {
+                await supabaseClient.from('configuracoes').upsert([{ chave: 'whatsapp', valor: zapVal }]);
+            }
+            localStorage.setItem('helcinho_whatsapp', zapVal);
+            alert('Número do WhatsApp salvo na nuvem com sucesso!');
+        }
+
+        async function saveTemplateCobrar() {
+            const templateVal = document.getElementById('template-cobranca').value;
+            if (supabaseClient) {
+                await supabaseClient.from('configuracoes').upsert([{ chave: 'template_cobranca', valor: templateVal }]);
+            }
+            localStorage.setItem('helcinho_template_cobranca', templateVal);
+            alert('Modelo de cobrança salvo na nuvem com sucesso!');
+        }
+
+        async function loadConfigs() {
+            let zapVal = '';
+            let templateVal = '';
+
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('configuracoes').select('*');
+                    if (data) {
+                        const zapItem = data.find(i => i.chave === 'whatsapp');
+                        const tempItem = data.find(i => i.chave === 'template_cobranca');
+                        if (zapItem) zapVal = zapItem.valor;
+                        if (tempItem) templateVal = tempItem.valor;
+                    }
+                } catch(e) {}
+            }
+
+            if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
+            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
+
+            const zapInput = document.getElementById('whatsapp-input');
+            const tempInput = document.getElementById('template-cobranca');
+            if (zapInput) zapInput.value = zapVal;
+            if (tempInput) tempInput.value = templateVal;
+        }
+
+        function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
+            let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
+            let valorFormatado = saldo.toFixed(2).replace('.', ',');
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*.`;
+            let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
+            let msg = template.replace(/{cliente}/g, cliente).replace(/{parcela}/g, parcela).replace(/{valor}/g, valorFormatado).replace(/{vencimento}/g, vencFormatado).replace(/{dias}/g, dias);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         // --- CATEGORIAS NA NUVEM COM CRIAÇÃO E EXCLUSÃO ---
@@ -1229,7 +1480,10 @@
 
         // Calculadora
         function loadCalcSelect() {
-            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.link(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            const calcProd = document.getElementById('calc-produto');
+            if (calcProd) {
+                calcProd.innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            }
         }
         function loadProductForCalc() {
             const p = products.find(i => i.id == document.getElementById('calc-produto').value);
@@ -1242,6 +1496,16 @@
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
+
+        // Inicialização automática ao abrir a página
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadConfigs();
+            loadCategoriesSelect();
+            loadClientes();
+            loadClientesSelect();
+            loadEstoque();
+        });
     </script>
 </body>
 </html>
