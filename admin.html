@@ -53,10 +53,7 @@
                     <label class="block text-xs font-semibold mb-1">Senha</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
-                <div class="flex justify-end">
-                    <button type="button" onclick="handleForgotPassword()" class="text-xs text-rosegold hover:text-marromCafe font-semibold transition">Esqueci a senha?</button>
-                </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
+                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow mt-2">Entrar no Sistema</button>
             </form>
             <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
         </div>
@@ -396,34 +393,6 @@
             } catch (err) {
                 errEl.textContent = 'Credenciais inválidas: ' + (err.message || 'E-mail ou senha incorretos.');
                 errEl.classList.remove('hidden');
-            }
-        }
-
-        // Recuperação de Senha Real via Supabase
-        async function handleForgotPassword() {
-            const email = document.getElementById('login-email').value.trim();
-            const errEl = document.getElementById('login-error');
-
-            if (!email) {
-                errEl.textContent = 'Digite o seu e-mail no campo acima para recuperar a senha.';
-                errEl.classList.remove('hidden');
-                document.getElementById('login-email').focus();
-                return;
-            }
-
-            if (!supabaseClient) {
-                alert('Supabase não configurado.');
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.href,
-                });
-                if (error) throw error;
-                alert('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.');
-            } catch (err) {
-                alert('Erro ao enviar e-mail: ' + err.message);
             }
         }
 
