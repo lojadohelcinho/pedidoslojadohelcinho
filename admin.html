@@ -732,7 +732,7 @@
                 if (cliFiltro && p.cliente !== cliFiltro) return;
                 if (pagFiltro && p.formaPagamento && !p.formaPagamento.includes(pagFiltro)) return;
 
-                faturamentoBruto += Number(p.valorTotal || p.valortotal || 0);
+                faturamentoBruto += Number(p.valorTotal || 0);
                 qtdVendas++;
 
                 if (p.itensDetalhados) {
@@ -745,7 +745,7 @@
                 }
 
                 if (!p.formaPagamento || !p.formaPagamento.includes('Crediário')) {
-                    valorRecebido += Number(p.valorTotal || p.valortotal || 0);
+                    valorRecebido += Number(p.valorTotal || 0);
                 }
             });
 
@@ -788,7 +788,7 @@
             let diasMap = {};
             pedidos.forEach(p => {
                 let dataStr = p.data ? p.data.split(' ')[0] : 'Hoje';
-                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || p.valortotal || 0);
+                diasMap[dataStr] = (diasMap[dataStr] || 0) + Number(p.valorTotal || 0);
             });
             let labels = Object.keys(diasMap).slice(-7);
             let dataVals = labels.map(l => diasMap[l]);
@@ -850,7 +850,7 @@
             pedidos.forEach(p => {
                 if(p.status === 'Cancelado' || !p.cliente) return;
                 if(!mapCli[p.cliente]) mapCli[p.cliente] = { nome: p.cliente, total: 0, pedidos: 0 };
-                mapCli[p.cliente].total += Number(p.valorTotal || p.valortotal || 0);
+                mapCli[p.cliente].total += Number(p.valorTotal || 0);
                 mapCli[p.cliente].pedidos++;
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
@@ -1257,7 +1257,7 @@
                             <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
                             <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
                         </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || p.valortotal || 0).toFixed(2).replace('.', ',')}</span>
+                        <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div class="flex justify-between items-center pt-1">
                         <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
@@ -1280,7 +1280,8 @@
         }
 
         async function deletePedido(id) {
-            if(!confirm('Deseja excluir este pedido?')) return;
+            if(!confirm('Deseja realmente excluir este pedido?')) return;
+            
             if (supabaseClient) {
                 const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
                 if (error) {
@@ -1288,6 +1289,7 @@
                     return;
                 }
             }
+            
             let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             localPedidos = localPedidos.filter(p => p.id != id);
             localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
@@ -1392,7 +1394,7 @@
             }
 
             if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
-            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca'] || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
+            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
 
             document.getElementById('whatsapp-input').value = zapVal;
             document.getElementById('template-cobranca').value = templateVal;
