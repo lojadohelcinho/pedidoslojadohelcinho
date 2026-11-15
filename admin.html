@@ -33,8 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-
-    <!-- APLICAÇÃO PRINCIPAL -->
+    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -490,7 +489,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN CONECTADO AO SUPABASE -->
+    <!-- SCRIPT DO PAINEL ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -515,7 +514,7 @@
             loadEstoque();
         });
 
-        // Função vazia apenas para evitar erros caso algum botão antigo tente chamá-la
+        // Função de saída recarregando a página
         function handleLogout() {
             location.reload();
         }
@@ -525,8 +524,11 @@
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
             });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetBtn = document.getElementById(`btn-${tabId}`);
+            
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
             
             if(tabId === 'dashboard') loadDashboard();
             if(tabId === 'pedidos') loadPedidos();
@@ -544,8 +546,11 @@
             document.querySelectorAll('.subtab-btn').forEach(btn => {
                 btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
             });
-            document.getElementById(`subtab-${subId}`).classList.remove('hidden');
-            document.getElementById(`subbtn-${subId}`).className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+            const targetSub = document.getElementById(`subtab-${subId}`);
+            const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+
+            if (targetSub) targetSub.classList.remove('hidden');
+            if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
             
             if(subId === 'produtos-ranking') renderRankingProdutos();
             if(subId === 'clientes-analise') renderRankingClientes();
@@ -782,6 +787,7 @@
         // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
+            if (!listEl) return;
             if (supabaseClient) {
                 const { data, error } = await supabaseClient.from('produtos').select('*');
                 if (!error && data) {
@@ -922,6 +928,7 @@
 
         async function loadClientes() {
             const list = document.getElementById('clientes-list');
+            if (!list) return;
             let clientes = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
@@ -1048,6 +1055,7 @@
 
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
+            if (!list) return;
             let credList = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
@@ -1251,6 +1259,7 @@
 
         async function excluirCategoria() {
             const select = document.getElementById('categoria');
+            if (!select) return;
             const catSelecionada = select.value;
             let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
 
@@ -1287,21 +1296,32 @@
 
         // Calculadora
         function loadCalcSelect() {
-            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            const calcProd = document.getElementById('calc-produto');
+            if (calcProd) {
+                calcProd.innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
+            }
         }
         function loadProductForCalc() {
-            const p = products.find(i => i.id == document.getElementById('calc-produto').value);
-            if(p) document.getElementById('calc-custo').value = (p.preco * 0.4).toFixed(2);
+            const calcProd = document.getElementById('calc-produto');
+            const calcCusto = document.getElementById('calc-custo');
+            if (!calcProd || !calcCusto) return;
+            const p = products.find(i => i.id == calcProd.value);
+            if(p) calcCusto.value = (p.preco * 0.4).toFixed(2);
         }
         function calcularPrecoIdeal() {
-            const custo = parseFloat(document.getElementById('calc-custo').value) || 0;
-            const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
-            const sugerido = custo * (1 + (margem / 100));
-            document.getElementById('calc-resultado').classList.remove('hidden');
-            document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
-        }
+            const calcCusto = document.getElementById('calc-custo');
+            const calcMargem = document.getElementById('calc-margem');
+            const calcResultado = document.getElementById('calc-resultado');
+            const calcPrecoSugerido = document.getElementById('calc-preco-sugerido');
 
-        checkAuth();
+            if (!calcCusto || !calcMargem || !calcResultado || !calcPrecoSugerido) return;
+
+            const custo = parseFloat(calcCusto.value) || 0;
+            const margem = parseFloat(calcMargem.value) || 0;
+            const sugerido = custo * (1 + (margem / 100));
+            calcResultado.classList.remove('hidden');
+            calcPrecoSugerido.textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
+        }
     </script>
 </body>
 </html>
