@@ -1001,7 +1001,7 @@
             loadCategoriesSelect();
         }
 
-        // --- CARTILHA DE CLIENTES NA NUVEM ---
+        // --- CARTILHA DE CLIENTES NA NUVEM (CORRIGIDO PARA ID TEXTO) ---
         async function saveClient(e) {
             e.preventDefault();
             const clienteId = document.getElementById('client-index').value;
@@ -1232,6 +1232,91 @@
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
+        }
+
+        // --- GESTÃO DE PEDIDOS ROBUSTA ---
+        async function loadPedidos() {
+            const listEl = document.getElementById('pedidos-list');
+            if (!listEl) return;
+
+            let pedidos = [];
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
+                    if (!error && data) {
+                        pedidos = data;
+                    }
+                } catch (err) {}
+            }
+            
+            if (pedidos.length === 0) {
+                pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            }
+
+            if (pedidos.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>';
+                return;
+            }
+
+            listEl.innerHTML = pedidos.map((p) => {
+                let totalVal = Number(p.valorTotal || p.valortotal || 0);
+                let itensHtml = '';
+                if (p.itensDetalhados && Array.isArray(p.itensDetalhados) && p.itensDetalhados.length > 0) {
+                    itensHtml = p.itensDetalhados.map(item => `
+                        <div class="text-gray-600 ml-2">• ${item.qtd}x ${item.nome} — R$ ${Number(item.preco || 0).toFixed(2).replace('.', ',')} un (Total: R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',)})</div>
+                    `).join('');
+                } else {
+                    itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos || 'Não especificado'}</p>`;
+                }
+
+                return `
+                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                        <div class="flex justify-between items-start border-b pb-2">
+                            <div>
+                                <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                                <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
+                                <div class="mt-1 space-y-1">
+                                    ${itensHtml}
+                                </div>
+                            </div>
+                            <span class="font-bold text-base text-verdePetroleo">R$ ${totalVal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1">
+                            <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                                <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                                <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                                <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                                <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                            <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function updatePedidoStatus(id, val) {
+            if (supabaseClient) {
+                await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+            }
+        }
+
+        async function deletePedido(id) {
+            if(!confirm('Deseja realmente excluir este pedido?')) return;
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
+                if (error) {
+                    alert("Erro ao excluir no Supabase: " + error.message);
+                    return;
+                }
+            }
+            let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+            localPedidos = localPedidos.filter(p => p.id != id);
+            localStorage.setItem('helcinho_pedidos', JSON.stringify(localPedidos));
+
+            alert('Pedido excluído com sucesso!');
+            loadPedidos();
         }
 
         // --- CATEGORIAS NA NUVEM COM EXCLUSÃO ---
