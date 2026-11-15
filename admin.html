@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta - Sem Login) -->
+    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -1427,10 +1427,7 @@
 
         // Calculadora
         function loadCalcSelect() {
-            const calcProd = document.getElementById('calc-produto');
-            if (calcProd) {
-                calcProd.innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
-            }
+            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
         function loadProductForCalc() {
             const p = products.find(i => i.id == document.getElementById('calc-produto').value);
