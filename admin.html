@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
+    <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -504,59 +504,74 @@
         let products = [];
         let myChart = null;
 
-        // Inicialização direta do painel sem login
+        // Inicialização segura ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-            loadConfigs();
-            loadCategoriesSelect();
-            loadClientes();
-            loadClientesSelect();
-            loadEstoque();
+            try {
+                loadDashboard();
+                loadConfigs();
+                loadCategoriesSelect();
+                loadClientes();
+                loadClientesSelect();
+                loadEstoque();
+            } catch (err) {
+                console.error("Erro na inicialização:", err);
+            }
         });
 
-        // Função de saída recarregando a página
         function handleLogout() {
             location.reload();
         }
 
+        // Função do Menu Lateral blindada contra erros
         function switchTab(tabId) {
             try {
-                // Esconde todas as abas de conteúdo
+                // Esconde todas as abas
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                 
-                // Reseta a cor de todos os botões do menu
+                // Remove o destaque de todos os botões do menu
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
                 });
                 
-                // Mostra a aba selecionada e destaca o botão correspondente
+                // Ativa a aba e o botão correspondentes
                 const targetTab = document.getElementById(`tab-${tabId}`);
                 const targetBtn = document.getElementById(`btn-${tabId}`);
                 
                 if (targetTab) targetTab.classList.remove('hidden');
                 if (targetBtn) targetBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm";
                 
-                // Carrega os dados específicos da aba clicada de forma segura
-                if(tabId === 'dashboard' && typeof loadDashboard === 'function') loadDashboard();
-                if(tabId === 'pedidos' && typeof loadPedidos === 'function') loadPedidos();
-                if(tabId === 'produtos') { 
-                    if(typeof loadEstoque === 'function') loadEstoque(); 
-                    if(typeof loadCategoriesSelect === 'function') loadCategoriesSelect(); 
-                }
-                if(tabId === 'estoque' && typeof loadEstoque === 'function') loadEstoque();
-                if(tabId === 'clientes') { 
-                    if(typeof loadClientes === 'function') loadClientes(); 
-                    if(typeof loadClientesSelect === 'function') loadClientesSelect(); 
-                }
-                if(tabId === 'crediario') { 
-                    if(typeof loadCrediario === 'function') loadCrediario(); 
-                    if(typeof loadClientesSelect === 'function') loadClientesSelect(); 
-                }
-                if(tabId === 'calculadora' && typeof loadCalcSelect === 'function') loadCalcSelect();
-                if(tabId === 'relatorios' && typeof loadRelatorios === 'function') loadRelatorios();
-                if(tabId === 'config' && typeof loadConfigs === 'function') loadConfigs();
+                // Executa a função de carregamento correspondente
+                if(tabId === 'dashboard') loadDashboard();
+                if(tabId === 'pedidos') loadPedidos();
+                if(tabId === 'produtos') { loadEstoque(); loadCategoriesSelect(); }
+                if(tabId === 'estoque') loadEstoque();
+                if(tabId === 'clientes') { loadClientes(); loadClientesSelect(); }
+                if(tabId === 'crediario') { loadCrediario(); loadClientesSelect(); }
+                if(tabId === 'calculadora') loadCalcSelect();
+                if(tabId === 'relatorios') loadRelatorios();
+                if(tabId === 'config') loadConfigs();
             } catch (err) {
                 console.error("Erro ao alternar aba:", err);
+            }
+        }
+
+        function switchSubTab(subId) {
+            try {
+                document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.subtab-btn').forEach(btn => {
+                    btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-marromCafe hover:bg-rosegold/10 whitespace-nowrap";
+                });
+                const targetSub = document.getElementById(`subtab-${subId}`);
+                const targetSubBtn = document.getElementById(`subbtn-${subId}`);
+
+                if (targetSub) targetSub.classList.remove('hidden');
+                if (targetSubBtn) targetSubBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold bg-verdePetroleo text-white whitespace-nowrap shadow-sm";
+                
+                if(subId === 'produtos-ranking') renderRankingProdutos();
+                if(subId === 'clientes-analise') renderRankingClientes();
+                if(subId === 'crediario-rel') renderRelatorioCrediario();
+            } catch (err) {
+                console.error("Erro ao alternar sub-aba:", err);
             }
         }
 
@@ -569,8 +584,10 @@
             let produtos = products;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*');
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*');
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -595,19 +612,26 @@
 
         function aplicarFiltrosRelatorio() { calcularIndicadoresGerais(); }
         function limparFiltrosRelatorio() {
-            document.getElementById('filtro-periodo').value = '30';
-            document.getElementById('filtro-produto').value = '';
-            document.getElementById('filtro-categoria').value = '';
-            document.getElementById('filtro-cliente').value = '';
-            document.getElementById('filtro-pagamento').value = '';
+            const p = document.getElementById('filtro-periodo');
+            const pr = document.getElementById('filtro-produto');
+            const c = document.getElementById('filtro-categoria');
+            const cl = document.getElementById('filtro-cliente');
+            const pg = document.getElementById('filtro-pagamento');
+            if (p) p.value = '30';
+            if (pr) pr.value = '';
+            if (c) c.value = '';
+            if (cl) cl.value = '';
+            if (pg) pg.value = '';
             calcularIndicadoresGerais();
         }
 
         async function calcularIndicadoresGerais() {
             let pedidos = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
             }
             if (pedidos.length === 0) {
                 pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
@@ -615,16 +639,20 @@
 
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             }
 
             let produtos = products;
-            let cliFiltro = document.getElementById('filtro-cliente').value;
-            let pagFiltro = document.getElementById('filtro-pagamento').value;
+            const cliEl = document.getElementById('filtro-cliente');
+            const pagEl = document.getElementById('filtro-pagamento');
+            let cliFiltro = cliEl ? cliEl.value : '';
+            let pagFiltro = pagEl ? pagEl.value : '';
 
             let faturamentoBruto = 0, qtdVendas = 0, unidadesVendidas = 0, valorRecebido = 0, contasAReceber = 0, contasAtrasadas = 0, custoTotalCMV = 0;
             const hoje = new Date().toISOString().split('T')[0];
@@ -640,10 +668,10 @@
 
                 if (p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
-                        unidadesVendidas += item.qtd;
+                        unidadesVendidas += (item.qtd || 1);
                         let prodRef = products.find(pr => pr.id == item.id || pr.nome === item.nome);
                         let custoUnit = prodRef && prodRef.custo ? Number(prodRef.custo) : (item.preco * 0.4);
-                        custoTotalCMV += (custoUnit * item.qtd);
+                        custoTotalCMV += (custoUnit * (item.qtd || 1));
                     });
                 }
 
@@ -667,26 +695,30 @@
             let lucroEstimado = faturamentoBruto - custoTotalCMV;
             let ticketMedio = qtdVendas > 0 ? faturamentoBruto / qtdVendas : 0;
 
-            document.getElementById('card-fat-bruto').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-qtd-vendas').textContent = qtdVendas;
-            document.getElementById('card-ticket').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-unidades').textContent = unidadesVendidas;
-            document.getElementById('card-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-a-receber').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
-            document.getElementById('card-atrasadas').textContent = `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`;
+            const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
-            document.getElementById('fin-fat').textContent = `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-cmv').textContent = `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-lucro').textContent = `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-recebido').textContent = `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`;
-            document.getElementById('fin-pendente').textContent = `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`;
+            setTxt('card-fat-bruto', `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`);
+            setTxt('card-lucro', `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`);
+            setTxt('card-qtd-vendas', qtdVendas);
+            setTxt('card-ticket', `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`);
+            setTxt('card-unidades', unidadesVendidas);
+            setTxt('card-recebido', `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`);
+            setTxt('card-a-receber', `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`);
+            setTxt('card-atrasadas', `R$ ${contasAtrasadas.toFixed(2).replace('.', ',')}`);
+
+            setTxt('fin-fat', `R$ ${faturamentoBruto.toFixed(2).replace('.', ',')}`);
+            setTxt('fin-cmv', `R$ ${custoTotalCMV.toFixed(2).replace('.', ',')}`);
+            setTxt('fin-lucro', `R$ ${lucroEstimado.toFixed(2).replace('.', ',')}`);
+            setTxt('fin-recebido', `R$ ${valorRecebido.toFixed(2).replace('.', ',')}`);
+            setTxt('fin-pendente', `R$ ${contasAReceber.toFixed(2).replace('.', ',')}`);
 
             renderGraficoDesempenho(pedidos);
         }
 
         function renderGraficoDesempenho(pedidos) {
-            const ctx = document.getElementById('salesChart').getContext('2d');
+            const canvasEl = document.getElementById('salesChart');
+            if (!canvasEl) return;
+            const ctx = canvasEl.getContext('2d');
             if (myChart) myChart.destroy();
             let diasMap = {};
             pedidos.forEach(p => {
@@ -709,8 +741,10 @@
         async function renderRankingProdutos() {
             let pedidos = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
             }
             if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
 
@@ -720,13 +754,14 @@
                 if(p.itensDetalhados) {
                     p.itensDetalhados.forEach(item => {
                         if(!mapProd[item.nome]) mapProd[item.nome] = { nome: item.nome, categoria: item.categoria || 'Geral', qtd: 0, fat: 0 };
-                        mapProd[item.nome].qtd += item.qtd;
-                        mapProd[item.nome].fat += (item.preco * item.qtd);
+                        mapProd[item.nome].qtd += (item.qtd || 1);
+                        mapProd[item.nome].fat += ((item.preco || 0) * (item.qtd || 1));
                     });
                 }
             });
             let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
             const tbody = document.getElementById('ranking-produtos-tbody');
+            if(!tbody) return;
             if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
             tbody.innerHTML = arr.map((item, idx) => `
                 <tr class="border-b hover:bg-gray-50">
@@ -744,8 +779,10 @@
         async function renderRankingClientes() {
             let pedidos = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('pedidos').select('*');
-                if (data) pedidos = data;
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
             }
             if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
 
@@ -758,6 +795,7 @@
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
             const listEl = document.getElementById('ranking-clientes-list');
+            if(!listEl) return;
             if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
             listEl.innerHTML = arr.map((c, idx) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
@@ -770,12 +808,15 @@
         async function renderRelatorioCrediario() {
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
 
             const listEl = document.getElementById('crediario-rel-list');
+            if(!listEl) return;
             if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
             listEl.innerHTML = credList.map(v => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
@@ -787,16 +828,92 @@
 
         function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
 
+        // --- DASHBOARD ---
+        async function loadDashboard() {
+            let credList = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
+            }
+            if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
+
+            let pedidos = [];
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('pedidos').select('*');
+                    if (data) pedidos = data;
+                } catch(e) {}
+            }
+            if (pedidos.length === 0) pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+
+            let totalAberto = 0, totalAtrasado = 0;
+            let atrasadasArr = [];
+            const hoje = new Date().toISOString().split('T')[0];
+
+            credList.forEach((venda) => {
+                (venda.parcelas || []).forEach((p) => {
+                    let saldo = p.valorOriginal - p.valorPago;
+                    if (saldo > 0) {
+                        totalAberto += saldo;
+                        if (p.vencimento < hoje) {
+                            totalAtrasado += saldo;
+                            let diffTime = Math.abs(new Date(hoje) - new Date(p.vencimento));
+                            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            atrasadasArr.push({ cliente: venda.cliente, parcela: p.numero, saldo, vencimento: p.vencimento, diasAtraso: diffDays });
+                        }
+                    }
+                });
+            });
+
+            const elAberto = document.getElementById('dash-total-aberto');
+            const elAtrasado = document.getElementById('dash-total-atrasado');
+            const elPedidos = document.getElementById('dash-total-pedidos');
+            const atrasadasBadge = document.getElementById('atrasadas-badge');
+            const atrasadasListEl = document.getElementById('atrasadas-list');
+
+            if (elAberto) elAberto.textContent = `R$ ${totalAberto.toFixed(2).replace('.', ',')}`;
+            if (elAtrasado) elAtrasado.textContent = `R$ ${totalAtrasado.toFixed(2).replace('.', ',')}`;
+            if (elPedidos) elPedidos.textContent = pedidos.filter(p => p.status === 'Novo').length;
+            if (atrasadasBadge) atrasadasBadge.textContent = `${atrasadasArr.length} parcelas`;
+            
+            if (atrasadasListEl) {
+                atrasadasListEl.innerHTML = atrasadasArr.length === 0 ? 
+                    '<p class="text-xs text-gray-400">Nenhuma conta atrasada no momento.</p>' : 
+                    atrasadasArr.map(item => {
+                        const isCritico = item.diasAtraso >= 5;
+                        const bgClass = isCritico ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200';
+                        const badgeCritico = isCritico ? '<span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold ml-2">⚠️ +5 Dias (Crítico)</span>' : '';
+                        return `
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center ${bgClass} p-3 rounded-xl border text-xs gap-2">
+                                <div>
+                                    <b>${item.cliente}</b> - Parc ${item.parcela} (R$ ${item.saldo.toFixed(2).replace('.', ',)}) 
+                                    <br><span class="text-red-700 font-semibold">${item.diasAtraso} dias em atraso</span> (Venc: ${item.vencimento.split('-').reverse().join('/')}) ${badgeCritico}
+                                </div>
+                                <button onclick="cobrarWhatsApp('${item.cliente}', '${item.parcela}', ${item.saldo}, ${item.diasAtraso}, '${item.vencimento}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition shrink-0">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Enviar Cobrança
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+            }
+        }
+
         // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
             if (!listEl) return;
             if (supabaseClient) {
-                const { data, error } = await supabaseClient.from('produtos').select('*');
-                if (!error && data) {
-                    products = data;
-                    localStorage.setItem('helcinho_produtos', JSON.stringify(products));
-                } else {
+                try {
+                    const { data, error } = await supabaseClient.from('produtos').select('*');
+                    if (!error && data) {
+                        products = data;
+                        localStorage.setItem('helcinho_produtos', JSON.stringify(products));
+                    } else {
+                        products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
+                    }
+                } catch(e) {
                     products = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
                 }
             } else {
@@ -842,11 +959,13 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').upsert([productData]);
-                if (error) {
-                    alert("Erro ao salvar na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('produtos').upsert([productData]);
+                    if (error) {
+                        alert("Erro ao salvar na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
 
             let localProducts = JSON.parse(localStorage.getItem('helcinho_produtos') || '[]');
@@ -884,11 +1003,13 @@
         async function deleteProduct(id) {
             if(!confirm('Excluir produto da nuvem?')) return;
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
-                if (error) {
-                    alert("Erro ao excluir na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('produtos').delete().eq('id', id);
+                    if (error) {
+                        alert("Erro ao excluir na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
             products = products.filter(p => p.id != id);
             localStorage.setItem('helcinho_produtos', JSON.stringify(products));
@@ -916,11 +1037,13 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
-                if (error) {
-                    alert("Erro ao salvar cliente na nuvem: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('clientes').upsert([clienteData]);
+                    if (error) {
+                        alert("Erro ao salvar cliente na nuvem: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
 
             alert(clienteId ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
@@ -934,8 +1057,10 @@
             if (!list) return;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -960,8 +1085,10 @@
             if (!selectEl) return;
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
-                if (data) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
+                    if (data) clientes = data;
+                } catch(e) {}
             }
             if (clientes.length === 0) {
                 clientes = JSON.parse(localStorage.getItem('helcinho_clientes') || '[]');
@@ -972,8 +1099,10 @@
         async function editClient(id) {
             let clientes = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
-                if (data && data.length > 0) clientes = data;
+                try {
+                    const { data } = await supabaseClient.from('clientes').select('*').eq('id', id);
+                    if (data && data.length > 0) clientes = data;
+                } catch(e) {}
             }
             const c = clientes[0] || JSON.parse(localStorage.getItem('helcinho_clientes') || '[]').find(item => item.id == id);
             if(!c) return;
@@ -998,7 +1127,9 @@
         async function deleteClient(id) {
             if(!confirm('Excluir cliente da nuvem?')) return;
             if (supabaseClient) {
-                await supabaseClient.from('clientes').delete().eq('id', id);
+                try {
+                    await supabaseClient.from('clientes').delete().eq('id', id);
+                } catch(e) {}
             }
             loadClientes();
             loadClientesSelect();
@@ -1041,8 +1172,9 @@
             };
 
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('crediario').upsert([vendaCrediario]);
-                if (error) {
+                try {
+                    await supabaseClient.from('crediario').upsert([vendaCrediario]);
+                } catch (error) {
                     console.error("Erro ao salvar crediário na nuvem:", error);
                 }
             }
@@ -1061,8 +1193,10 @@
             if (!list) return;
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -1100,8 +1234,10 @@
         async function baixarParcela(vendaId, pIndex) {
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
-                if (data) credList = data;
+                try {
+                    const { data } = await supabaseClient.from('crediario').select('*');
+                    if (data) credList = data;
+                } catch(e) {}
             }
             if (credList.length === 0) {
                 credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
@@ -1121,7 +1257,9 @@
             parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
 
             if (supabaseClient) {
-                await supabaseClient.from('crediario').upsert([venda]);
+                try {
+                    await supabaseClient.from('crediario').upsert([venda]);
+                } catch(e) {}
             }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
@@ -1131,7 +1269,9 @@
         async function deleteContrato(vendaId, vIndex) {
             if(!confirm('Deseja excluir este contrato?')) return;
             if (supabaseClient) {
-                await supabaseClient.from('crediario').delete().eq('id', vendaId);
+                try {
+                    await supabaseClient.from('crediario').delete().eq('id', vendaId);
+                } catch(e) {}
             }
             let credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
             credList.splice(vIndex, 1);
@@ -1203,18 +1343,22 @@
 
         async function updatePedidoStatus(id, val) {
             if (supabaseClient) {
-                await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+                try {
+                    await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+                } catch(e) {}
             }
         }
 
         async function deletePedido(id) {
             if(!confirm('Deseja realmente excluir este pedido?')) return;
             if (supabaseClient) {
-                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
-                if (error) {
-                    alert("Erro ao excluir no Supabase: " + error.message);
-                    return;
-                }
+                try {
+                    const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
+                    if (error) {
+                        alert("Erro ao excluir no Supabase: " + error.message);
+                        return;
+                    }
+                } catch(e) {}
             }
             let localPedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
             localPedidos = localPedidos.filter(p => p.id != id);
@@ -1224,6 +1368,63 @@
             loadPedidos();
         }
 
+        // --- CONFIGURAÇÕES DE WHATSAPP NA NUVEM ---
+        async function saveWhatsApp() {
+            const zapVal = document.getElementById('whatsapp-input').value;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('configuracoes').upsert([{ chave: 'whatsapp', valor: zapVal }]);
+                } catch(e) {}
+            }
+            localStorage.setItem('helcinho_whatsapp', zapVal);
+            alert('Número do WhatsApp salvo na nuvem com sucesso!');
+        }
+
+        async function saveTemplateCobrar() {
+            const templateVal = document.getElementById('template-cobranca').value;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('configuracoes').upsert([{ chave: 'template_cobranca', valor: templateVal }]);
+                } catch(e) {}
+            }
+            localStorage.setItem('helcinho_template_cobranca', templateVal);
+            alert('Modelo de cobrança salvo na nuvem com sucesso!');
+        }
+
+        async function loadConfigs() {
+            let zapVal = '';
+            let templateVal = '';
+
+            if (supabaseClient) {
+                try {
+                    const { data } = await supabaseClient.from('configuracoes').select('*');
+                    if (data) {
+                        const zapItem = data.find(i => i.chave === 'whatsapp');
+                        const tempItem = data.find(i => i.chave === 'template_cobranca');
+                        if (zapItem) zapVal = zapItem.valor;
+                        if (tempItem) templateVal = tempItem.valor;
+                    }
+                } catch(e) {}
+            }
+
+            if (!zapVal) zapVal = localStorage.getItem('helcinho_whatsapp') || '';
+            if (!templateVal) templateVal = localStorage.getItem('helcinho_template_cobranca') || `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*. Poderia verificar por favor?`;
+
+            const zapInput = document.getElementById('whatsapp-input');
+            const tempInput = document.getElementById('template-cobranca');
+            if (zapInput) zapInput.value = zapVal;
+            if (tempInput) tempInput.value = templateVal;
+        }
+
+        function cobrarWhatsApp(cliente, parcela, saldo, dias, vencimento) {
+            let vencFormatado = vencimento ? vencimento.split('-').reverse().join('/') : '';
+            let valorFormatado = saldo.toFixed(2).replace('.', ',');
+            const defaultTemplate = `Olá *{cliente}*, tudo bem? Passando para lembrar que você possui uma parcela pendente (*Parc {parcela}*) no valor de *R$ {valor}* com vencimento em *{vencimento}* ({dias} dias em atraso) na *Loja do Helcinho*.`;
+            let template = localStorage.getItem('helcinho_template_cobranca') || defaultTemplate;
+            let msg = template.replace(/{cliente}/g, cliente).replace(/{parcela}/g, parcela).replace(/{valor}/g, valorFormatado).replace(/{vencimento}/g, vencFormatado).replace(/{dias}/g, dias);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
         // --- CATEGORIAS NA NUVEM COM EXCLUSÃO ---
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
@@ -1231,8 +1432,10 @@
             let categoriasPadrao = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
             let savedCats = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('categorias').select('*');
-                if (data) savedCats = data.map(c => c.nome || c.categoria).filter(Boolean);
+                try {
+                    const { data } = await supabaseClient.from('categorias').select('*');
+                    if (data) savedCats = data.map(c => c.nome || c.categoria).filter(Boolean);
+                } catch(e) {}
             }
             if (savedCats.length === 0) {
                 savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
@@ -1247,7 +1450,9 @@
             if(nova && nova.trim() !== '') {
                 nova = nova.trim();
                 if (supabaseClient) {
-                    await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
+                    try {
+                        await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
+                    } catch(e) {}
                 }
                 let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
                 if(!savedCats.includes(nova)) { 
@@ -1274,7 +1479,9 @@
             if(!confirm(`Deseja realmente excluir a categoria "${catSelecionada}"?`)) return;
 
             if (supabaseClient) {
-                await supabaseClient.from('categorias').delete().eq('nome', catSelecionada);
+                try {
+                    await supabaseClient.from('categorias').delete().eq('nome', catSelecionada);
+                } catch(e) {}
             }
 
             let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
