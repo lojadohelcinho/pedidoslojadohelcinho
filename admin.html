@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- APLICAÇÃO PRINCIPAL -->
+    <!-- APLICAÇÃO PRINCIPAL (Aberta Direta) -->
     <div id="app-container" class="min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -48,32 +48,32 @@
                     </div>
                 </div>
 
-                <nav class="p-3 space-y-1" id="sidebar-nav">
-                    <button data-tab="dashboard" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
+                <nav class="p-3 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
                         <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
                     </button>
-                    <button data-tab="pedidos" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('pedidos')" id="btn-pedidos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-bag-shopping w-5 text-center"></i> Gestão de Pedidos
                     </button>
-                    <button data-tab="produtos" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('produtos')" id="btn-produtos" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-box-open w-5 text-center"></i> Cadastro de Produtos
                     </button>
-                    <button data-tab="estoque" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-warehouse w-5 text-center"></i> Estoque & Status
                     </button>
-                    <button data-tab="clientes" id="btn-clientes" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('clientes')" id="btn-clientes" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-address-book w-5 text-center"></i> Cartilha de Clientes
                     </button>
-                    <button data-tab="crediario" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('crediario')" id="btn-crediario" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-credit-card w-5 text-center"></i> Crediário & Parcelas
                     </button>
-                    <button data-tab="calculadora" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-calculator w-5 text-center"></i> Calculadora de Custos
                     </button>
-                    <button data-tab="relatorios" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('relatorios')" id="btn-relatorios" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-chart-line w-5 text-center"></i> Relatórios & Vendas
                     </button>
-                    <button data-tab="config" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                    <button onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-gear w-5 text-center text-green-600"></i> Configurações & WhatsApp
                     </button>
                 </nav>
@@ -513,14 +513,6 @@
             try { loadClientesSelect(); } catch(e){}
             try { loadEstoque(); } catch(e){}
             try { loadPedidos(); } catch(e){}
-
-            // Associa os botões do menu lateral de forma segura via JavaScript
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabId = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || btn.id.replace('btn-', '');
-                    if (tabId) switchTab(tabId);
-                });
-            });
         });
 
         function handleLogout() {
@@ -767,7 +759,7 @@
             }
         }
 
-        // --- RESTANTO DAS FUNÇÕES DE SUPORTE ---
+        // --- RELATÓRIOS ---
         function loadRelatorios() {
             preencherFiltrosSelects();
             calcularIndicadoresGerais();
@@ -940,7 +932,6 @@
             });
             let arr = Object.values(mapProd).sort((a, b) => b.fat - a.fat);
             const tbody = document.getElementById('ranking-produtos-tbody');
-            if(!tbody) return;
             if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum produto vendido registrado.</td></tr>`; return; }
             tbody.innerHTML = arr.map((item, idx) => `
                 <tr class="border-b hover:bg-gray-50">
@@ -972,7 +963,6 @@
             });
             let arr = Object.values(mapCli).sort((a, b) => b.total - a.total);
             const listEl = document.getElementById('ranking-clientes-list');
-            if(!listEl) return;
             if(arr.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum histórico de cliente.</p>`; return; }
             listEl.innerHTML = arr.map((c, idx) => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs flex justify-between items-center">
@@ -991,7 +981,6 @@
             if (credList.length === 0) credList = JSON.parse(localStorage.getItem('helcinho_crediario_avancado') || '[]');
 
             const listEl = document.getElementById('crediario-rel-list');
-            if(!listEl) return;
             if(credList.length === 0) { listEl.innerHTML = `<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>`; return; }
             listEl.innerHTML = credList.map(v => `
                 <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-1">
@@ -1003,10 +992,9 @@
 
         function exportRelatorio(formato) { alert(`Exportação em ${formato.toUpperCase()} gerada com sucesso!`); }
 
-        // --- GESTÃO DE PRODUTOS ---
+        // --- GESTÃO DE PRODUTOS LIGADA AO SUPABASE ---
         async function loadEstoque() {
             const listEl = document.getElementById('estoque-list');
-            if (!listEl) return;
             if (supabaseClient) {
                 const { data, error } = await supabaseClient.from('produtos').select('*');
                 if (!error && data) {
@@ -1120,7 +1108,7 @@
             loadCategoriesSelect();
         }
 
-        // --- CLIENTES ---
+        // --- CARTILHA DE CLIENTES NA NUVEM ---
         async function saveClient(e) {
             e.preventDefault();
             const clienteId = document.getElementById('client-index').value;
@@ -1147,7 +1135,6 @@
 
         async function loadClientes() {
             const list = document.getElementById('clientes-list');
-            if (!list) return;
             let clientes = [];
             if (supabaseClient) {
                 const { data } = await supabaseClient.from('clientes').select('*').order('nome', { ascending: true });
@@ -1220,7 +1207,7 @@
             loadClientesSelect();
         }
 
-        // --- CREDIÁRIO ---
+        // --- CREDIÁRIO NA NUVEM ---
         async function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
@@ -1270,15 +1257,13 @@
             alert('Venda parcelada gerada e salva na nuvem com sucesso!');
             e.target.reset();
             loadCrediario();
-            loadDashboard();
         }
 
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
-            if (!list) return;
             let credList = [];
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('crediario').select('*');
+                const { data } = await supabaseClient.from('crediario').select('*').order('id', { ascending: false });
                 if (data) credList = data;
             }
             if (credList.length === 0) {
@@ -1342,7 +1327,6 @@
             }
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
-            loadDashboard();
             alert('Baixa registrada com sucesso!');
         }
 
@@ -1355,10 +1339,9 @@
             credList.splice(vIndex, 1);
             localStorage.setItem('helcinho_crediario_avancado', JSON.stringify(credList));
             loadCrediario();
-            loadDashboard();
         }
 
-        // --- CATEGORIAS ---
+        // --- CATEGORIAS NA NUVEM COM EXCLUSÃO E CRIAÇÃO ---
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             if(!select) return;
@@ -1390,7 +1373,7 @@
                 }
                 loadCategoriesSelect();
                 document.getElementById('categoria').value = nova;
-                alert(`Categoria "${nova}" criada com sucesso!`);
+                alert(`Categoria "${nova}" criada e salva na nuvem!`);
             }
         }
 
@@ -1433,10 +1416,7 @@
 
         // Calculadora
         function loadCalcSelect() {
-            const calcProd = document.getElementById('calc-produto');
-            if (calcProd) {
-                calcProd.innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
-            }
+            document.getElementById('calc-produto').innerHTML = '<option value="">Selecione...</option>' + products.map(p => `<option value="${p.id}">${p.nome} - R$ ${p.preco}</option>`).join('');
         }
         function loadProductForCalc() {
             const p = products.find(i => i.id == document.getElementById('calc-produto').value);
@@ -1449,6 +1429,17 @@
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = `R$ ${sugerido.toFixed(2).replace('.', ',')}`;
         }
+
+        // Inicialização direta do painel sem login
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadConfigs();
+            loadCategoriesSelect();
+            loadClientes();
+            loadClientesSelect();
+            loadEstoque();
+            loadPedidos();
+        });
     </script>
 </body>
 </html>
