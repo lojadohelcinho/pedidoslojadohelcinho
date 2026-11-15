@@ -1106,33 +1106,60 @@
             loadCrediario();
         }
 
-        // --- GESTÃO DE PEDIDOS ---
-        function loadPedidos() {
-            const listEl = document.getElementById('pedidos-list');
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p, index) => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <div>
-                            <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
-                            <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
-                            <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
-                        </div>
-                        <span class="font-bold text-sm text-verdePetroleo">R$ ${p.valorTotal.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-1">
-                        <select onchange="updatePedidoStatus(${index}, this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
-                            <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                            <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-                            <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
-                            <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                        </select>
-                        <button onclick="deletePedido(${index})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
-                    </div>
-                </div>
-            `).join('');
+        // --- GESTÃO DE PEDIDOS (LIDO DIRETAMENTE DO SUPABASE) ---
+async function loadPedidos() {
+    const listEl = document.getElementById('pedidos-list');
+    let pedidos = [];
+
+    if (supabaseClient) {
+        const { data, error } = await supabaseClient.from('pedidos').select('*').order('id', { ascending: false });
+        if (!error && data) {
+            pedidos = data;
         }
+    }
+    
+    // Fallback para localStorage caso falhe a nuvem
+    if (pedidos.length === 0) {
+        pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
+    }
+
+    listEl.innerHTML = pedidos.length === 0 ? '<p class="text-xs text-gray-400">Nenhum pedido recebido da loja online.</p>' : pedidos.map((p, index) => `
+        <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h4 class="font-bold uppercase text-marromCafe text-sm">${p.id} — ${p.data}</h4>
+                    <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${p.cliente || 'Não informado'}</p>
+                    <p class="text-gray-600 font-medium mt-1">Produtos: ${p.produtos}</p>
+                </div>
+                <span class="font-bold text-sm text-verdePetroleo">R$ ${Number(p.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
+            </div>
+            <div class="flex justify-between items-center pt-1">
+                <select onchange="updatePedidoStatus('${p.id}', this.value)" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">
+                    <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                    <option value="Confirmado" ${p.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+                    <option value="Em separação" ${p.status === 'Em separação' ? 'selected' : ''}>Em separação</option>
+                    <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                    <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+                <button onclick="deletePedido('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function updatePedidoStatus(id, val) {
+    if (supabaseClient) {
+        await supabaseClient.from('pedidos').update({ status: val }).eq('id', id);
+    }
+}
+
+async function deletePedido(id) {
+    if(!confirm('Excluir pedido?')) return;
+    if (supabaseClient) {
+        await supabaseClient.from('pedidos').delete().eq('id', id);
+    }
+    loadPedidos();
+}
 
         function updatePedidoStatus(index, val) {
             let p = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
