@@ -33,7 +33,7 @@
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN ESTREITA E SEGURA -->
+    <!-- TELA DE LOGIN -->
     <div id="login-screen" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl border border-rosegold/20 shadow-xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
@@ -41,7 +41,7 @@
                     <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <h1 class="font-bold text-lg text-marromCafe uppercase tracking-tight">Painel Administrativo</h1>
-                <p class="text-xs text-rosegold font-semibold">Autenticação Restrita</p>
+                <p class="text-xs text-rosegold font-semibold">Entre com suas credenciais de acesso</p>
             </div>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -53,13 +53,18 @@
                     <label class="block text-xs font-semibold mb-1">Senha</label>
                     <input type="password" id="login-password" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow mt-2">Entrar no Sistema</button>
+                <!-- Link Esqueci a Senha Alinhado ao Supabase -->
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-gray-400">Esqueceu? Use o painel Supabase.</span>
+                    <button type="button" onclick="handleForgotPassword()" class="text-rosegold hover:text-marromCafe font-semibold transition">Enviar Recuperação</button>
+                </div>
+                <button type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl font-semibold text-sm transition shadow">Entrar no Sistema</button>
             </form>
             <div id="login-error" class="hidden text-center text-xs text-red-600 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
         </div>
     </div>
 
-    <!-- APLICAÇÃO PRINCIPAL (Protegida) -->
+    <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
         <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
@@ -327,7 +332,7 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN ESTRITO -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E ADMIN -->
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxoxdtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
@@ -347,7 +352,7 @@
         // Verificação de Sessão Ativa
         async function checkAuth() {
             if (!supabaseClient) {
-                showLoginError("Supabase não configurado corretamente no código.");
+                showLoginError("Supabase não configurado corretamente.");
                 return;
             }
 
@@ -393,6 +398,34 @@
             } catch (err) {
                 errEl.textContent = 'Credenciais inválidas: ' + (err.message || 'E-mail ou senha incorretos.');
                 errEl.classList.remove('hidden');
+            }
+        }
+
+        // Ação de recuperação integrada ao Supabase (com orientação de uso do painel deles)
+        async function handleForgotPassword() {
+            const email = document.getElementById('login-email').value.trim();
+            const errEl = document.getElementById('login-error');
+
+            if (!email) {
+                errEl.textContent = 'Por favor, digite o seu e-mail no campo acima antes de pedir a recuperação.';
+                errEl.classList.remove('hidden');
+                document.getElementById('login-email').focus();
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert('Supabase não configurado.');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.href,
+                });
+                if (error) throw error;
+                alert('Pedido enviado! Se o servidor SMTP estiver ativo no Supabase, receberá um link. Caso contrário, aceda diretamente ao painel do Supabase (Authentication > Users) e clique no botão "Enviar recuperação de senha" ou redefina a senha manualmente.');
+            } catch (err) {
+                alert('Aviso de envio: ' + err.message + '\n\nDica: Pode redefinir a palavra-passe diretamente no painel do Supabase na tabela de Utilizadores (Authentication > Users), clicando no seu e-mail e usando a opção "Enviar recuperação de senha" ou alterando a senha.');
             }
         }
 
