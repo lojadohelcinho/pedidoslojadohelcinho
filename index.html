@@ -107,7 +107,7 @@
                         <span class="text-gray-600">Subtotal:</span>
                         <span id="cart-subtotal" class="font-bold text-lg text-marromCafe">R$ 0,00</span>
                     </div>
-                    <button onclick="checkoutWhatsApp()" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                    <button id="btn-finalizar" onclick="checkoutWhatsApp()" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
                         <i class="fa-brands fa-whatsapp text-lg"></i>
                         Finalizar Pedido via WhatsApp
                     </button>
@@ -125,14 +125,30 @@
     <script>
         const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
-        
-        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const ZAP_PADRAO = '5516981035241';
+
         let products = [];
         let cart = [];
         let currentCategory = 'todos';
+        let zapLoja = ZAP_PADRAO;
+
+        // Escapa texto vindo do banco antes de colocar no HTML
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function fmtBRL(v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); }
+
+        // WhatsApp da loja vem do painel (nuvem), igual para todos os visitantes
+        async function carregarWhatsApp() {
+            try {
+                const { data, error } = await supabaseClient.from('configuracoes').select('valor').eq('id', 'whatsapp').maybeSingle();
+                if (!error && data && data.valor) zapLoja = String(data.valor).replace(/\D/g, '') || ZAP_PADRAO;
+            } catch (e) { console.error('WhatsApp da loja:', e); }
+        }
 
         async function fetchProducts() {
-            document.getElementById('loading-spinner').classList.remove('hidden');
             try {
                 const { data, error } = await supabaseClient.from('produtos').select('*');
                 if (error) {
@@ -153,19 +169,25 @@
         function updateCategories() {
             const activeProducts = products.filter(p => p.ativo !== false);
             const cats = ['todos', ...new Set(activeProducts.map(p => p.categoria).filter(Boolean))];
+            if (!cats.includes(currentCategory)) currentCategory = 'todos';
             const container = document.getElementById('category-filters');
             container.innerHTML = cats.map(cat => {
                 const label = cat.charAt(0).toUpperCase() + cat.slice(1);
                 const isActive = currentCategory === cat;
                 const activeClass = isActive ? "bg-verdePetroleo text-white shadow-sm" : "bg-white border border-rosegold/30 text-marromCafe hover:bg-rosegold/10";
-                return `<button onclick="setCategory('${cat}')" id="cat-${cat}" class="category-btn px-4 py-1.5 rounded-full text-xs font-semibold ${activeClass} transition whitespace-nowrap">${label}</button>`;
+                return `<button data-cat="${esc(cat)}" class="category-btn px-4 py-1.5 rounded-full text-xs font-semibold ${activeClass} transition whitespace-nowrap">${esc(label)}</button>`;
             }).join('');
         }
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-cat]');
+            if (btn) setCategory(btn.dataset.cat);
+        });
 
         function renderProducts() {
             const grid = document.getElementById('products-grid');
             const search = document.getElementById('search-input').value.toLowerCase();
-            
+
             const filtered = products.filter(p => {
                 if (p.ativo === false) return false;
                 const matchCat = currentCategory === 'todos' || (p.categoria && p.categoria.toLowerCase() === currentCategory.toLowerCase());
@@ -183,20 +205,20 @@
                 <div class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
                     <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48">
                         ${p.preco_antigo ? `<span class="absolute top-2 left-2 bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">Promoção</span>` : ''}
-                        <img src="${p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500'}" alt="${p.nome}" class="h-full object-contain">
+                        <img src="${esc(p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500')}" alt="${esc(p.nome)}" class="h-full object-contain">
                     </div>
                     <div class="p-3 flex flex-col flex-grow justify-between">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-rosegold">${p.categoria || 'Geral'}</span>
-                            <h3 class="font-bold text-sm text-marromCafe uppercase mt-0.5">${p.nome}</h3>
-                            <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${p.descricao || ''}</p>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-rosegold">${esc(p.categoria || 'Geral')}</span>
+                            <h3 class="font-bold text-sm text-marromCafe uppercase mt-0.5">${esc(p.nome)}</h3>
+                            <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${esc(p.descricao || '')}</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-gray-100 flex items-end justify-between">
                             <div>
-                                ${p.preco_antigo ? `<span class="text-[10px] text-gray-400 line-through block">R$ ${Number(p.preco_antigo).toFixed(2).replace('.', ',')}</span>` : ''}
-                                <span class="font-bold text-base text-marromCafe">R$ ${Number(p.preco || 0).toFixed(2).replace('.', ',')}</span>
+                                ${p.preco_antigo ? `<span class="text-[10px] text-gray-400 line-through block">${fmtBRL(p.preco_antigo)}</span>` : ''}
+                                <span class="font-bold text-base text-marromCafe">${fmtBRL(p.preco)}</span>
                             </div>
-                            <button onclick="addToCart(${p.id})" class="bg-verdePetroleo hover:bg-verdeHover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow transition">
+                            <button onclick="addToCart(${Number(p.id)})" class="bg-verdePetroleo hover:bg-verdeHover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow transition">
                                 <i class="fa-solid fa-bag-shopping text-xs"></i>
                             </button>
                         </div>
@@ -254,92 +276,123 @@
                 subtotal += (item.preco || 0) * item.qtd;
                 return `
                     <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-rosegold/20 shadow-xs">
-                        <img src="${item.imagem}" class="w-14 h-14 object-contain bg-gray-50 rounded-lg p-1">
+                        <img src="${esc(item.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500')}" class="w-14 h-14 object-contain bg-gray-50 rounded-lg p-1">
                         <div class="flex-grow">
-                            <h4 class="font-bold text-xs text-marromCafe uppercase">${item.nome}</h4>
-                            <p class="text-xs text-gray-500">R$ ${Number(item.preco).toFixed(2).replace('.', ',')}</p>
+                            <h4 class="font-bold text-xs text-marromCafe uppercase">${esc(item.nome)}</h4>
+                            <p class="text-xs text-gray-500">${fmtBRL(item.preco)}</p>
                             <div class="flex items-center gap-3 mt-2">
                                 <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                                    <button onclick="updateQtd(${item.id}, -1)" class="px-2 py-0.5 bg-gray-50 text-gray-600 text-xs">-</button>
+                                    <button onclick="updateQtd(${Number(item.id)}, -1)" class="px-2 py-0.5 bg-gray-50 text-gray-600 text-xs">-</button>
                                     <span class="px-2.5 text-xs font-bold">${item.qtd}</span>
-                                    <button onclick="updateQtd(${item.id}, 1)" class="px-2 py-0.5 bg-gray-50 text-gray-600 text-xs">+</button>
+                                    <button onclick="updateQtd(${Number(item.id)}, 1)" class="px-2 py-0.5 bg-gray-50 text-gray-600 text-xs">+</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-            subtotalEl.textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+            subtotalEl.textContent = fmtBRL(subtotal);
         }
 
+        let enviando = false;
         async function checkoutWhatsApp() {
+            if (enviando) return;
             if (cart.length === 0) return alert('Sua sacola está vazia!');
-            
-            const nomeCliente = document.getElementById('cliente-nome') ? document.getElementById('cliente-nome').value.trim() : '';
+
+            const nomeCliente = document.getElementById('cliente-nome').value.trim();
             if (!nomeCliente) {
                 alert('Por favor, digite o seu nome antes de finalizar o pedido!');
                 document.getElementById('cliente-nome').focus();
                 return;
             }
 
-            const isGift = document.getElementById('is-gift').checked;
-            const numeroPedido = 'PED-' + Math.floor(100000 + Math.random() * 900000);
-            
-            let subtotal = 0;
-            cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
-            const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
+            enviando = true;
+            const btn = document.getElementById('btn-finalizar');
+            btn.disabled = true;
+            btn.classList.add('opacity-60');
 
-            const novoPedido = {
-                id: numeroPedido,
-                cliente: nomeCliente,
-                data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                produtos: produtosDescricao,
-                itensDetalhados: cart,
-                valorTotal: subtotal,
-                formaPagamento: 'WhatsApp / Pix',
-                status: 'Novo',
-                presente: isGift ? 'Sim' : 'Não'
-            };
+            // Abre a aba do WhatsApp AGORA (no clique), senão o celular bloqueia o pop-up depois do envio
+            const janelaZap = window.open('', '_blank');
 
-            // Objeto limpo para a nuvem
-    const novoPedidoSupabase = {
-        id: numeroPedido,
-        cliente: nomeCliente,
-        produtos: produtosDescricao,
-        valorTotal: subtotal,
-        status: 'Novo',
-        data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
-    };
+            try {
+                const isGift = document.getElementById('is-gift').checked;
+                const numeroPedido = 'PED-' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 36).toString(36).toUpperCase();
 
-    // Envia para a nuvem do Supabase
-    try {
-        await supabaseClient.from('pedidos').insert([novoPedidoSupabase]);
-    } catch (err) {
-        console.error("Erro ao enviar para o Supabase:", err);
-    }
+                let subtotal = 0;
+                cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
+                const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
+                const agora = new Date();
+                const dataTxt = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-            // Também guarda no localStorage local para redundância
-            let pedidos = JSON.parse(localStorage.getItem('helcinho_pedidos') || '[]');
-            pedidos.unshift(novoPedido);
-            localStorage.setItem('helcinho_pedidos', JSON.stringify(pedidos));
+                // Itens enxutos (sem a imagem) para o painel calcular ranking e lucro
+                const itens = cart.map(i => ({
+                    id: i.id,
+                    nome: i.nome,
+                    categoria: i.categoria || 'Geral',
+                    preco: Number(i.preco || 0),
+                    qtd: i.qtd
+                }));
 
-            let text = `*🛍️ PEDIDO #${numeroPedido} - LOJA DO HELCINHO*\n`;
-            text += `👤 *Cliente:* ${nomeCliente}\n\n`;
-            cart.forEach(item => {
-                text += `• ${item.qtd}x *${item.nome}* - R$ ${((item.preco || 0) * item.qtd).toFixed(2).replace('.', ',')}\n`;
-            });
-            if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
-            text += `\n💰 *Total:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n\nOlá, gostaria de confirmar este pedido!`;
+                // Grava o pedido na nuvem: é daqui que o painel (qualquer aparelho) lê
+                let salvou = true;
+                try {
+                    const { error } = await supabaseClient.from('pedidos').insert([{
+                        id: numeroPedido,
+                        cliente: nomeCliente,
+                        produtos: produtosDescricao,
+                        itensdetalhados: itens,
+                        valortotal: subtotal,
+                        formapagamento: 'WhatsApp / Pix',
+                        status: 'Novo',
+                        presente: isGift ? 'Sim' : 'Não',
+                        data: dataTxt
+                    }]);
+                    if (error) { salvou = false; console.error('Erro ao registrar pedido:', error); }
+                } catch (err) {
+                    salvou = false;
+                    console.error('Erro ao registrar pedido:', err);
+                }
 
-            const zapLoja = localStorage.getItem('helcinho_whatsapp') || '5516981035241';
-            window.open(`https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`, '_blank');
-            
-            cart = [];
-            updateBadge();
-            toggleCart();
+                if (!salvou) {
+                    alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
+                }
+
+                let text = `*🛍️ PEDIDO #${numeroPedido} - LOJA DO HELCINHO*\n`;
+                text += `👤 *Cliente:* ${nomeCliente}\n\n`;
+                cart.forEach(item => {
+                    text += `• ${item.qtd}x *${item.nome}* - ${fmtBRL((item.preco || 0) * item.qtd)}\n`;
+                });
+                if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
+                text += `\n💰 *Total:* ${fmtBRL(subtotal)}\n\nOlá, gostaria de confirmar este pedido!`;
+
+                const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`;
+                if (janelaZap) janelaZap.location.href = url;
+                else window.location.href = url;
+
+                cart = [];
+                updateBadge();
+                toggleCart();
+            } finally {
+                enviando = false;
+                btn.disabled = false;
+                btn.classList.remove('opacity-60');
+            }
         }
 
+        // Atualiza o catálogo sozinho quando você altera algo no painel
+        function ligarTempoReal() {
+            let timer = null;
+            supabaseClient.channel('site-produtos')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(fetchProducts, 400);
+                })
+                .subscribe();
+        }
+
+        carregarWhatsApp();
         fetchProducts();
+        ligarTempoReal();
     </script>
 </body>
 </html>
