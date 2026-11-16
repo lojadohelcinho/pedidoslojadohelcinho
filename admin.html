@@ -522,7 +522,8 @@
             'Olá, {cliente}! Tudo bem? 😊\n' +
             'Passando para lembrar que a parcela {parcela} no valor de R$ {valor}, com vencimento em {vencimento}, está em aberto há {dias} dia(s).\n' +
             'Podemos combinar o pagamento? Obrigado!';
-        const CATEGORIAS_PADRAO = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
+        // Só usadas UMA vez, para criar as categorias na nuvem na primeira abertura. Depois qualquer uma pode ser excluída.
+        const CATEGORIAS_INICIAIS = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
 
         let products = [];
         let myChart = null;
@@ -1497,10 +1498,22 @@
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             const atual = select.value;
-            const data = await db(sb.from('categorias').select('*'), 'Carregar categorias');
+            let data = await db(sb.from('categorias').select('*'), 'Carregar categorias');
+
+            // Primeira vez: grava as categorias iniciais na nuvem (e nunca mais recria depois de você excluir)
+            const jaIniciou = await getConfig('categorias_iniciais_criadas');
+            if (!jaIniciou) {
+                if ((data || []).length === 0) {
+                    const novas = CATEGORIAS_INICIAIS.map((nome, i) => ({ id: 'CAT-' + Date.now() + '-' + i, nome }));
+                    await db(sb.from('categorias').insert(novas), 'Criar categorias iniciais');
+                    data = await db(sb.from('categorias').select('*'), 'Carregar categorias');
+                }
+                await setConfig('categorias_iniciais_criadas', '1');
+            }
+
             const salvas = (data || []).map(c => c.nome).filter(Boolean);
             const dosProdutos = products.map(p => p.categoria).filter(Boolean);
-            const todas = [...new Set([...CATEGORIAS_PADRAO, ...salvas, ...dosProdutos])].sort();
+            const todas = [...new Set([...salvas, ...dosProdutos])].sort();
             select.innerHTML = todas.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
             if (atual && todas.includes(atual)) select.value = atual;
         }
@@ -1519,7 +1532,8 @@
 
         async function excluirCategoria() {
             const cat = document.getElementById('categoria').value;
-            if (CATEGORIAS_PADRAO.includes(cat)) return aviso("As categorias padrão do sistema não podem ser excluídas!");
+            if (!cat) return aviso('Selecione uma categoria para excluir.');
+            await seguro(loadEstoque); // garante a lista de produtos atualizada
             if (products.some(p => p.categoria === cat)) return aviso(`Existem produtos na categoria "${cat}". Mude a categoria deles antes de excluir.`);
             if (!confirm(`Deseja realmente excluir a categoria "${cat}"?`)) return;
             await seguro(async () => {
