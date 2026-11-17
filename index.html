@@ -316,8 +316,10 @@
 
             try {
                 const isGift = document.getElementById('is-gift').checked;
-              const numeroPedido = Math.floor(Date.now() / 1000);
-
+              let ultimoNumero = parseInt(localStorage.getItem('helcinho_seq_pedido') || '0');
+let novoNumero = ultimoNumero + 1;
+localStorage.setItem('helcinho_seq_pedido', novoNumero);
+const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
                 let subtotal = 0;
                 cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
                 const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
