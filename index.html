@@ -116,8 +116,35 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-rosegold/20 py-6 text-center text-xs text-gray-500">
+    <!-- Rodapé Interativo Manhub + Copyright -->
+    <footer class="bg-white border-t border-rosegold/20 py-4 text-center text-xs text-gray-500">
+        <div class="max-w-md mx-auto flex flex-col items-center relative mb-3">
+            
+            <!-- Contêiner do Logotipo Clicável -->
+            <div class="relative inline-block">
+                <img src="manhublogo.png" alt="Manhub Logo" class="h-10 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
+                
+                <!-- Aba Pop-up Fale Conosco -->
+                <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-black text-white rounded-2xl shadow-2xl border border-gray-800 p-3 text-center z-50 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                    <div class="relative flex items-center justify-center border-b border-gray-800 pb-2">
+                        <span class="text-[10px] font-extrabold tracking-widest text-white uppercase">FALE CONOSCO</span>
+                        <span class="absolute right-0 text-gray-400 hover:text-white cursor-pointer text-xs px-1" onclick="toggleMenuManhub()">&times;</span>
+                    </div>
+                    <div class="flex items-center justify-around pt-1">
+                        <a href="https://wa.me/5516996276674?text=Olá!%20Vim%20pelo%20sistema%20Loja%20do%20Helcinho." target="_blank" class="flex items-center gap-1.5 text-white hover:text-emerald-400 text-xs font-bold transition">
+                            <i class="fa-brands fa-whatsapp text-emerald-500 text-base"></i> WhatsApp
+                        </a>
+                        <a href="https://instagram.com/manhubsistemagestao" target="_blank" class="flex items-center gap-1.5 text-white hover:text-pink-400 text-xs font-bold transition">
+                            <i class="fa-brands fa-instagram text-pink-500 text-base"></i> Instagram
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-[6px] tracking-widest font-extrabold text-gray-400 uppercase -mt-1">
+                DESENVOLVIDO POR MANHUB
+            </p>
+        </div>
         <p>© 2026 Loja do Helcinho. Todos os direitos reservados.</p>
     </footer>
 
@@ -134,13 +161,21 @@
         let currentCategory = 'todos';
         let zapLoja = ZAP_PADRAO;
 
+        // Função do Pop-up do Rodapé Manhub
+        function toggleMenuManhub() {
+            const popup = document.getElementById('popup-manhub');
+            if (popup) {
+                popup.classList.toggle('hidden');
+            }
+        }
+
         // Escapa texto vindo do banco antes de colocar no HTML
         function esc(s) {
             return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
         function fmtBRL(v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); }
 
-        // WhatsApp da loja vem do painel (nuvem), igual para todos os visitantes
+        // WhatsApp da loja vem do painel (nuvem)
         async function carregarWhatsApp() {
             try {
                 const { data, error } = await supabaseClient.from('configuracoes').select('valor').eq('id', 'whatsapp').maybeSingle();
@@ -311,22 +346,23 @@
             btn.disabled = true;
             btn.classList.add('opacity-60');
 
-            // Abre a aba do WhatsApp AGORA (no clique), senão o celular bloqueia o pop-up depois do envio
             const janelaZap = window.open('', '_blank');
 
             try {
                 const isGift = document.getElementById('is-gift').checked;
-              let ultimoNumero = parseInt(localStorage.getItem('helcinho_seq_pedido') || '0');
-let novoNumero = ultimoNumero + 1;
-localStorage.setItem('helcinho_seq_pedido', novoNumero);
-const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
+                
+                // GERAÇÃO DO NÚMERO SEQUENCIAL COMETANDO DE #0001
+                let ultimoNumero = parseInt(localStorage.getItem('helcinho_seq_pedido') || '0');
+                let novoNumero = ultimoNumero + 1;
+                localStorage.setItem('helcinho_seq_pedido', novoNumero);
+                const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
+
                 let subtotal = 0;
                 cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
                 const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
                 const agora = new Date();
                 const dataTxt = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-                // Itens enxutos (sem a imagem) para o painel calcular ranking e lucro
                 const itens = cart.map(i => ({
                     id: i.id,
                     nome: i.nome,
@@ -335,7 +371,6 @@ const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
                     qtd: i.qtd
                 }));
 
-                // Grava o pedido na nuvem: é daqui que o painel (qualquer aparelho) lê
                 let salvou = true;
                 try {
                     const { error } = await supabaseClient.from('pedidos').insert([{
@@ -359,7 +394,7 @@ const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
                     alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
                 }
 
-                let text = `*🛍️ PEDIDO #${numeroPedido} - LOJA DO HELCINHO*\n`;
+                let text = `*🛍️ PEDIDO ${numeroPedido} - LOJA DO HELCINHO*\n`;
                 text += `👤 *Cliente:* ${nomeCliente}\n\n`;
                 cart.forEach(item => {
                     text += `• ${item.qtd}x *${item.nome}* - ${fmtBRL((item.preco || 0) * item.qtd)}\n`;
@@ -381,7 +416,6 @@ const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
             }
         }
 
-        // Atualiza o catálogo sozinho quando você altera algo no painel
         function ligarTempoReal() {
             let timer = null;
             supabaseClient.channel('site-produtos')
