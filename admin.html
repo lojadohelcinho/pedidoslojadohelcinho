@@ -1520,14 +1520,39 @@
 
         async function adicionarNovaCategoria() {
             let nova = prompt("Digite o nome da nova categoria:");
-            if (!nova || nova.trim() === '') return;
-            nova = nova.trim();
-            await seguro(async () => {
-                await db(sb.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]), 'Criar categoria');
+            if (nova && nova.trim() !== '') {
+                nova = nova.trim();
+                
+                // Salva no Supabase se estiver conectado
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
+                    } catch(e) {
+                        console.error("Erro ao salvar categoria na nuvem:", e);
+                    }
+                }
+
+                // Salva no localStorage para segurança local
+                let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
+                if (!savedCats.includes(nova)) { 
+                    savedCats.push(nova); 
+                    localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats)); 
+                }
+
+                // Atualiza o select sem recarregar a página inteira
                 await loadCategoriesSelect();
-                document.getElementById('categoria').value = nova;
-                aviso(`Categoria "${nova}" criada!`, 'ok');
-            });
+                
+                // Seleciona automaticamente a categoria criada
+                const selectCat = document.getElementById('categoria');
+                if (selectCat) {
+                    selectCat.value = nova;
+                }
+
+                // Pequeno atraso antes do alerta para estabilizar no mobile
+                setTimeout(() => {
+                    alert(`Categoria "${nova}" criada com sucesso!`);
+                }, 100);
+            }
         }
 
         async function excluirCategoria() {
