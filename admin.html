@@ -31,6 +31,18 @@
     <!-- AVISOS (erros e novidades) -->
     <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-2 w-[calc(100%-2rem)] max-w-sm"></div>
 
+    <!-- JANELA DE PERGUNTA / CONFIRMAÇÃO (substitui prompt/confirm do navegador, que falham no celular) -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-[90] bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-xl">
+            <p id="modal-msg" class="text-sm font-semibold text-marromCafe whitespace-pre-line"></p>
+            <input id="modal-input" type="text" class="hidden w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-base focus:outline-none focus:border-verdePetroleo">
+            <div class="flex gap-2 justify-end">
+                <button type="button" id="modal-cancel" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700">Cancelar</button>
+                <button type="button" id="modal-ok" class="px-4 py-2 rounded-xl text-xs font-semibold bg-verdePetroleo text-white">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIN -->
     <div id="login-overlay" class="fixed inset-0 z-50 bg-creme flex items-center justify-center p-4">
         <form onsubmit="fazerLogin(event)" class="bg-white w-full max-w-sm p-6 rounded-2xl border border-rosegold/20 shadow-lg space-y-4">
@@ -554,6 +566,34 @@
             box.appendChild(el);
             setTimeout(() => el.remove(), tipo === 'ok' ? 5000 : 9000);
         }
+
+        // Janelas próprias: confirmar(msg) -> true/false | perguntar(msg, valor) -> texto ou null
+        function abrirModal({ msg, comInput = false, valor = '' }) {
+            return new Promise(resolve => {
+                const ov = document.getElementById('modal-overlay');
+                const input = document.getElementById('modal-input');
+                const ok = document.getElementById('modal-ok');
+                const cancel = document.getElementById('modal-cancel');
+                document.getElementById('modal-msg').textContent = msg;
+                input.classList.toggle('hidden', !comInput);
+                input.value = valor;
+                ov.classList.remove('hidden');
+                if (comInput) setTimeout(() => input.focus(), 60);
+                const fechar = (res) => {
+                    ov.classList.add('hidden');
+                    ok.onclick = null; cancel.onclick = null; input.onkeydown = null;
+                    resolve(res);
+                };
+                ok.onclick = () => fechar(comInput ? input.value : true);
+                cancel.onclick = () => fechar(comInput ? null : false);
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); ok.onclick(); }
+                    if (e.key === 'Escape') cancel.onclick();
+                };
+            });
+        }
+        const confirmar = (msg) => abrirModal({ msg });
+        const perguntar = (msg, valor = '') => abrirModal({ msg, comInput: true, valor });
 
         // Executa uma consulta e MOSTRA o erro na tela (nunca engole em silêncio)
         async function db(promessa, contexto) {
@@ -1094,7 +1134,7 @@
         }
 
         async function deletePedido(id) {
-            if (!confirm('Deseja realmente excluir este pedido?')) return;
+            if (!(await confirmar('Deseja realmente excluir este pedido?'))) return;
             await db(sb.from('pedidos').delete().eq('id', id), 'Excluir pedido');
             aviso('Pedido excluído.', 'ok');
             await loadPedidos();
@@ -1297,7 +1337,7 @@
         }
 
         async function deleteProduct(id) {
-            if (!confirm('Excluir produto da nuvem?')) return;
+            if (!(await confirmar('Excluir produto da nuvem?'))) return;
             await db(sb.from('produtos').delete().eq('id', id), 'Excluir produto');
             await loadEstoque();
         }
@@ -1380,7 +1420,7 @@
         }
 
         async function deleteClient(id) {
-            if (!confirm('Excluir cliente da nuvem?')) return;
+            if (!(await confirmar('Excluir cliente da nuvem?'))) return;
             await db(sb.from('clientes').delete().eq('id', id), 'Excluir cliente');
             await loadClientes();
             await loadClientesSelect();
@@ -1470,7 +1510,7 @@
             if (!parcela) return;
 
             const saldo = Number(parcela.valorOriginal) - Number(parcela.valorPago || 0);
-            const resp = prompt(`Valor a baixar (Saldo: R$ ${saldo.toFixed(2)})`, saldo.toFixed(2));
+            const resp = await perguntar(`Valor a baixar (Saldo: R$ ${saldo.toFixed(2)})`, saldo.toFixed(2));
             if (!resp) return;
             const valorPago = parseFloat(String(resp).replace(',', '.'));
             if (isNaN(valorPago) || valorPago <= 0) return aviso('Valor inválido!');
@@ -1486,7 +1526,7 @@
         }
 
         async function deleteContrato(vendaId) {
-            if (!confirm('Deseja excluir este contrato?')) return;
+            if (!(await confirmar('Deseja excluir este contrato?'))) return;
             await db(sb.from('crediario').delete().eq('id', vendaId), 'Excluir contrato');
             await loadCrediario();
             await loadDashboard();
@@ -1519,40 +1559,15 @@
         }
 
         async function adicionarNovaCategoria() {
-            let nova = prompt("Digite o nome da nova categoria:");
-            if (nova && nova.trim() !== '') {
-                nova = nova.trim();
-                
-                // Salva no Supabase se estiver conectado
-                if (supabaseClient) {
-                    try {
-                        await supabaseClient.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]);
-                    } catch(e) {
-                        console.error("Erro ao salvar categoria na nuvem:", e);
-                    }
-                }
-
-                // Salva no localStorage para segurança local
-                let savedCats = JSON.parse(localStorage.getItem('helcinho_categorias_extras') || '[]');
-                if (!savedCats.includes(nova)) { 
-                    savedCats.push(nova); 
-                    localStorage.setItem('helcinho_categorias_extras', JSON.stringify(savedCats)); 
-                }
-
-                // Atualiza o select sem recarregar a página inteira
+            let nova = await perguntar("Digite o nome da nova categoria:");
+            if (!nova || nova.trim() === '') return;
+            nova = nova.trim();
+            await seguro(async () => {
+                await db(sb.from('categorias').upsert([{ id: 'CAT-' + Date.now(), nome: nova }]), 'Criar categoria');
                 await loadCategoriesSelect();
-                
-                // Seleciona automaticamente a categoria criada
-                const selectCat = document.getElementById('categoria');
-                if (selectCat) {
-                    selectCat.value = nova;
-                }
-
-                // Pequeno atraso antes do alerta para estabilizar no mobile
-                setTimeout(() => {
-                    alert(`Categoria "${nova}" criada com sucesso!`);
-                }, 100);
-            }
+                document.getElementById('categoria').value = nova;
+                aviso(`Categoria "${nova}" criada!`, 'ok');
+            });
         }
 
         async function excluirCategoria() {
@@ -1560,7 +1575,7 @@
             if (!cat) return aviso('Selecione uma categoria para excluir.');
             await seguro(loadEstoque); // garante a lista de produtos atualizada
             if (products.some(p => p.categoria === cat)) return aviso(`Existem produtos na categoria "${cat}". Mude a categoria deles antes de excluir.`);
-            if (!confirm(`Deseja realmente excluir a categoria "${cat}"?`)) return;
+            if (!(await confirmar(`Deseja realmente excluir a categoria "${cat}"?`))) return;
             await seguro(async () => {
                 await db(sb.from('categorias').delete().eq('nome', cat), 'Excluir categoria');
                 await loadCategoriesSelect();
