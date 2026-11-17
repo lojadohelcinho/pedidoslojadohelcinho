@@ -316,7 +316,7 @@
 
             try {
                 const isGift = document.getElementById('is-gift').checked;
-                const numeroPedido = 'PED-' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 36).toString(36).toUpperCase();
+              const numeroPedido = Math.floor(Date.now() / 1000);
 
                 let subtotal = 0;
                 cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
