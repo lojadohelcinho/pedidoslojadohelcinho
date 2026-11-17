@@ -7,14 +7,14 @@
 //  - O site da loja (index.html) não é tocado por este service worker.
 //
 // Ao publicar uma versão nova do painel, basta trocar o número abaixo.
-const VERSAO = 'helcinho-admin-v5';
+const VERSAO = 'helcinho-admin-v6';
 
 const ARQUIVOS_DO_PAINEL = [
   'admin.html',
   'admin.webmanifest',
-  'icon-192.png',
-  'icon-512.png',
-  'icon-maskable-512.png',
+  'logo-192.png',
+  'logo-512.png',
+  'logo-maskable-512.png',
   'logohelcinho.png'
 ];
 
