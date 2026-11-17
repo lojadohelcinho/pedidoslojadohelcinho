@@ -9,6 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Configurações do PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#008B74">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logohelcinho.png">
+
     <script>
         tailwind.config = {
             theme: {
@@ -31,7 +39,7 @@
     <!-- AVISOS (erros e novidades) -->
     <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-2 w-[calc(100%-2rem)] max-w-sm"></div>
 
-    <!-- JANELA DE PERGUNTA / CONFIRMAÇÃO (substitui prompt/confirm do navegador, que falham no celular) -->
+    <!-- JANELA DE PERGUNTA / CONFIRMAÇÃO -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-[90] bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-xl">
             <p id="modal-msg" class="text-sm font-semibold text-marromCafe whitespace-pre-line"></p>
@@ -114,7 +122,7 @@
 
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v3 (janelas próprias, sem prompt)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão PWA v3</p>
                 <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
                     <i class="fa-solid fa-store"></i> Ver a Loja Online
                 </a>
@@ -208,7 +216,7 @@
                             <input type="number" step="0.01" id="custo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold mb-1">Preço Antigo (R$) <span class="text-gray-400 font-normal">- opcional, mostra "Promoção"</span></label>
+                            <label class="block text-xs font-semibold mb-1">Preço Antigo (R$) <span class="text-gray-400 font-normal">- opcional</span></label>
                             <input type="number" step="0.01" id="preco_antigo" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div class="sm:col-span-2">
@@ -506,11 +514,11 @@
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold text-marromCafe">Modelo de Texto para Cobrança via WhatsApp</label>
                         <p class="text-[11px] text-gray-500">
-                            Tags disponíveis:
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{cliente}</code>,
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{parcela}</code>,
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{valor}</code>,
-                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{vencimento}</code>,
+                            Tags disponíveis: 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{cliente}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{parcela}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{valor}</code>, 
+                            <code class="bg-gray-100 text-marromCafe px-1 rounded">{vencimento}</code>, 
                             <code class="bg-gray-100 text-marromCafe px-1 rounded">{dias}</code>
                         </p>
                         <textarea id="template-cobranca" rows="5" class="w-full bg-creme border border-rosegold/30 rounded-xl p-3 text-xs focus:outline-none focus:border-verdePetroleo"></textarea>
@@ -521,12 +529,8 @@
         </main>
     </div>
 
+    <!-- SCRIPT DO PAINEL ADMIN -->
     <script>
-        // =====================================================================
-        // CONFIGURAÇÃO
-        // Toda informação vive no Supabase (nuvem). Nada é guardado no navegador,
-        // por isso celular e computador sempre mostram os mesmos dados.
-        // =====================================================================
         const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -535,7 +539,7 @@
             'Olá, {cliente}! Tudo bem? 😊\n' +
             'Passando para lembrar que a parcela {parcela} no valor de R$ {valor}, com vencimento em {vencimento}, está em aberto há {dias} dia(s).\n' +
             'Podemos combinar o pagamento? Obrigado!';
-        // Só usadas UMA vez, para criar as categorias na nuvem na primeira abertura. Depois qualquer uma pode ser excluída.
+
         const CATEGORIAS_INICIAIS = ["Perfumes", "Cremes", "Sabonetes", "Presentes"];
 
         let products = [];
@@ -543,9 +547,6 @@
         let appIniciado = false;
         let canalTempoReal = null;
 
-        // =====================================================================
-        // AJUDANTES
-        // =====================================================================
         function esc(s) {
             return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
@@ -568,7 +569,6 @@
             setTimeout(() => el.remove(), tipo === 'ok' ? 5000 : 9000);
         }
 
-        // Janelas próprias: confirmar(msg) -> true/false | perguntar(msg, valor) -> texto ou null
         function abrirModal({ msg, comInput = false, valor = '' }) {
             return new Promise(resolve => {
                 const ov = document.getElementById('modal-overlay');
@@ -596,7 +596,6 @@
         const confirmar = (msg) => abrirModal({ msg });
         const perguntar = (msg, valor = '') => abrirModal({ msg, comInput: true, valor });
 
-        // Executa uma consulta e MOSTRA o erro na tela (nunca engole em silêncio)
         async function db(promessa, contexto) {
             const { data, error } = await promessa;
             if (error) {
@@ -606,10 +605,8 @@
             }
             return data;
         }
-        // Para botões/rotinas: já avisou o usuário, só evita erro solto no console
         function seguro(fn) { return Promise.resolve().then(fn).catch(() => {}); }
 
-        // Converte linhas do banco (colunas minúsculas) para o formato usado na tela
         function normPedido(r) {
             const itens = r.itensdetalhados ?? r.itensDetalhados;
             return {
@@ -645,9 +642,6 @@
             await db(sb.from('configuracoes').upsert([{ id: chave, valor }]), 'Salvar configuração');
         }
 
-        // =====================================================================
-        // LOGIN
-        // =====================================================================
         function mostrarLogin() {
             document.getElementById('app-container').classList.add('hidden');
             document.getElementById('login-overlay').classList.remove('hidden');
@@ -713,9 +707,6 @@
             ligarTempoReal();
         }
 
-        // =====================================================================
-        // TEMPO REAL: o que muda em qualquer aparelho (ou no site) aparece aqui
-        // =====================================================================
         function ligarTempoReal() {
             if (canalTempoReal) return;
             const timers = {};
@@ -765,9 +756,6 @@
                 });
         }
 
-        // =====================================================================
-        // CLIQUES NAS LISTAS (usa data-* em vez de onclick com texto, por segurança)
-        // =====================================================================
         document.addEventListener('click', (e) => {
             const el = e.target.closest('[data-act]');
             if (!el) return;
@@ -789,9 +777,6 @@
             if (el) seguro(() => updatePedidoStatus(el.dataset.id, el.value));
         });
 
-        // =====================================================================
-        // NAVEGAÇÃO
-        // =====================================================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -828,9 +813,6 @@
             if (subId === 'crediario-rel') seguro(renderRelatorioCrediario);
         }
 
-        // =====================================================================
-        // RELATÓRIOS
-        // =====================================================================
         async function loadRelatorios() {
             await preencherFiltrosSelects();
             await calcularIndicadoresGerais();
@@ -856,7 +838,6 @@
 
         function aplicarFiltrosRelatorio() {
             seguro(calcularIndicadoresGerais);
-            // atualiza também a sub-aba que estiver aberta
             if (!document.getElementById('subtab-produtos-ranking').classList.contains('hidden')) seguro(renderRankingProdutos);
             if (!document.getElementById('subtab-clientes-analise').classList.contains('hidden')) seguro(renderRankingClientes);
         }
@@ -892,10 +873,9 @@
         function custoUnitDoItem(item) {
             const pr = products.find(p => p.id == item.id || p.nome === item.nome);
             if (pr && pr.custo != null && Number(pr.custo) > 0) return Number(pr.custo);
-            return Number(item.preco || 0) * 0.4; // sem custo cadastrado: estima 40% do preço
+            return Number(item.preco || 0) * 0.4;
         }
 
-        // Pedidos já filtrados pelos filtros da tela
         async function pedidosFiltrados() {
             const f = {
                 periodo: document.getElementById('filtro-periodo').value,
@@ -1081,9 +1061,6 @@
             URL.revokeObjectURL(a.href);
         }
 
-        // =====================================================================
-        // PEDIDOS
-        // =====================================================================
         async function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             const pedidos = await fetchPedidos();
@@ -1142,9 +1119,6 @@
             await loadDashboard();
         }
 
-        // =====================================================================
-        // DASHBOARD
-        // =====================================================================
         async function loadDashboard() {
             const credList = await fetchCred();
             const pedidos = await fetchPedidos();
@@ -1213,9 +1187,6 @@
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // =====================================================================
-        // CONFIGURAÇÕES
-        // =====================================================================
         async function loadConfigs() {
             const zap = await getConfig('whatsapp');
             const tpl = await getConfig('template_cobranca');
@@ -1234,9 +1205,6 @@
             await seguro(async () => { await setConfig('template_cobranca', valor); aviso('Modelo de cobrança salvo!', 'ok'); });
         }
 
-        // =====================================================================
-        // PRODUTOS / ESTOQUE
-        // =====================================================================
         function redimensionarImagem(file, max) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1354,9 +1322,6 @@
             seguro(loadCategoriesSelect);
         }
 
-        // =====================================================================
-        // CLIENTES
-        // =====================================================================
         async function saveClient(e) {
             e.preventDefault();
             const clienteId = document.getElementById('client-index').value;
@@ -1427,9 +1392,6 @@
             await loadClientesSelect();
         }
 
-        // =====================================================================
-        // CREDIÁRIO
-        // =====================================================================
         async function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
@@ -1505,7 +1467,7 @@
 
         async function baixarParcela(vendaId, pIndex) {
             const row = await db(sb.from('crediario').select('*').eq('id', vendaId).maybeSingle(), 'Carregar contrato');
-            if (!row) return aviso('Contrato não encontrado (pode ter sido excluído em outro aparelho).');
+            if (!row) return aviso('Contrato não encontrado.');
             const venda = normCred(row);
             const parcela = venda.parcelas[pIndex];
             if (!parcela) return;
@@ -1519,7 +1481,6 @@
             parcela.valorPago = Number((Number(parcela.valorPago || 0) + valorPago).toFixed(2));
             parcela.status = parcela.valorPago >= parcela.valorOriginal ? 'Paga' : 'Parcial';
 
-            // atualiza só as parcelas deste contrato
             await db(sb.from('crediario').update({ parcelas: venda.parcelas }).eq('id', vendaId), 'Registrar baixa');
             aviso('Baixa registrada com sucesso!', 'ok');
             await loadCrediario();
@@ -1533,15 +1494,11 @@
             await loadDashboard();
         }
 
-        // =====================================================================
-        // CATEGORIAS
-        // =====================================================================
         async function loadCategoriesSelect() {
             const select = document.getElementById('categoria');
             const atual = select.value;
             let data = await db(sb.from('categorias').select('*'), 'Carregar categorias');
 
-            // Primeira vez: grava as categorias iniciais na nuvem (e nunca mais recria depois de você excluir)
             const jaIniciou = await getConfig('categorias_iniciais_criadas');
             if (!jaIniciou) {
                 if ((data || []).length === 0) {
@@ -1574,7 +1531,7 @@
         async function excluirCategoria() {
             const cat = document.getElementById('categoria').value;
             if (!cat) return aviso('Selecione uma categoria para excluir.');
-            await seguro(loadEstoque); // garante a lista de produtos atualizada
+            await seguro(loadEstoque);
             if (products.some(p => p.categoria === cat)) return aviso(`Existem produtos na categoria "${cat}". Mude a categoria deles antes de excluir.`);
             if (!(await confirmar(`Deseja realmente excluir a categoria "${cat}"?`))) return;
             await seguro(async () => {
@@ -1584,9 +1541,6 @@
             });
         }
 
-        // =====================================================================
-        // CALCULADORA
-        // =====================================================================
         async function loadCalcSelect() {
             if (products.length === 0) await loadEstoque();
             const sel = document.getElementById('calc-produto');
@@ -1603,6 +1557,17 @@
             const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
             document.getElementById('calc-resultado').classList.remove('hidden');
             document.getElementById('calc-preco-sugerido').textContent = fmtBRL(custo * (1 + margem / 100));
+        }
+    </script>
+
+    <!-- Script de Registro do PWA (Service Worker) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((reg) => console.log('Service Worker registrado com sucesso:', reg.scope))
+                    .catch((err) => console.log('Falha ao registrar Service Worker:', err));
+            });
         }
     </script>
 </body>
