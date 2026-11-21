@@ -350,14 +350,17 @@
             if (link) link.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent('Olá! Esqueci minha senha da loja online. Pode criar uma nova para mim?')}`;
         }
 
-        // Quem está logado no painel administrativo vê o botão "Voltar ao painel"
-        async function verificarAdmin() {
-            let admin = new URLSearchParams(location.search).get('de') === 'admin';
+        // A barra "Voltar ao painel" só aparece quando o administrador chega aqui pelo botão
+        // "Ver a Loja Online" do painel (endereço com ?de=admin). Cliente nunca vê.
+        function verificarAdmin() {
+            let veioDoPainel = false;
             try {
-                const { data } = await supabaseClient.auth.getSession();
-                if (data && data.session) admin = true;
-            } catch (e) {}
-            if (admin) document.getElementById('barra-admin').classList.remove('hidden');
+                if (new URLSearchParams(location.search).get('de') === 'admin') sessionStorage.setItem('veio_do_painel', '1');
+                veioDoPainel = sessionStorage.getItem('veio_do_painel') === '1';
+            } catch (e) {
+                veioDoPainel = new URLSearchParams(location.search).get('de') === 'admin';
+            }
+            if (veioDoPainel) document.getElementById('barra-admin').classList.remove('hidden');
         }
 
         // ---------- produtos ----------
