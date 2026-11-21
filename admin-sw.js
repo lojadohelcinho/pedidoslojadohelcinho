@@ -7,7 +7,7 @@
 //  - O site da loja (index.html) não é tocado por este service worker.
 //
 // Ao publicar uma versão nova do painel, basta trocar o número abaixo.
-const VERSAO = 'helcinho-admin-v6';
+const VERSAO = 'helcinho-admin-v8';
 
 const ARQUIVOS_DO_PAINEL = [
   'admin.html',
@@ -84,5 +84,15 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => guardado);
     return guardado || buscando;
+  })());
+});
+
+// Ao tocar na notificação de pedido, abre (ou traz para frente) o painel
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const abertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of abertas) { if ('focus' in c) return c.focus(); }
+    return self.clients.openWindow('./admin.html');
   })());
 });

@@ -129,11 +129,14 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v6 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v8 (aplicativo PWA)</p>
+                <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
+                </button>
                 <button type="button" id="btn-instalar" onclick="instalarApp()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-download"></i> Instalar aplicativo
                 </button>
-                <a href="index.html" target="_blank" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
+                <a href="index.html?de=admin" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
                     <i class="fa-solid fa-store"></i> Ver a Loja Online
                 </a>
                 <button type="button" onclick="handleLogout()" class="w-full bg-red-100 text-red-700 py-2 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-red-200 transition">
@@ -250,6 +253,11 @@
             <section id="tab-estoque" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-warehouse text-rosegold mr-2"></i> Gestão de Estoque & Produtos na Nuvem</h2>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="search" id="estoque-busca" oninput="renderEstoqueLista()" placeholder="Pesquisar produto por nome, categoria ou código..." class="w-full bg-creme border border-rosegold/30 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+                    <p id="estoque-contagem" class="text-[11px] text-gray-500"></p>
                     <div id="estoque-list" class="space-y-3"></div>
                 </div>
             </section>
@@ -270,6 +278,12 @@
                     <h2 class="font-bold text-base text-marromCafe">📋 Clientes Cadastrados</h2>
                     <div id="clientes-list" class="space-y-3"></div>
                 </div>
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-lock text-rosegold mr-2"></i> Acessos dos clientes (loja online)</h2>
+                    <p class="text-xs text-gray-500">Quando o cliente cria uma conta no site, ela aparece aqui. <b>Vincule</b> ao cadastro do cliente para liberar o crediário dele no site, e use <b>Redefinir senha</b> quando alguém esquecer.</p>
+                    <input type="search" id="login-busca" oninput="renderLogins()" placeholder="Pesquisar usuário, nome ou telefone..." class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                    <div id="logins-list" class="space-y-3"></div>
+                </div>
             </section>
 
             <!-- CREDIÁRIO -->
@@ -284,8 +298,22 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-500">Produtos Vendidos</label>
-                            <input type="text" id="cred-produtos" placeholder="Produtos Vendidos" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm">
+                            <label class="block text-xs font-semibold mb-1 text-gray-500">Pedido da loja online (opcional)</label>
+                            <select id="cred-pedido" onchange="credCarregarPedido()" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                                <option value="">Venda direta (sem pedido)</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2 bg-creme/60 border border-rosegold/20 rounded-xl p-3 space-y-3">
+                            <label class="block text-xs font-semibold text-gray-500">Produtos vendidos (do estoque — a baixa é automática)</label>
+                            <input type="search" id="cred-prod-busca" oninput="credPreencherProdutos()" placeholder="Filtrar a lista de produtos..." class="w-full bg-white border border-rosegold/30 rounded-xl px-3 py-2 text-xs">
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <select id="cred-prod-select" class="flex-1 min-w-0 bg-white border border-rosegold/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                                    <option value="">Selecione o produto...</option>
+                                </select>
+                                <input type="number" id="cred-prod-qtd" min="1" value="1" class="w-full sm:w-20 bg-white border border-rosegold/30 rounded-xl px-3 py-2 text-sm" title="Quantidade">
+                                <button type="button" onclick="credAddItem()" class="bg-marromCafe text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-black transition"><i class="fa-solid fa-plus mr-1"></i> Adicionar</button>
+                            </div>
+                            <div id="cred-itens" class="space-y-1.5"></div>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1 text-gray-500">Valor Total (R$)</label>
@@ -778,6 +806,81 @@
             ligarTempoReal();
         }
 
+
+        // =====================================================================
+        // ALERTAS DE NOVO PEDIDO (som + notificação do celular + vibração)
+        // Tocam em qualquer aba do painel e com o app em segundo plano.
+        // =====================================================================
+        let audioCtx = null, wakeLock = null;
+        const alertasLigados = () => { try { return localStorage.getItem('alertas_pedido') === '1'; } catch(e) { return false; } };
+        function prepararAudio() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            } catch(e) {}
+        }
+        ['click', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, prepararAudio, { passive: true }));
+        function tocarSom() {
+            try {
+                prepararAudio();
+                if (!audioCtx) return;
+                const t0 = audioCtx.currentTime;
+                [880, 1175, 880, 1175, 1319].forEach((freq, i) => {
+                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                    o.type = 'sine'; o.frequency.value = freq;
+                    const ini = t0 + i * 0.22;
+                    g.gain.setValueAtTime(0.0001, ini);
+                    g.gain.exponentialRampToValueAtTime(0.5, ini + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, ini + 0.2);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(ini); o.stop(ini + 0.22);
+                });
+            } catch(e) {}
+        }
+        async function notificarPedido() {
+            if (!alertasLigados()) return;
+            tocarSom();
+            try { if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]); } catch(e) {}
+            try {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    const opcoes = { body: 'Toque para abrir o painel.', icon: 'logo-192.png', badge: 'logo-192.png', tag: 'novo-pedido', renotify: true, vibrate: [300, 150, 300, 150, 500] };
+                    const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+                    if (reg) await reg.showNotification('🛍️ Novo pedido!', opcoes);
+                    else new Notification('🛍️ Novo pedido!', opcoes);
+                }
+            } catch(e) {}
+        }
+        async function manterTelaAcordada() {
+            try {
+                if (alertasLigados() && 'wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => { wakeLock = null; });
+                }
+            } catch(e) {}
+        }
+        function atualizarBotaoAlertas() {
+            const t = document.getElementById('btn-alertas-txt'); if (!t) return;
+            t.textContent = alertasLigados() ? 'Alertas ligados (toque para desligar)' : 'Ativar alertas de pedido';
+        }
+        async function alternarAlertas() {
+            if (alertasLigados()) {
+                try { localStorage.setItem('alertas_pedido', '0'); } catch(e) {}
+                if (wakeLock) { try { wakeLock.release(); } catch(e) {} }
+                atualizarBotaoAlertas(); return;
+            }
+            prepararAudio();
+            if ('Notification' in window && Notification.permission === 'default') {
+                try { await Notification.requestPermission(); } catch(e) {}
+            }
+            try { localStorage.setItem('alertas_pedido', '1'); } catch(e) {}
+            atualizarBotaoAlertas(); tocarSom(); manterTelaAcordada();
+            if ('Notification' in window && Notification.permission === 'denied') {
+                aviso('Som ligado, mas as notificações estão bloqueadas nas configurações do site.', 'erro');
+            } else { aviso('Alertas ligados. Você ouviu o som de teste?', 'ok'); }
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') manterTelaAcordada(); });
+        window.addEventListener('load', () => { atualizarBotaoAlertas(); manterTelaAcordada(); });
+
         // =====================================================================
         // TEMPO REAL: o que muda em qualquer aparelho (ou no site) aparece aqui
         // =====================================================================
@@ -793,7 +896,7 @@
 
             canalTempoReal = sb.channel('admin-live')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
-                    if (payload.eventType === 'INSERT') aviso('🛍️ Novo pedido recebido!', 'ok');
+                    if (payload.eventType === 'INSERT') { aviso('🛍️ Novo pedido recebido!', 'ok'); notificarPedido(); }
                     agendar('pedidos', async () => {
                         await loadPedidos(); await loadDashboard();
                         if (abaVisivel('relatorios')) await loadRelatorios();
@@ -845,6 +948,10 @@
                 'del-cli': () => deleteClient(id),
                 'del-contrato': () => deleteContrato(id),
                 'baixar': () => baixarParcela(id, Number(el.dataset.p)),
+                'cred-rm': () => credRemoverItem(Number(id)),
+                'gerar-cred': () => gerarCrediarioDoPedido(id),
+                'reset-senha': () => redefinirSenhaLogin(id),
+                'del-login': () => excluirLogin(id),
                 'cobrar': () => cobrarWhatsApp(el.dataset.cliente, el.dataset.parcela, Number(el.dataset.saldo), Number(el.dataset.dias), el.dataset.venc)
             };
             if (acoes[el.dataset.act]) seguro(acoes[el.dataset.act]);
@@ -852,6 +959,8 @@
         document.addEventListener('change', (e) => {
             const el = e.target.closest('select[data-act="status"]');
             if (el) seguro(() => updatePedidoStatus(el.dataset.id, el.value));
+            const vinc = e.target.closest('select[data-act="vincular"]');
+            if (vinc) seguro(() => vincularLogin(vinc.dataset.id, vinc.value));
         });
 
         // =====================================================================
@@ -871,8 +980,8 @@
             if (tabId === 'pedidos') seguro(loadPedidos);
             if (tabId === 'produtos') { seguro(loadEstoque); seguro(loadCategoriesSelect); }
             if (tabId === 'estoque') seguro(loadEstoque);
-            if (tabId === 'clientes') { seguro(loadClientes); seguro(loadClientesSelect); }
-            if (tabId === 'crediario') { seguro(loadCrediario); seguro(loadClientesSelect); }
+            if (tabId === 'clientes') { seguro(loadClientes); seguro(loadClientesSelect); seguro(loadLogins); }
+            if (tabId === 'crediario') { seguro(loadCrediario); seguro(loadClientesSelect); seguro(credPreencherPedidos); credPreencherProdutos(); credRenderItens(); }
             if (tabId === 'calculadora') seguro(loadCalcSelect);
             if (tabId === 'relatorios') seguro(loadRelatorios);
             if (tabId === 'config') seguro(loadConfigs);
@@ -1180,12 +1289,16 @@
                                 <h4 class="font-bold uppercase text-marromCafe text-sm">Pedido #${esc(p.id)} — ${esc(p.data || 'Recente')}</h4>
                                 <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${esc(p.cliente || 'Não informado')}</p>
                                 ${p.presente === 'Sim' ? '<p class="text-amber-700 font-semibold mt-0.5">🎁 Embalagem para presente</p>' : ''}
+                                <p class="text-gray-600 mt-0.5 flex flex-wrap items-center gap-1.5"><span><i class="fa-solid fa-wallet mr-1"></i>Pagamento: <b>${esc(p.formaPagamento || 'Não informado')}</b></span>
+                                    ${p.estoque_baixado ? '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">📦 Estoque baixado</span>' : ''}
+                                    ${p.formaPagamento === 'Crediário' && p.status !== 'Cancelado' ? '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Crediário solicitado</span>' : ''}</p>
                                 <div class="mt-1 space-y-1">${itensHtml}</div>
                             </div>
                             <span class="font-bold text-base text-verdePetroleo shrink-0">${fmtBRL(p.valorTotal)}</span>
                         </div>
                         <div class="flex justify-between items-center pt-1">
                             <select data-act="status" data-id="${esc(p.id)}" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">${opcoes}</select>
+                            ${p.formaPagamento === 'Crediário' && p.status !== 'Cancelado' ? `<button type="button" data-act="gerar-cred" data-id="${esc(p.id)}" class="bg-amber-100 text-amber-800 hover:bg-amber-200 px-3 py-1 rounded-lg font-semibold"><i class="fa-solid fa-credit-card mr-1"></i> Gerar crediário</button>` : ''}
                             <button type="button" data-act="del-pedido" data-id="${esc(p.id)}" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
                         </div>
                     </div>
@@ -1195,8 +1308,19 @@
 
         async function updatePedidoStatus(id, val) {
             await db(sb.from('pedidos').update({ status: val }).eq('id', id), 'Atualizar status do pedido');
+            if (val === 'Entregue' || val === 'Cancelado') {
+                let baixado = null;
+                try { const r = await sb.from('pedidos').select('estoque_baixado').eq('id', id).maybeSingle(); if (!r.error && r.data) baixado = r.data.estoque_baixado; } catch (e) {}
+                if (val === 'Entregue') {
+                    if (baixado === true) aviso('Pedido entregue: estoque baixado automaticamente.', 'ok');
+                    else aviso('Pedido marcado como entregue, MAS o estoque não foi baixado: o banco ainda não tem a baixa automática (rode o setup-supabase-v2.sql).');
+                } else if (baixado === false) {
+                    aviso('Pedido cancelado. Se ele já tinha baixado estoque, os produtos voltaram ao estoque.', 'ok');
+                }
+            }
             await loadPedidos();
             await loadDashboard();
+            await loadEstoque();
         }
 
         async function deletePedido(id) {
@@ -1326,31 +1450,47 @@
             });
         }
 
+        const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
         async function loadEstoque() {
             const data = await db(sb.from('produtos').select('*').order('nome', { ascending: true }), 'Carregar produtos');
             products = data || [];
+            renderEstoqueLista();
+            credPreencherProdutos();
+        }
 
+        function renderEstoqueLista() {
             const listEl = document.getElementById('estoque-list');
             if (!listEl) return;
+            const termo = semAcento((document.getElementById('estoque-busca') || {}).value || '').trim();
+            const contagem = document.getElementById('estoque-contagem');
             if (products.length === 0) {
                 listEl.innerHTML = '<p class="text-xs text-gray-400">Nenhum produto cadastrado na nuvem.</p>';
+                if (contagem) contagem.textContent = '';
                 return;
             }
-            listEl.innerHTML = products.map(p => `
+            const lista = !termo ? products : products.filter(p =>
+                semAcento([p.nome, p.categoria, p.genero, p.descricao, p.id].join(' ')).includes(termo));
+            if (contagem) contagem.textContent = termo ? `${lista.length} de ${products.length} produtos` : `${products.length} produtos cadastrados`;
+            if (lista.length === 0) { listEl.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Nenhum produto encontrado para esta pesquisa.</p>'; return; }
+            listEl.innerHTML = lista.map(p => {
+                const est = Number(p.estoque_atual ?? 0);
+                const corEst = est <= 0 ? 'text-red-600 font-bold' : (est <= 3 ? 'text-amber-600 font-bold' : '');
+                return `
                 <div class="flex items-center justify-between bg-creme p-3 rounded-xl border border-rosegold/20 text-xs gap-2">
                     <div class="flex items-center gap-3 min-w-0">
                         <img src="${esc(p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500')}" class="w-10 h-10 object-contain bg-white rounded-lg p-1 shrink-0">
                         <div class="min-w-0">
                             <h4 class="font-bold uppercase">${esc(p.nome)} (${esc(p.categoria)} - ${esc(p.genero || 'Unissex')})</h4>
-                            <p class="text-gray-500">${fmtBRL(p.preco)} | Estoque: ${esc(p.estoque_atual ?? 0)}</p>
+                            <p class="text-gray-500">${fmtBRL(p.preco)} | Estoque: <span class="${corEst}">${esc(est)}</span></p>
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0">
                         <button type="button" data-act="edit-prod" data-id="${esc(p.id)}" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200"><i class="fa-solid fa-pen"></i> Editar</button>
                         <button type="button" data-act="del-prod" data-id="${esc(p.id)}" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         async function saveProduct(e) {
@@ -1461,7 +1601,7 @@
             const selectEl = document.getElementById('cred-cliente');
             const atual = selectEl.value;
             const clientes = await fetchClientes();
-            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `<option value="${esc(c.nome)}">${esc(c.nome)}</option>`).join('');
+            selectEl.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c => `<option value="${esc(c.nome)}" data-id="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
             if (atual) selectEl.value = atual;
         }
 
@@ -1498,7 +1638,11 @@
         async function saveCrediario(e) {
             e.preventDefault();
             const cliente = document.getElementById('cred-cliente').value;
-            const produtos = document.getElementById('cred-produtos').value;
+            const optCli = document.getElementById('cred-cliente').selectedOptions[0];
+            const clienteId = (optCli && optCli.dataset.id) || null;
+            const pedidoId = document.getElementById('cred-pedido').value || null;
+            if (credItens.length === 0) return aviso('Adicione ao menos um produto da lista suspensa.');
+            const produtos = credItens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
             const valorTotal = parseFloat(document.getElementById('cred-valor').value);
             const qtdParcelas = parseInt(document.getElementById('cred-parcelas').value);
             const dataInicialStr = document.getElementById('cred-vencimento-inicial').value;
@@ -1526,13 +1670,17 @@
                 dataBase.setDate(dataBase.getDate() + 30);
             }
 
-            const venda = { id: 'CRED-' + Date.now(), cliente, produtos, valortotal: valorTotal, parcelas };
+            const venda = { id: 'CRED-' + Date.now(), cliente, cliente_id: clienteId, produtos, itens: credItens, pedido_id: pedidoId, valortotal: valorTotal, parcelas };
             await seguro(async () => {
                 await db(sb.from('crediario').upsert([venda]), 'Salvar crediário');
-                aviso('Venda parcelada gerada com sucesso!', 'ok');
+                aviso('Venda parcelada gerada! Estoque baixado automaticamente.', 'ok');
                 document.getElementById('cred-form').reset();
+                credItens = [];
+                credRenderItens();
                 await loadCrediario();
                 await loadDashboard();
+                await loadEstoque();
+                await credPreencherPedidos();
             });
         }
 
@@ -1592,10 +1740,172 @@
         }
 
         async function deleteContrato(vendaId) {
-            if (!(await confirmar('Deseja excluir este contrato?'))) return;
+            if (!(await confirmar('Deseja excluir este contrato? Se ele baixou estoque, os produtos voltam ao estoque.'))) return;
             await db(sb.from('crediario').delete().eq('id', vendaId), 'Excluir contrato');
             await loadCrediario();
             await loadDashboard();
+            await loadEstoque();
+            await credPreencherPedidos();
+        }
+
+
+        // =====================================================================
+        // CREDIÁRIO: lista suspensa de produtos + pedidos da loja
+        // =====================================================================
+        let credItens = [];
+        let credPedidos = [];
+
+        function credPreencherProdutos() {
+            const sel = document.getElementById('cred-prod-select');
+            if (!sel) return;
+            const termo = semAcento((document.getElementById('cred-prod-busca') || {}).value || '').trim();
+            const atual = sel.value;
+            const lista = products.filter(p => p.ativo !== false && (!termo || semAcento((p.nome || '') + ' ' + (p.categoria || '')).includes(termo)));
+            sel.innerHTML = '<option value="">Selecione o produto...</option>' + lista.map(p =>
+                `<option value="${esc(p.id)}">${esc(p.nome)} — ${fmtBRL(p.preco)} (estoque: ${esc(p.estoque_atual ?? 0)})</option>`).join('');
+            if (atual && lista.some(p => String(p.id) === atual)) sel.value = atual;
+        }
+
+        function credAddItem() {
+            const sel = document.getElementById('cred-prod-select');
+            const qtdEl = document.getElementById('cred-prod-qtd');
+            if (!sel.value) return aviso('Escolha um produto na lista.');
+            const qtd = parseInt(qtdEl.value) || 0;
+            if (qtd < 1) return aviso('Informe a quantidade.');
+            const p = products.find(x => String(x.id) === sel.value);
+            if (!p) return aviso('Produto não encontrado. Atualize a lista.');
+            const ja = credItens.find(i => String(i.id) === String(p.id));
+            if ((ja ? ja.qtd : 0) + qtd > Number(p.estoque_atual || 0)) {
+                return aviso(`Estoque insuficiente de "${p.nome}": só há ${p.estoque_atual || 0} em estoque.`);
+            }
+            if (ja) ja.qtd += qtd; else credItens.push({ id: p.id, nome: p.nome, preco: Number(p.preco || 0), qtd });
+            qtdEl.value = 1; sel.value = '';
+            credRenderItens();
+        }
+
+        function credRemoverItem(idx) { credItens.splice(idx, 1); credRenderItens(); }
+
+        function credRenderItens() {
+            const el = document.getElementById('cred-itens');
+            if (!el) return;
+            let total = 0;
+            el.innerHTML = credItens.length === 0
+                ? '<p class="text-[11px] text-gray-400">Nenhum produto adicionado ainda.</p>'
+                : credItens.map((i, idx) => {
+                    total += i.preco * i.qtd;
+                    return `<div class="flex items-center justify-between gap-2 bg-white border border-rosegold/20 rounded-lg px-3 py-1.5 text-xs">
+                        <span class="min-w-0 truncate"><b>${esc(i.qtd)}x</b> ${esc(i.nome)} <span class="text-gray-500">(${fmtBRL(i.preco)} un)</span></span>
+                        <span class="flex items-center gap-3 shrink-0"><b>${fmtBRL(i.preco * i.qtd)}</b>
+                        <button type="button" data-act="cred-rm" data-id="${idx}" class="text-red-500 hover:text-red-700" title="Remover"><i class="fa-solid fa-xmark"></i></button></span>
+                    </div>`;
+                }).join('');
+            document.getElementById('cred-valor').value = total > 0 ? total.toFixed(2) : '';
+        }
+
+        async function credPreencherPedidos() {
+            const sel = document.getElementById('cred-pedido');
+            if (!sel) return;
+            const [peds, creds] = await Promise.all([fetchPedidos(), fetchCred()]);
+            const usados = new Set(creds.map(c => c.pedido_id).filter(Boolean));
+            credPedidos = peds.filter(p => p.formaPagamento === 'Crediário' && p.status !== 'Cancelado' && !usados.has(p.id));
+            const atual = sel.value;
+            sel.innerHTML = '<option value="">Venda direta (sem pedido)</option>' + credPedidos.map(p =>
+                `<option value="${esc(p.id)}">${esc(p.id)} — ${esc(p.cliente || '')} — ${fmtBRL(p.valorTotal)}</option>`).join('');
+            if (atual && credPedidos.some(p => p.id === atual)) sel.value = atual;
+        }
+
+        async function credCarregarPedido() {
+            const id = document.getElementById('cred-pedido').value;
+            if (!id) { credItens = []; credRenderItens(); return; }
+            const ped = credPedidos.find(p => p.id === id);
+            if (!ped) return;
+            credItens = (ped.itensDetalhados || []).map(i => ({ id: i.id, nome: i.nome, preco: Number(i.preco || 0), qtd: Number(i.qtd || 1) }));
+            credRenderItens();
+            // descobre o cliente: pelo vínculo do login ou pelo nome
+            let nome = '';
+            if (ped.login_id) {
+                const r = await sb.from('clientes_login').select('cliente_id').eq('id', ped.login_id).maybeSingle();
+                if (r.data && r.data.cliente_id) {
+                    const c = await sb.from('clientes').select('nome').eq('id', r.data.cliente_id).maybeSingle();
+                    if (c.data) nome = c.data.nome;
+                }
+            }
+            const selCli = document.getElementById('cred-cliente');
+            const opts = Array.from(selCli.options);
+            const alvo = opts.find(o => o.value && (o.value === nome || semAcento(o.value) === semAcento(ped.cliente)));
+            if (alvo) selCli.value = alvo.value;
+            else aviso(`Cliente "${ped.cliente}" não está na Cartilha de clientes. Cadastre-o e selecione-o aqui.`);
+        }
+
+        async function gerarCrediarioDoPedido(id) {
+            switchTab('crediario');
+            await credPreencherPedidos();
+            document.getElementById('cred-pedido').value = id;
+            await credCarregarPedido();
+            document.getElementById('cred-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // =====================================================================
+        // ACESSOS DOS CLIENTES (login da loja online): vincular e redefinir senha
+        // =====================================================================
+        let loginsCache = [], clientesCache = [];
+
+        async function loadLogins() {
+            const data = await db(sb.from('clientes_login').select('id,usuario,nome,telefone,cliente_id,criado_em').order('criado_em', { ascending: false }), 'Carregar acessos dos clientes');
+            loginsCache = data || [];
+            clientesCache = await fetchClientes();
+            renderLogins();
+        }
+
+        function renderLogins() {
+            const el = document.getElementById('logins-list');
+            if (!el) return;
+            const termo = semAcento((document.getElementById('login-busca') || {}).value || '').trim();
+            const lista = loginsCache.filter(l => !termo || semAcento(l.usuario + ' ' + l.nome + ' ' + (l.telefone || '')).includes(termo));
+            if (loginsCache.length === 0) { el.innerHTML = '<p class="text-xs text-gray-400">Nenhum cliente criou conta na loja online ainda.</p>'; return; }
+            if (lista.length === 0) { el.innerHTML = '<p class="text-xs text-gray-400">Nenhum acesso encontrado.</p>'; return; }
+            const opcoes = (sel) => '<option value="">— sem vínculo —</option>' + clientesCache.map(c => `<option value="${esc(c.id)}" ${c.id === sel ? 'selected' : ''}>${esc(c.nome)}</option>`).join('');
+            el.innerHTML = lista.map(l => `
+                <div class="bg-creme p-3 rounded-xl border border-rosegold/20 text-xs space-y-2">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="font-bold text-marromCafe uppercase truncate">${esc(l.nome)} <span class="normal-case font-semibold text-verdePetroleo">@${esc(l.usuario)}</span></p>
+                            <p class="text-gray-500">${esc(l.telefone || 'sem telefone')} ${l.cliente_id ? '' : '<span class="ml-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Aguardando vínculo</span>'}</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button type="button" data-act="reset-senha" data-id="${esc(l.id)}" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200"><i class="fa-solid fa-key"></i> Redefinir senha</button>
+                            <button type="button" data-act="del-login" data-id="${esc(l.id)}" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200" title="Excluir acesso"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-gray-500 shrink-0">Cliente da Cartilha:</label>
+                        <select data-act="vincular" data-id="${esc(l.id)}" class="flex-1 min-w-0 bg-white border border-rosegold/30 rounded-lg px-2 py-1.5 text-xs">${opcoes(l.cliente_id)}</select>
+                    </div>
+                </div>`).join('');
+        }
+
+        async function vincularLogin(id, clienteId) {
+            await db(sb.from('clientes_login').update({ cliente_id: clienteId || null }).eq('id', id), 'Vincular acesso');
+            aviso(clienteId ? 'Acesso vinculado: o cliente já vê o crediário dele na loja.' : 'Vínculo removido.', 'ok');
+            await loadLogins();
+        }
+
+        async function redefinirSenhaLogin(id) {
+            const l = loginsCache.find(x => x.id === id);
+            if (!l) return;
+            const sugestao = 'helcinho' + Math.floor(1000 + Math.random() * 9000);
+            const nova = await perguntar(`Nova senha para @${l.usuario} (mínimo 6 caracteres). Passe-a ao cliente depois.`, sugestao);
+            if (!nova) return;
+            if (String(nova).length < 6) return aviso('A senha precisa ter pelo menos 6 caracteres.');
+            await db(sb.rpc('admin_redefinir_senha', { p_login_id: id, p_nova: String(nova) }), 'Redefinir senha');
+            aviso(`Senha de @${l.usuario} redefinida. Informe ao cliente: ${nova}`, 'ok');
+        }
+
+        async function excluirLogin(id) {
+            const l = loginsCache.find(x => x.id === id);
+            if (!(await confirmar(`Excluir o acesso @${l ? l.usuario : ''}? O cliente perde o login (os pedidos e o cadastro dele continuam).`))) return;
+            await db(sb.from('clientes_login').delete().eq('id', id), 'Excluir acesso');
+            await loadLogins();
         }
 
         // =====================================================================

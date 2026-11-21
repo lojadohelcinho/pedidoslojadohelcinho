@@ -31,23 +31,46 @@
             }
         }
     </script>
+    <style>
+        .campo { width: 100%; background: #FDF9F5; border: 1px solid rgba(212,155,133,.35); border-radius: .75rem; padding: .6rem .8rem; font-size: .875rem; outline: none; }
+        .campo:focus { border-color: #008B74; box-shadow: 0 0 0 3px rgba(0,139,116,.12); }
+        .forma-opcao:has(input:checked) { border-color: #008B74; background: rgba(0,139,116,.08); box-shadow: 0 0 0 2px rgba(0,139,116,.15); }
+        .forma-opcao:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+        body.travado { overflow: hidden; }
+    </style>
 </head>
 <body class="bg-creme text-marromCafe font-sans min-h-screen flex flex-col">
 
+    <!-- Barra para o administrador voltar ao painel (só aparece para quem está logado no painel) -->
+    <div id="barra-admin" class="hidden bg-marromCafe text-white text-xs">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+            <span class="opacity-80"><i class="fa-solid fa-eye mr-1.5"></i> Você está vendo a loja como seus clientes veem</span>
+            <a href="admin.html" class="bg-white text-marromCafe font-bold px-3 py-1.5 rounded-lg hover:bg-creme transition flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-arrow-left"></i> Voltar ao painel administrativo
+            </a>
+        </div>
+    </div>
+
     <!-- Header Principal -->
     <header class="sticky top-0 z-40 bg-creme/95 backdrop-blur border-b border-rosegold/20 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center">
-                    <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="font-cocomatStyle font-extrabold text-base sm:text-lg uppercase tracking-wider text-marromCafe">LOJA DO HELCINHO</h1>
-                    <p class="text-[10px] text-rosegold uppercase tracking-widest font-semibold">Perfumaria & Presentes</p>
-                </div>
-            </a>
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <button onclick="abrirMenu()" aria-label="Abrir menu" class="relative w-10 h-10 rounded-full bg-white border border-rosegold/30 text-marromCafe hover:bg-rosegold/10 shadow-sm transition flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bars"></i>
+                    <span id="menu-ponto" class="hidden absolute -top-0.5 -right-0.5 w-3 h-3 bg-verdePetroleo rounded-full border-2 border-creme"></span>
+                </button>
+                <a href="index.html" class="flex items-center gap-3 min-w-0">
+                    <div class="w-12 h-12 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
+                        <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-cocomatStyle font-extrabold text-base sm:text-lg uppercase tracking-wider text-marromCafe truncate">LOJA DO HELCINHO</h1>
+                        <p class="text-[10px] text-rosegold uppercase tracking-widest font-semibold">Perfumaria & Presentes</p>
+                    </div>
+                </a>
+            </div>
             <div class="flex items-center gap-3">
-                <button onclick="toggleCart()" class="relative bg-verdePetroleo hover:bg-verdeHover text-white p-2.5 rounded-full shadow transition flex items-center justify-center w-10 h-10">
+                <button onclick="toggleCart()" aria-label="Abrir sacola" class="relative bg-verdePetroleo hover:bg-verdeHover text-white p-2.5 rounded-full shadow transition flex items-center justify-center w-10 h-10">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-creme hidden">0</span>
                 </button>
@@ -81,6 +104,105 @@
         </div>
     </main>
 
+    <!-- ===================== MENU DA CONTA (☰) ===================== -->
+    <div id="menu-drawer" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="fecharMenu()"></div>
+        <aside class="absolute inset-y-0 left-0 w-full max-w-sm bg-creme shadow-2xl flex flex-col">
+            <div class="p-4 bg-white border-b border-rosegold/20 flex items-center justify-between">
+                <div>
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-user-circle text-rosegold mr-2"></i>Minha área</h2>
+                    <p id="menu-sub" class="text-[11px] text-gray-500">Entre para acompanhar seus pedidos</p>
+                </div>
+                <button onclick="fecharMenu()" aria-label="Fechar menu" class="text-gray-400 hover:text-marromCafe p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-4 space-y-3">
+
+                <!-- Seção: conta -->
+                <section class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden">
+                    <button onclick="toggleSecao('conta')" class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <span class="flex items-center gap-3 text-sm font-bold">
+                            <span class="w-8 h-8 rounded-lg bg-verdePetroleo/10 text-verdePetroleo flex items-center justify-center"><i class="fa-solid fa-right-to-bracket"></i></span>
+                            <span id="conta-titulo">Entrar / Criar conta</span>
+                        </span>
+                        <i id="chev-conta" class="fa-solid fa-chevron-down text-xs text-gray-400 transition"></i>
+                    </button>
+                    <div id="sec-conta" class="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+
+                        <div id="conta-deslogado" class="space-y-3">
+                            <div class="grid grid-cols-2 bg-creme rounded-xl p-1 text-xs font-bold">
+                                <button id="aba-login" onclick="mostrarForm('login')" class="py-2 rounded-lg bg-white shadow text-verdePetroleo">Entrar</button>
+                                <button id="aba-cadastro" onclick="mostrarForm('cadastro')" class="py-2 rounded-lg text-gray-500">Criar conta</button>
+                            </div>
+
+                            <form id="form-login" onsubmit="entrar(event)" class="space-y-2.5">
+                                <input id="login-usuario" class="campo" placeholder="Usuário" autocomplete="username" autocapitalize="none" required>
+                                <input id="login-senha" type="password" class="campo" placeholder="Senha" autocomplete="current-password" required>
+                                <button id="btn-login" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl text-sm font-semibold shadow transition">Entrar</button>
+                                <p class="text-[11px] text-gray-500 text-center">Esqueceu a senha? <a id="link-esqueci" href="#" target="_blank" class="text-verdePetroleo font-bold underline">Peça uma nova à loja pelo WhatsApp</a></p>
+                            </form>
+
+                            <form id="form-cadastro" onsubmit="cadastrar(event)" class="space-y-2.5 hidden">
+                                <input id="cad-nome" class="campo" placeholder="Seu nome completo" autocomplete="name" required>
+                                <input id="cad-telefone" class="campo" placeholder="WhatsApp (com DDD)" inputmode="tel" autocomplete="tel">
+                                <input id="cad-usuario" class="campo" placeholder="Escolha um usuário (sem espaços)" autocomplete="username" autocapitalize="none" required>
+                                <input id="cad-senha" type="password" class="campo" placeholder="Crie uma senha (mín. 6 caracteres)" autocomplete="new-password" required>
+                                <button id="btn-cadastro" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl text-sm font-semibold shadow transition">Criar minha conta</button>
+                                <p class="text-[11px] text-gray-500 text-center">Anote seu usuário e senha. Se esquecer, a loja cria uma senha nova para você.</p>
+                            </form>
+                            <p id="conta-msg" class="hidden text-xs font-semibold text-center rounded-lg px-3 py-2"></p>
+                        </div>
+
+                        <div id="conta-logado" class="hidden space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-full bg-verdePetroleo text-white flex items-center justify-center font-bold text-lg" id="perfil-inicial">?</div>
+                                <div class="min-w-0">
+                                    <p id="perfil-nome" class="font-bold text-sm truncate"></p>
+                                    <p id="perfil-usuario" class="text-xs text-gray-500 truncate"></p>
+                                </div>
+                            </div>
+                            <button onclick="sair()" class="w-full bg-red-50 hover:bg-red-100 text-red-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sair da conta
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção: pedidos -->
+                <section class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden">
+                    <button onclick="toggleSecao('pedidos')" class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <span class="flex items-center gap-3 text-sm font-bold">
+                            <span class="w-8 h-8 rounded-lg bg-rosegold/15 text-rosegold flex items-center justify-center"><i class="fa-solid fa-receipt"></i></span>
+                            <span>Pedidos feitos <span class="text-[11px] font-medium text-gray-400">(últimos 60 dias)</span></span>
+                        </span>
+                        <i id="chev-pedidos" class="fa-solid fa-chevron-down text-xs text-gray-400 transition"></i>
+                    </button>
+                    <div id="sec-pedidos" class="hidden px-4 pb-4 border-t border-gray-100 pt-3">
+                        <div id="lista-pedidos" class="space-y-3"></div>
+                    </div>
+                </section>
+
+                <!-- Seção: crediário -->
+                <section class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden">
+                    <button onclick="toggleSecao('crediario')" class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <span class="flex items-center gap-3 text-sm font-bold">
+                            <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center"><i class="fa-solid fa-credit-card"></i></span>
+                            <span>Crediário em aberto</span>
+                        </span>
+                        <i id="chev-crediario" class="fa-solid fa-chevron-down text-xs text-gray-400 transition"></i>
+                    </button>
+                    <div id="sec-crediario" class="hidden px-4 pb-4 border-t border-gray-100 pt-3">
+                        <div id="lista-crediario" class="space-y-3"></div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="p-3 text-center text-[10px] text-gray-400 bg-white border-t border-rosegold/10">
+                <i class="fa-solid fa-lock mr-1"></i> Sua senha é guardada criptografada.
+            </div>
+        </aside>
+    </div>
+
     <!-- Sacola Drawer -->
     <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="toggleCart()"></div>
@@ -102,7 +224,28 @@
                     </label>
                 </div>
                 <div id="cart-items" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
-                <div class="p-4 bg-white border-t border-rosegold/20 space-y-3">
+
+                <!-- Forma de pagamento -->
+                <div class="px-4 pt-3 pb-1 bg-white border-t border-rosegold/20">
+                    <p class="text-xs font-bold text-marromCafe mb-2"><i class="fa-solid fa-wallet text-rosegold mr-1.5"></i> Forma de pagamento *</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="forma-opcao cursor-pointer border border-rosegold/30 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold transition">
+                            <input type="radio" name="forma" value="Dinheiro" class="accent-verdePetroleo"> <i class="fa-solid fa-money-bill-wave text-emerald-600"></i> Dinheiro
+                        </label>
+                        <label class="forma-opcao cursor-pointer border border-rosegold/30 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold transition">
+                            <input type="radio" name="forma" value="Pix" class="accent-verdePetroleo"> <i class="fa-brands fa-pix text-teal-600"></i> Pix
+                        </label>
+                        <label class="forma-opcao cursor-pointer border border-rosegold/30 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold transition">
+                            <input type="radio" name="forma" value="Cartão de crédito" class="accent-verdePetroleo"> <i class="fa-solid fa-credit-card text-blue-600"></i> Cartão de crédito
+                        </label>
+                        <label id="forma-crediario" class="forma-opcao cursor-pointer border border-rosegold/30 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold transition">
+                            <input type="radio" name="forma" value="Crediário" class="accent-verdePetroleo"> <i class="fa-solid fa-handshake text-amber-600"></i> Crediário
+                        </label>
+                    </div>
+                    <p id="aviso-crediario" class="text-[11px] text-amber-700 mt-1.5">Crediário: entre na sua conta (menu ☰) para escolher esta opção. A loja analisa e confirma.</p>
+                </div>
+
+                <div class="p-4 bg-white space-y-3">
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-600">Subtotal:</span>
                         <span id="cart-subtotal" class="font-bold text-lg text-marromCafe">R$ 0,00</span>
@@ -116,14 +259,25 @@
         </div>
     </div>
 
+    <!-- Foto ampliada -->
+    <div id="lightbox" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/85 p-4" onclick="fecharZoom()">
+        <button onclick="event.stopPropagation(); fecharZoom()" aria-label="Fechar foto" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-marromCafe shadow-lg flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <figure class="max-w-3xl w-full flex flex-col items-center gap-3" onclick="event.stopPropagation()">
+            <img id="lightbox-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain rounded-2xl bg-white shadow-2xl">
+            <figcaption id="lightbox-legenda" class="text-white text-sm font-semibold uppercase tracking-wide text-center"></figcaption>
+        </figure>
+    </div>
+
     <!-- Rodapé Interativo Manhub + Copyright -->
     <footer class="bg-white border-t border-rosegold/20 py-4 text-center text-xs text-gray-500">
         <div class="max-w-md mx-auto flex flex-col items-center relative mb-3">
-            
+
             <!-- Contêiner do Logotipo Clicável -->
             <div class="relative inline-block">
                 <img src="manhublogo.png" alt="Manhub Logo" class="h-10 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
-                
+
                 <!-- Aba Pop-up Fale Conosco -->
                 <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-black text-white rounded-2xl shadow-2xl border border-gray-800 p-3 text-center z-50 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                     <div class="relative flex items-center justify-center border-b border-gray-800 pb-2">
@@ -155,25 +309,36 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const ZAP_PADRAO = '5516981035241';
+        const TOKEN_KEY = 'helcinho_token';
 
         let products = [];
         let cart = [];
         let currentCategory = 'todos';
         let zapLoja = ZAP_PADRAO;
+        let token = null;      // sessão do cliente (login da loja)
+        let perfil = null;     // { nome, usuario, vinculado }
 
-        // Função do Pop-up do Rodapé Manhub
-        function toggleMenuManhub() {
-            const popup = document.getElementById('popup-manhub');
-            if (popup) {
-                popup.classList.toggle('hidden');
-            }
-        }
-
-        // Escapa texto vindo do banco antes de colocar no HTML
+        // ---------- utilidades ----------
+        function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+        function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+        function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
         function esc(s) {
             return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
         function fmtBRL(v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); }
+        function fmtDataISO(iso) { const p = String(iso || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : '-'; }
+        function fmtDataHora(iso) {
+            const d = new Date(iso); if (isNaN(d)) return '';
+            return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        function hojeISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        const IMG_PADRAO = 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500';
+
+        // Função do Pop-up do Rodapé Manhub
+        function toggleMenuManhub() {
+            const popup = document.getElementById('popup-manhub');
+            if (popup) popup.classList.toggle('hidden');
+        }
 
         // WhatsApp da loja vem do painel (nuvem)
         async function carregarWhatsApp() {
@@ -181,8 +346,21 @@
                 const { data, error } = await supabaseClient.from('configuracoes').select('valor').eq('id', 'whatsapp').maybeSingle();
                 if (!error && data && data.valor) zapLoja = String(data.valor).replace(/\D/g, '') || ZAP_PADRAO;
             } catch (e) { console.error('WhatsApp da loja:', e); }
+            const link = document.getElementById('link-esqueci');
+            if (link) link.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent('Olá! Esqueci minha senha da loja online. Pode criar uma nova para mim?')}`;
         }
 
+        // Quem está logado no painel administrativo vê o botão "Voltar ao painel"
+        async function verificarAdmin() {
+            let admin = new URLSearchParams(location.search).get('de') === 'admin';
+            try {
+                const { data } = await supabaseClient.auth.getSession();
+                if (data && data.session) admin = true;
+            } catch (e) {}
+            if (admin) document.getElementById('barra-admin').classList.remove('hidden');
+        }
+
+        // ---------- produtos ----------
         async function fetchProducts() {
             try {
                 const { data, error } = await supabaseClient.from('produtos').select('*');
@@ -217,6 +395,8 @@
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-cat]');
             if (btn) setCategory(btn.dataset.cat);
+            const zoom = e.target.closest('[data-zoom]');
+            if (zoom) abrirZoom(zoom.dataset.zoom, zoom.dataset.legenda);
         });
 
         function renderProducts() {
@@ -238,9 +418,10 @@
             document.getElementById('empty-state').classList.add('hidden');
             grid.innerHTML = filtered.map(p => `
                 <div class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-                    <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48">
+                    <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48 cursor-zoom-in" data-zoom="${esc(p.imagem || IMG_PADRAO)}" data-legenda="${esc(p.nome)}" title="Toque para ampliar">
                         ${p.preco_antigo ? `<span class="absolute top-2 left-2 bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">Promoção</span>` : ''}
-                        <img src="${esc(p.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500')}" alt="${esc(p.nome)}" class="h-full object-contain">
+                        <span class="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 text-gray-500 shadow flex items-center justify-center text-[11px] pointer-events-none"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                        <img src="${esc(p.imagem || IMG_PADRAO)}" alt="${esc(p.nome)}" class="h-full object-contain" loading="lazy">
                     </div>
                     <div class="p-3 flex flex-col flex-grow justify-between">
                         <div>
@@ -253,7 +434,7 @@
                                 ${p.preco_antigo ? `<span class="text-[10px] text-gray-400 line-through block">${fmtBRL(p.preco_antigo)}</span>` : ''}
                                 <span class="font-bold text-base text-marromCafe">${fmtBRL(p.preco)}</span>
                             </div>
-                            <button onclick="addToCart(${Number(p.id)})" class="bg-verdePetroleo hover:bg-verdeHover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow transition">
+                            <button onclick="addToCart(${Number(p.id)})" aria-label="Adicionar à sacola" class="bg-verdePetroleo hover:bg-verdeHover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow transition">
                                 <i class="fa-solid fa-bag-shopping text-xs"></i>
                             </button>
                         </div>
@@ -267,8 +448,30 @@
             updateCategories();
             renderProducts();
         }
-
         function filterProducts() { renderProducts(); }
+
+        // ---------- foto ampliada ----------
+        function abrirZoom(src, legenda) {
+            const box = document.getElementById('lightbox');
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-img').alt = legenda || '';
+            document.getElementById('lightbox-legenda').textContent = legenda || '';
+            box.classList.remove('hidden'); box.classList.add('flex');
+            document.body.classList.add('travado');
+        }
+        function fecharZoom() {
+            const box = document.getElementById('lightbox');
+            box.classList.add('hidden'); box.classList.remove('flex');
+            document.getElementById('lightbox-img').src = '';
+            document.body.classList.remove('travado');
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (!document.getElementById('lightbox').classList.contains('hidden')) fecharZoom();
+            else if (!document.getElementById('menu-drawer').classList.contains('hidden')) fecharMenu();
+        });
+
+        // ---------- sacola ----------
         function toggleCart() { document.getElementById('cart-drawer').classList.toggle('hidden'); renderCartItems(); }
 
         function addToCart(id) {
@@ -311,7 +514,7 @@
                 subtotal += (item.preco || 0) * item.qtd;
                 return `
                     <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-rosegold/20 shadow-xs">
-                        <img src="${esc(item.imagem || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500')}" class="w-14 h-14 object-contain bg-gray-50 rounded-lg p-1">
+                        <img src="${esc(item.imagem || IMG_PADRAO)}" class="w-14 h-14 object-contain bg-gray-50 rounded-lg p-1">
                         <div class="flex-grow">
                             <h4 class="font-bold text-xs text-marromCafe uppercase">${esc(item.nome)}</h4>
                             <p class="text-xs text-gray-500">${fmtBRL(item.preco)}</p>
@@ -329,6 +532,12 @@
             subtotalEl.textContent = fmtBRL(subtotal);
         }
 
+        // ---------- checkout ----------
+        function formaEscolhida() {
+            const r = document.querySelector('input[name="forma"]:checked');
+            return r ? r.value : '';
+        }
+
         let enviando = false;
         async function checkoutWhatsApp() {
             if (enviando) return;
@@ -338,6 +547,12 @@
             if (!nomeCliente) {
                 alert('Por favor, digite o seu nome antes de finalizar o pedido!');
                 document.getElementById('cliente-nome').focus();
+                return;
+            }
+            const forma = formaEscolhida();
+            if (!forma) return alert('Escolha a forma de pagamento: Dinheiro, Pix, Cartão de crédito ou Crediário.');
+            if (forma === 'Crediário' && !perfil) {
+                alert('Para pedir no crediário, entre na sua conta pelo menu ☰.');
                 return;
             }
 
@@ -350,70 +565,301 @@
 
             try {
                 const isGift = document.getElementById('is-gift').checked;
-                
-                // GERAÇÃO DO NÚMERO SEQUENCIAL COMETANDO DE #0001
-                let ultimoNumero = parseInt(localStorage.getItem('helcinho_seq_pedido') || '0');
-                let novoNumero = ultimoNumero + 1;
-                localStorage.setItem('helcinho_seq_pedido', novoNumero);
-                const numeroPedido = '#' + String(novoNumero).padStart(4, '0');
-
-                let subtotal = 0;
-                cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
-                const produtosDescricao = cart.map(i => `${i.qtd}x ${i.nome}`).join(', ');
                 const agora = new Date();
                 const dataTxt = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-                const itens = cart.map(i => ({
-                    id: i.id,
-                    nome: i.nome,
-                    categoria: i.categoria || 'Geral',
-                    preco: Number(i.preco || 0),
-                    qtd: i.qtd
-                }));
+                // Total/itens calculados aqui só para o caso de o sistema estar fora do ar
+                let subtotal = 0;
+                cart.forEach(item => { subtotal += (item.preco || 0) * item.qtd; });
+                let linhas = cart.map(i => ({ nome: i.nome, qtd: i.qtd, preco: Number(i.preco || 0) }));
+                let totalFinal = subtotal;
+                let numeroPedido = '';
+                let salvou = false;
+                let erroPedido = '';
 
-                let salvou = true;
                 try {
-                    const { error } = await supabaseClient.from('pedidos').insert([{
-                        id: numeroPedido,
-                        cliente: nomeCliente,
-                        produtos: produtosDescricao,
-                        itensdetalhados: itens,
-                        valortotal: subtotal,
-                        formapagamento: 'WhatsApp / Pix',
-                        status: 'Novo',
-                        presente: isGift ? 'Sim' : 'Não',
-                        data: dataTxt
-                    }]);
-                    if (error) { salvou = false; console.error('Erro ao registrar pedido:', error); }
+                    const { data, error } = await supabaseClient.rpc('loja_criar_pedido', {
+                        p_token: token,
+                        p_cliente: nomeCliente,
+                        p_itens: cart.map(i => ({ id: i.id, qtd: i.qtd })),
+                        p_forma: forma,
+                        p_presente: isGift,
+                        p_data: dataTxt
+                    });
+                    if (error) { console.error('Erro ao registrar pedido:', error); }
+                    else if (data && data.ok) {
+                        salvou = true;
+                        numeroPedido = data.id;
+                        totalFinal = Number(data.total);
+                        linhas = (data.itens || []).map(i => ({ nome: i.nome, qtd: i.qtd, preco: Number(i.preco) }));
+                    } else if (data && data.erro) { erroPedido = data.erro; }
                 } catch (err) {
-                    salvou = false;
                     console.error('Erro ao registrar pedido:', err);
                 }
 
+                if (!salvou && erroPedido) {
+                    if (janelaZap) janelaZap.close();
+                    alert(erroPedido);
+                    return;
+                }
                 if (!salvou) {
                     alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
                 }
 
-                let text = `*🛍️ PEDIDO ${numeroPedido} - LOJA DO HELCINHO*\n`;
-                text += `👤 *Cliente:* ${nomeCliente}\n\n`;
-                cart.forEach(item => {
-                    text += `• ${item.qtd}x *${item.nome}* - ${fmtBRL((item.preco || 0) * item.qtd)}\n`;
+                let text = `*🛍️ PEDIDO ${numeroPedido || '(sem número)'} - LOJA DO HELCINHO*\n`;
+                text += `👤 *Cliente:* ${nomeCliente}\n`;
+                if (perfil) text += `🔑 *Usuário:* ${perfil.usuario}\n`;
+                text += `\n`;
+                linhas.forEach(item => {
+                    text += `• ${item.qtd}x *${item.nome}* - ${fmtBRL(item.preco * item.qtd)}\n`;
                 });
                 if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
-                text += `\n💰 *Total:* ${fmtBRL(subtotal)}\n\nOlá, gostaria de confirmar este pedido!`;
+                text += `\n💳 *Forma de pagamento:* ${forma}`;
+                if (forma === 'Crediário') text += ` (aguardando aprovação da loja)`;
+                text += `\n💰 *Total:* ${fmtBRL(totalFinal)}\n\nOlá, gostaria de confirmar este pedido!`;
 
                 const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`;
                 if (janelaZap) janelaZap.location.href = url;
                 else window.location.href = url;
 
                 cart = [];
+                document.querySelectorAll('input[name="forma"]').forEach(r => r.checked = false);
                 updateBadge();
                 toggleCart();
+                // atualiza a lista de pedidos, caso o menu esteja aberto
+                if (perfil && !document.getElementById('sec-pedidos').classList.contains('hidden')) carregarPedidos();
             } finally {
                 enviando = false;
                 btn.disabled = false;
                 btn.classList.remove('opacity-60');
             }
+        }
+
+        // ---------- conta do cliente ----------
+        async function rpc(nome, args) {
+            try {
+                const { data, error } = await supabaseClient.rpc(nome, args);
+                if (error) { console.error(nome, error); return { ok: false, erro: 'Não foi possível conectar agora. Tente novamente.' }; }
+                return data || { ok: false, erro: 'Resposta vazia.' };
+            } catch (e) {
+                console.error(nome, e);
+                return { ok: false, erro: 'Sem conexão com a internet.' };
+            }
+        }
+
+        function aplicarConta() {
+            const logado = !!perfil;
+            document.getElementById('conta-deslogado').classList.toggle('hidden', logado);
+            document.getElementById('conta-logado').classList.toggle('hidden', !logado);
+            document.getElementById('menu-ponto').classList.toggle('hidden', !logado);
+            document.getElementById('conta-titulo').textContent = logado ? 'Minha conta' : 'Entrar / Criar conta';
+            document.getElementById('menu-sub').textContent = logado ? `Olá, ${perfil.nome.split(' ')[0]}!` : 'Entre para acompanhar seus pedidos';
+            if (logado) {
+                document.getElementById('perfil-nome').textContent = perfil.nome;
+                document.getElementById('perfil-usuario').textContent = '@' + perfil.usuario;
+                document.getElementById('perfil-inicial').textContent = (perfil.nome || '?').trim().charAt(0).toUpperCase();
+                const campo = document.getElementById('cliente-nome');
+                if (!campo.value) campo.value = perfil.nome;
+            }
+            // Crediário só para quem está logado
+            const radio = document.querySelector('#forma-crediario input');
+            radio.disabled = !logado;
+            if (!logado && radio.checked) radio.checked = false;
+            document.getElementById('aviso-crediario').classList.toggle('hidden', logado);
+            if (!document.getElementById('sec-pedidos').classList.contains('hidden')) carregarPedidos();
+            if (!document.getElementById('sec-crediario').classList.contains('hidden')) carregarCrediario();
+        }
+
+        async function restaurarSessao() {
+            token = lsGet(TOKEN_KEY);
+            if (token) {
+                const r = await rpc('loja_perfil', { p_token: token });
+                if (r.ok) perfil = r;
+                else { token = null; lsDel(TOKEN_KEY); }
+            }
+            aplicarConta();
+        }
+
+        function msgConta(texto, ok) {
+            const el = document.getElementById('conta-msg');
+            if (!texto) { el.classList.add('hidden'); return; }
+            el.className = 'text-xs font-semibold text-center rounded-lg px-3 py-2 ' + (ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700');
+            el.textContent = texto;
+        }
+
+        function mostrarForm(qual) {
+            const login = qual === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !login);
+            document.getElementById('form-cadastro').classList.toggle('hidden', login);
+            document.getElementById('aba-login').className = 'py-2 rounded-lg ' + (login ? 'bg-white shadow text-verdePetroleo' : 'text-gray-500');
+            document.getElementById('aba-cadastro').className = 'py-2 rounded-lg ' + (!login ? 'bg-white shadow text-verdePetroleo' : 'text-gray-500');
+            msgConta('');
+        }
+
+        async function finalizarLogin(r) {
+            token = r.token; lsSet(TOKEN_KEY, token);
+            perfil = { nome: r.nome, usuario: r.usuario, vinculado: !!r.vinculado };
+            document.getElementById('login-senha').value = '';
+            document.getElementById('cad-senha').value = '';
+            msgConta('');
+            aplicarConta();
+        }
+
+        async function entrar(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true; btn.classList.add('opacity-60');
+            const r = await rpc('loja_login', { p_usuario: document.getElementById('login-usuario').value, p_senha: document.getElementById('login-senha').value });
+            btn.disabled = false; btn.classList.remove('opacity-60');
+            if (r.ok) finalizarLogin(r); else msgConta(r.erro || 'Não foi possível entrar.', false);
+        }
+
+        async function cadastrar(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-cadastro');
+            btn.disabled = true; btn.classList.add('opacity-60');
+            const r = await rpc('loja_cadastrar', {
+                p_usuario: document.getElementById('cad-usuario').value,
+                p_senha: document.getElementById('cad-senha').value,
+                p_nome: document.getElementById('cad-nome').value,
+                p_telefone: document.getElementById('cad-telefone').value
+            });
+            btn.disabled = false; btn.classList.remove('opacity-60');
+            if (r.ok) finalizarLogin(r); else msgConta(r.erro || 'Não foi possível criar a conta.', false);
+        }
+
+        async function sair() {
+            if (token) rpc('loja_sair', { p_token: token });
+            token = null; perfil = null; lsDel(TOKEN_KEY);
+            document.getElementById('lista-pedidos').innerHTML = '';
+            document.getElementById('lista-crediario').innerHTML = '';
+            aplicarConta();
+        }
+
+        // ---------- menu (☰) ----------
+        function abrirMenu() {
+            document.getElementById('menu-drawer').classList.remove('hidden');
+            document.body.classList.add('travado');
+            if (perfil) { /* recarrega o que estiver aberto */
+                if (!document.getElementById('sec-pedidos').classList.contains('hidden')) carregarPedidos();
+                if (!document.getElementById('sec-crediario').classList.contains('hidden')) carregarCrediario();
+            }
+        }
+        function fecharMenu() {
+            document.getElementById('menu-drawer').classList.add('hidden');
+            document.body.classList.remove('travado');
+        }
+        function toggleSecao(id) {
+            const corpo = document.getElementById('sec-' + id);
+            const abrir = corpo.classList.contains('hidden');
+            corpo.classList.toggle('hidden', !abrir);
+            document.getElementById('chev-' + id).style.transform = abrir ? 'rotate(180deg)' : '';
+            if (abrir && id === 'pedidos') carregarPedidos();
+            if (abrir && id === 'crediario') carregarCrediario();
+        }
+        // a seção "conta" começa aberta
+        document.getElementById('chev-conta').style.transform = 'rotate(180deg)';
+
+        function avisoLogin(texto) {
+            return `<div class="text-center py-5 text-xs text-gray-500"><i class="fa-solid fa-lock text-rosegold text-xl mb-2 block"></i>${texto}</div>`;
+        }
+
+        const COR_STATUS = {
+            'Novo': 'bg-blue-100 text-blue-700',
+            'Confirmado': 'bg-indigo-100 text-indigo-700',
+            'Em separação': 'bg-amber-100 text-amber-700',
+            'Entregue': 'bg-emerald-100 text-emerald-700',
+            'Cancelado': 'bg-red-100 text-red-700'
+        };
+
+        async function carregarPedidos() {
+            const el = document.getElementById('lista-pedidos');
+            if (!perfil) { el.innerHTML = avisoLogin('Entre na sua conta para ver os pedidos feitos nos últimos 60 dias.'); return; }
+            el.innerHTML = '<p class="text-center text-xs text-gray-400 py-4"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Carregando...</p>';
+            const r = await rpc('loja_meus_pedidos', { p_token: token });
+            if (!r.ok) {
+                if (/expirad/i.test(r.erro || '')) { sair(); return; }
+                el.innerHTML = `<p class="text-center text-xs text-red-600 py-4">${esc(r.erro)}</p>`; return;
+            }
+            const lista = r.pedidos || [];
+            if (lista.length === 0) { el.innerHTML = '<p class="text-center text-xs text-gray-400 py-4">Nenhum pedido nos últimos 60 dias.</p>'; return; }
+            el.innerHTML = lista.map(p => {
+                const itens = Array.isArray(p.itensdetalhados) ? p.itensdetalhados : [];
+                const corpo = itens.length
+                    ? itens.map(i => `<li class="flex justify-between gap-2"><span>${esc(i.qtd)}x ${esc(i.nome)}</span><span class="text-gray-500 shrink-0">${fmtBRL(Number(i.preco) * Number(i.qtd))}</span></li>`).join('')
+                    : `<li>${esc(p.produtos || '')}</li>`;
+                return `
+                    <div class="bg-creme rounded-xl border border-rosegold/20 p-3 text-xs space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <p class="font-bold text-sm">Pedido ${esc(p.id)}</p>
+                                <p class="text-[11px] text-gray-500">${esc(fmtDataHora(p.criado_em) || p.data || '')}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${COR_STATUS[p.status] || 'bg-gray-100 text-gray-600'}">${esc(p.status || 'Novo')}</span>
+                        </div>
+                        <ul class="space-y-0.5 text-marromCafe">${corpo}</ul>
+                        <div class="flex items-center justify-between border-t border-rosegold/15 pt-2">
+                            <span class="text-gray-500"><i class="fa-solid fa-wallet mr-1"></i>${esc(p.formapagamento || '-')}</span>
+                            <span class="font-bold text-verdePetroleo text-sm">${fmtBRL(p.valortotal)}</span>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function carregarCrediario() {
+            const el = document.getElementById('lista-crediario');
+            if (!perfil) { el.innerHTML = avisoLogin('Entre na sua conta para acompanhar o seu crediário.'); return; }
+            el.innerHTML = '<p class="text-center text-xs text-gray-400 py-4"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Carregando...</p>';
+            const r = await rpc('loja_meu_crediario', { p_token: token });
+            if (!r.ok) {
+                if (/expirad/i.test(r.erro || '')) { sair(); return; }
+                el.innerHTML = `<p class="text-center text-xs text-red-600 py-4">${esc(r.erro)}</p>`; return;
+            }
+            if (!r.vinculado) {
+                el.innerHTML = `<div class="text-center py-4 text-xs text-gray-500"><i class="fa-solid fa-link text-rosegold text-xl mb-2 block"></i>Seu usuário ainda não está ligado ao seu cadastro na loja. Fale com a loja para liberar o acompanhamento do seu crediário.<br><a target="_blank" href="https://wa.me/${zapLoja}?text=${encodeURIComponent('Olá! Meu usuário na loja online é ' + perfil.usuario + '. Pode liberar o meu crediário?')}" class="inline-block mt-2 text-verdePetroleo font-bold underline">Chamar a loja no WhatsApp</a></div>`;
+                return;
+            }
+            const contratos = r.contratos || [];
+            if (contratos.length === 0) { el.innerHTML = '<p class="text-center text-xs text-gray-400 py-4"><i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-2 block"></i>Você não tem nenhuma conta em aberto.</p>'; return; }
+
+            const hoje = hojeISO();
+            let totalAberto = 0, totalAtrasado = 0;
+            const blocos = contratos.map(c => {
+                const parcelas = Array.isArray(c.parcelas) ? c.parcelas : [];
+                const linhas = parcelas.map(p => {
+                    const saldo = Number(p.valorOriginal || 0) - Number(p.valorPago || 0);
+                    let rotulo, cor;
+                    if (saldo <= 0) { rotulo = 'Paga'; cor = 'bg-emerald-100 text-emerald-700'; }
+                    else if (String(p.vencimento) < hoje) { rotulo = 'Atrasada'; cor = 'bg-red-100 text-red-700'; totalAtrasado += saldo; totalAberto += saldo; }
+                    else { rotulo = Number(p.valorPago) > 0 ? 'Parcial' : 'A vencer'; cor = 'bg-amber-100 text-amber-700'; totalAberto += saldo; }
+                    return `
+                        <div class="flex items-center justify-between gap-2 bg-white rounded-lg border border-gray-100 px-2.5 py-2">
+                            <div>
+                                <p class="font-bold">Parcela ${esc(p.numero)}</p>
+                                <p class="text-[11px] text-gray-500">Vence em ${fmtDataISO(p.vencimento)}${Number(p.valorPago) > 0 && saldo > 0 ? ` · já pago ${fmtBRL(p.valorPago)}` : ''}</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <p class="font-bold">${fmtBRL(saldo > 0 ? saldo : p.valorOriginal)}</p>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${cor}">${rotulo}</span>
+                            </div>
+                        </div>`;
+                }).join('');
+                return `
+                    <div class="bg-creme rounded-xl border border-rosegold/20 p-3 text-xs space-y-2">
+                        <div>
+                            <p class="font-bold text-sm">${esc(c.produtos || 'Compra no crediário')}</p>
+                            <p class="text-[11px] text-gray-500">Compra de ${esc(fmtDataHora(c.criado_em).split(' às')[0])} · total ${fmtBRL(c.valortotal)}</p>
+                        </div>
+                        <div class="space-y-1.5">${linhas}</div>
+                    </div>`;
+            }).join('');
+
+            el.innerHTML = `
+                <div class="rounded-xl bg-verdePetroleo text-white p-3 flex items-center justify-between">
+                    <div><p class="text-[11px] opacity-80">Total em aberto</p><p class="text-lg font-bold">${fmtBRL(totalAberto)}</p></div>
+                    ${totalAtrasado > 0 ? `<div class="text-right"><p class="text-[11px] opacity-80">Em atraso</p><p class="font-bold text-red-200">${fmtBRL(totalAtrasado)}</p></div>` : ''}
+                </div>
+                ${blocos}`;
         }
 
         function ligarTempoReal() {
@@ -427,6 +873,8 @@
         }
 
         carregarWhatsApp();
+        verificarAdmin();
+        restaurarSessao();
         fetchProducts();
         ligarTempoReal();
     </script>
