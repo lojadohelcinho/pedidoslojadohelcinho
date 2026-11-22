@@ -259,6 +259,11 @@
         </div>
     </div>
 
+    <!-- Botão "voltar ao topo" -->
+    <button id="btn-topo" onclick="voltarAoTopo()" aria-label="Voltar ao topo" class="hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 w-12 h-12 rounded-full bg-verdePetroleo/80 hover:bg-verdePetroleo text-white shadow-lg backdrop-blur items-center justify-center transition">
+        <i class="fa-solid fa-arrow-up text-lg"></i>
+    </button>
+
     <!-- Foto ampliada -->
     <div id="lightbox" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/85 p-4" onclick="fecharZoom()">
         <button onclick="event.stopPropagation(); fecharZoom()" aria-label="Fechar foto" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-marromCafe shadow-lg flex items-center justify-center transition">
@@ -507,6 +512,19 @@
             let x0 = null; const box = document.getElementById('lightbox');
             box.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
             box.addEventListener('touchend', (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) zoomIr(dx < 0 ? 1 : -1); }, { passive: true });
+        })();
+
+        // ---------- voltar ao topo ----------
+        function voltarAoTopo() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        (function () {
+            const b = document.getElementById('btn-topo');
+            const atualizar = () => {
+                const mostrar = window.scrollY > 400;
+                b.classList.toggle('hidden', !mostrar);
+                b.classList.toggle('flex', mostrar);
+            };
+            window.addEventListener('scroll', atualizar, { passive: true });
+            atualizar();
         })();
 
         // ---------- sacola ----------
