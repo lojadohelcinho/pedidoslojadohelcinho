@@ -269,6 +269,31 @@
         </div>
     </div>
 
+    <!-- Pedido registrado: imagem do pedido + envio para a loja -->
+    <div id="pedido-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-3">
+        <div class="bg-creme w-full max-w-md max-h-[94vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="px-5 pt-5 pb-3 text-center">
+                <div class="w-12 h-12 mx-auto rounded-full bg-verdePetroleo text-white flex items-center justify-center text-xl mb-2"><i class="fa-solid fa-check"></i></div>
+                <h2 id="pedido-modal-titulo" class="font-bold text-lg text-marromCafe">Pedido registrado!</h2>
+                <p class="text-xs text-gray-600 mt-1">A loja já recebeu o seu pedido no sistema. Para agilizar a confirmação, envie a imagem do pedido pelo WhatsApp.</p>
+            </div>
+            <div class="px-5 overflow-y-auto flex-grow">
+                <img id="pedido-img" alt="Imagem do pedido" class="w-full rounded-2xl border border-rosegold/30 shadow-sm bg-white">
+                <p class="text-[11px] text-gray-500 text-center mt-2">Dica: se preferir, segure o dedo na imagem para salvá-la.</p>
+            </div>
+            <div class="p-5 space-y-2.5">
+                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar a imagem pelo WhatsApp
+                </button>
+                <button onclick="abrirConversaLoja()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo font-semibold py-3 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-verdePetroleo/5">
+                    <i class="fa-solid fa-paperclip"></i> Abrir a conversa da loja e anexar
+                </button>
+                <p class="text-[11px] text-gray-500 text-center">A imagem é salva no seu aparelho. Na conversa da loja, toque no clipe <i class="fa-solid fa-paperclip"></i> e escolha a imagem do pedido.</p>
+                <button onclick="fecharPedidoModal()" class="w-full text-gray-500 text-xs font-semibold py-1.5">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Botão "voltar ao topo" -->
     <button id="btn-topo" onclick="voltarAoTopo()" aria-label="Voltar ao topo" class="hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 w-12 h-12 rounded-full bg-verdePetroleo/80 hover:bg-verdePetroleo text-white shadow-lg backdrop-blur items-center justify-center transition">
         <i class="fa-solid fa-arrow-up text-lg"></i>
@@ -613,6 +638,128 @@
             }).join(' ');
         }
 
+        // ---------- IMAGEM DO PEDIDO (mesmo modelo do recibo do crediário) ----------
+        let pedidoBlob = null, pedidoUrl = null, pedidoDados = null;
+
+        function textoCurtoPedido(d) {
+            return `Olá! Acabei de fazer o pedido ${d.numero || ''} pela loja online (${fmtBRL(d.total)} - ${d.forma}). Estou enviando a imagem do pedido.`.replace('  ', ' ');
+        }
+
+        function carregarImagem(src) {
+            return new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = src; });
+        }
+
+        async function gerarPedidoPNG(d) {
+            try { await document.fonts.load('700 30px "Plus Jakarta Sans"'); await document.fonts.load('400 30px "Plus Jakarta Sans"'); } catch (e) {}
+            const FONTE = '"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif';
+            const W = 1080, M = 70, VERDE = '#008B74', MARROM = '#3E2723', ROSE = '#D49B85', CREME = '#FDF9F5', CINZA = '#6b5a55';
+            const cv = document.createElement('canvas'); cv.width = W; cv.height = 5000;
+            const c = cv.getContext('2d');
+            if (!c.roundRect) { c.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); }; }   // navegadores antigos: cantos retos
+            c.fillStyle = CREME; c.fillRect(0, 0, W, cv.height);
+
+            const quebra = (txt, max, font) => {
+                c.font = font; const palavras = String(txt).split(' '); const ls = []; let atual = '';
+                for (const p of palavras) { const t = atual ? atual + ' ' + p : p; if (c.measureText(t).width > max && atual) { ls.push(atual); atual = p; } else atual = t; }
+                if (atual) ls.push(atual); return ls;
+            };
+            const texto = (t, x, y, font, cor, alinhar = 'left') => { c.font = font; c.fillStyle = cor; c.textAlign = alinhar; c.fillText(t, x, y); };
+            const linhaH = (y) => { c.strokeStyle = 'rgba(212,155,133,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(M, y); c.lineTo(W - M, y); c.stroke(); };
+
+            // cabeçalho
+            let y = 70;
+            const logo = await carregarImagem('logo-512.png');
+            const L = 250;
+            if (logo) {
+                c.save(); c.beginPath(); c.roundRect(W / 2 - L / 2, y, L, L, 36); c.clip();
+                c.drawImage(logo, W / 2 - L / 2, y, L, L); c.restore();
+                c.strokeStyle = ROSE; c.lineWidth = 3; c.beginPath(); c.roundRect(W / 2 - L / 2, y, L, L, 36); c.stroke();
+                y += L + 70;
+            } else y += 20;
+            texto('LOJA DO HELCINHO', W / 2, y, `800 46px ${FONTE}`, MARROM, 'center'); y += 40;
+            texto('PERFUMARIA & PRESENTES', W / 2, y, `600 22px ${FONTE}`, ROSE, 'center'); y += 80;
+
+            // faixa do título
+            c.fillStyle = VERDE; c.beginPath(); c.roundRect(M, y - 48, W - M * 2, 74, 16); c.fill();
+            texto(`NOVO PEDIDO ${d.numero || ''}`.trim(), W / 2, y, `700 32px ${FONTE}`, '#ffffff', 'center'); y += 80;
+
+            // cliente / usuário / data
+            texto('CLIENTE', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
+            texto(d.cliente || '', M, y, `700 36px ${FONTE}`, MARROM); y += 54;
+            if (d.usuario) { texto('USUÁRIO', M, y, `700 20px ${FONTE}`, ROSE); y += 36; texto('@' + d.usuario, M, y, `600 32px ${FONTE}`, MARROM); y += 54; }
+            texto('DATA DO PEDIDO', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
+            texto(d.data || '', M, y, `600 32px ${FONTE}`, MARROM); y += 50;
+            linhaH(y); y += 55;
+
+            // produtos
+            texto('PRODUTOS', M, y, `700 20px ${FONTE}`, ROSE); y += 20;
+            for (const it of d.linhas) {
+                const ls = quebra(`${it.qtd}x ${it.nome}`, W - M * 2 - 230, `600 30px ${FONTE}`);
+                y += 46;
+                ls.forEach((l, k) => texto(l, M, y + k * 40, `600 30px ${FONTE}`, MARROM));
+                texto(fmtBRL(it.preco * it.qtd), W - M, y, `700 30px ${FONTE}`, MARROM, 'right');
+                y += (ls.length - 1) * 40 + 10;
+            }
+            if (d.presente) { y += 50; texto('Embalagem para presente: solicitada', M, y, `600 26px ${FONTE}`, '#b45309'); y += 6; }
+            y += 30; linhaH(y); y += 70;
+
+            // total e pagamento
+            texto('VALOR TOTAL', M, y, `700 28px ${FONTE}`, MARROM);
+            texto(fmtBRL(d.total), W - M, y, `800 46px ${FONTE}`, VERDE, 'right'); y += 58;
+            texto('Forma de pagamento', M, y, `500 26px ${FONTE}`, CINZA);
+            texto(d.forma, W - M, y, `700 28px ${FONTE}`, MARROM, 'right'); y += 18;
+            if (d.forma === 'Crediário') { y += 36; texto('Crediário: aguardando aprovação da loja', M, y, `600 24px ${FONTE}`, '#b45309'); }
+            y += 60;
+
+            // rodapé
+            const rod = quebra('Pedido feito pela loja online. Aguardando a confirmação da loja.', W - M * 2, `500 24px ${FONTE}`);
+            rod.forEach((l, k) => texto(l, W / 2, y + k * 34, `500 24px ${FONTE}`, CINZA, 'center'));
+            y += rod.length * 34 + 20;
+            texto('Obrigado pela preferência!', W / 2, y + 20, `700 30px ${FONTE}`, VERDE, 'center'); y += 85;
+
+            const out = document.createElement('canvas'); out.width = W; out.height = y;
+            out.getContext('2d').drawImage(cv, 0, 0, W, y, 0, 0, W, y);
+            return await new Promise(res => out.toBlob(res, 'image/png'));
+        }
+
+        async function prepararPedidoImagem(d) {
+            const blob = await gerarPedidoPNG(d);
+            if (!blob) return false;
+            if (pedidoUrl) URL.revokeObjectURL(pedidoUrl);
+            pedidoBlob = blob; pedidoUrl = URL.createObjectURL(blob); pedidoDados = d;
+            document.getElementById('pedido-img').src = pedidoUrl;
+            document.getElementById('pedido-modal-titulo').textContent = d.numero ? `Pedido ${d.numero} registrado!` : 'Pedido pronto!';
+            return true;
+        }
+        function nomeArquivoPedido() { return 'pedido-' + String(pedidoDados && pedidoDados.numero || 'loja').replace(/[^0-9A-Za-z]+/g, '') + '.png'; }
+        function arquivoPedido() { return new File([pedidoBlob], nomeArquivoPedido(), { type: 'image/png' }); }
+
+        function mostrarPedidoModal() {
+            let podeCompartilhar = false;
+            try { podeCompartilhar = !!(navigator.canShare && navigator.canShare({ files: [arquivoPedido()] })); } catch (e) {}
+            const b = document.getElementById('btn-compartilhar-pedido');
+            b.classList.toggle('hidden', !podeCompartilhar); b.classList.toggle('flex', podeCompartilhar);
+            const m = document.getElementById('pedido-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            document.body.classList.add('travado');
+        }
+        function fecharPedidoModal() {
+            const m = document.getElementById('pedido-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+            document.body.classList.remove('travado');
+        }
+        async function compartilharPedido() {
+            try { await navigator.share({ files: [arquivoPedido()], title: 'Pedido - Loja do Helcinho' }); }
+            catch (e) { if (!e || e.name !== 'AbortError') console.error('Compartilhar pedido', e); }
+        }
+        function abrirConversaLoja() {
+            // salva a imagem no aparelho e abre a conversa da loja (o cliente anexa pelo clipe)
+            const a = document.createElement('a'); a.href = pedidoUrl; a.download = nomeArquivoPedido();
+            document.body.appendChild(a); a.click(); a.remove();
+            const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(textoCurtoPedido(pedidoDados))}`;
+            setTimeout(() => { window.open(url, '_blank') || (window.location.href = url); }, 500);
+        }
+
         let enviando = false;
         async function checkoutWhatsApp() {
             if (enviando) return;
@@ -635,8 +782,6 @@
             const btn = document.getElementById('btn-finalizar');
             btn.disabled = true;
             btn.classList.add('opacity-60');
-
-            const janelaZap = window.open('', '_blank');
 
             try {
                 const isGift = document.getElementById('is-gift').checked;
@@ -673,7 +818,6 @@
                 }
 
                 if (!salvou && erroPedido) {
-                    if (janelaZap) janelaZap.close();
                     alert(erroPedido);
                     return;
                 }
@@ -681,32 +825,19 @@
                     alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
                 }
 
-                const linha = '━━━━━━━━━━━━━━━━━━';
-                let text = `*LOJA DO HELCINHO*\n_Perfumaria & Presentes_\n\n`;
-                text += `*NOVO PEDIDO ${numeroPedido || '(sem número)'}*\n${linha}\n\n`;
-                text += `*Cliente:* ${nomeBonito(nomeCliente)}\n`;
-                if (perfil) text += `*Usuário:* ${perfil.usuario}\n`;
-                text += `*Data:* ${dataTxt}\n\n`;
-                text += `*PRODUTOS*\n`;
-                linhas.forEach(item => {
-                    text += `• ${item.qtd}x ${item.nome}\n    ${fmtBRL(item.preco * item.qtd)}\n`;
-                });
-                if (isGift) text += `\n*Embalagem para presente:* Solicitada\n`;
-                text += `\n${linha}\n*VALOR TOTAL:* ${fmtBRL(totalFinal)}\n`;
-                text += `*Forma de pagamento:* ${forma}\n`;
-                if (forma === 'Crediário') text += `_Crediário: aguardando aprovação da loja_\n`;
-                text += `\nOlá, gostaria de confirmar este pedido!`;
-
-                const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`;
-                if (janelaZap) janelaZap.location.href = url;
-                else window.location.href = url;
+                const dadosPedido = { numero: numeroPedido, cliente: nomeBonito(nomeCliente), usuario: perfil ? perfil.usuario : '', data: dataTxt, linhas, presente: isGift, total: totalFinal, forma };
+                let imagemOk = false;
+                try { imagemOk = await prepararPedidoImagem(dadosPedido); } catch (e) { console.error('Imagem do pedido', e); }
 
                 cart = [];
                 document.querySelectorAll('input[name="forma"]').forEach(r => r.checked = false);
                 updateBadge();
                 toggleCart();
-                // atualiza a lista de pedidos, caso o menu esteja aberto
                 if (perfil && !document.getElementById('sec-pedidos').classList.contains('hidden')) carregarPedidos();
+
+                if (imagemOk) mostrarPedidoModal();
+                else window.location.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent(textoCurtoPedido(dadosPedido))}`;   // plano B: só texto
+                return;
             } finally {
                 enviando = false;
                 btn.disabled = false;
