@@ -132,7 +132,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v14 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v15 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -1882,7 +1882,7 @@
             const larg = Math.max(...parcelas.map(p => fmtBRL(p.valorOriginal).length), 0);
             const linhasParcelas = parcelas.map(p =>
                 `${String(p.numero).padEnd(5)} ${fmtDataISO(p.vencimento)}  ${fmtBRL(p.valorOriginal).padStart(larg)}`).join('\n');
-            const siteLoja = location.href.replace(/admin\.html.*$/, '') + 'index.html';
+            const siteLoja = location.href.replace(/admin\.html.*$/, '') + 'index.html?r=' + Date.now().toString(36);
             const linha = '━━━━━━━━━━━━━━━━━━';
 
             const msg =
