@@ -132,7 +132,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v13 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v14 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -1875,32 +1875,41 @@
             const dataTxt = dataCompra.toLocaleDateString('pt-BR');
             const itens = Array.isArray(venda.itens) ? venda.itens : [];
             const linhasProdutos = itens.length
-                ? itens.map(i => `• ${i.qtd}x ${i.nome} — ${fmtBRL(Number(i.preco || 0) * Number(i.qtd || 1))}`).join('\n')
+                ? itens.map(i => `• ${i.qtd}x ${i.nome}\n    ${fmtBRL(Number(i.preco || 0) * Number(i.qtd || 1))}`).join('\n')
                 : `• ${venda.produtos || 'Produtos da compra'}`;
             const parcelas = venda.parcelas || [];
-            const linhasParcelas = parcelas.map(p => `${p.numero} — vence em ${fmtDataISO(p.vencimento)} — ${fmtBRL(p.valorOriginal)}`).join('\n');
+            // parcelas em fonte monoespaçada (```), para as colunas ficarem alinhadas no WhatsApp
+            const larg = Math.max(...parcelas.map(p => fmtBRL(p.valorOriginal).length), 0);
+            const linhasParcelas = parcelas.map(p =>
+                `${String(p.numero).padEnd(5)} ${fmtDataISO(p.vencimento)}  ${fmtBRL(p.valorOriginal).padStart(larg)}`).join('\n');
             const siteLoja = location.href.replace(/admin\.html.*$/, '') + 'index.html';
+            const linha = '━━━━━━━━━━━━━━━━━━';
 
             const msg =
-`*🧾 RECIBO DE COMPRA NO CREDIÁRIO*
-*LOJA DO HELCINHO* — Perfumaria & Presentes
+`*LOJA DO HELCINHO*
+_Perfumaria & Presentes_
 
-👤 *Cliente:* ${venda.cliente}
-📅 *Data da compra:* ${dataTxt}
+*RECIBO DE COMPRA NO CREDIÁRIO*
+${linha}
 
-*🛍️ Produtos:*
+*Cliente:* ${venda.cliente}
+*Data da compra:* ${dataTxt}
+
+*PRODUTOS*
 ${linhasProdutos}
 
-💰 *Valor total:* ${fmtBRL(venda.valorTotal)}
-💳 *Parcelamento:* ${parcelas.length}x
+${linha}
+*VALOR TOTAL:* ${fmtBRL(venda.valorTotal)}
+*Parcelamento:* ${parcelas.length}x
 
-*📆 Parcelas:*
-${linhasParcelas}
+*PARCELAS*  _(nº · vencimento · valor)_
+\`\`\`${linhasParcelas}\`\`\`
+${linha}
 
-Acompanhe suas parcelas pelo site, no menu ☰ › Crediário em aberto:
+Acompanhe suas parcelas no site, pelo menu ☰ › Crediário em aberto:
 ${siteLoja}
 
-Obrigado pela preferência! 💚`;
+Obrigado pela preferência!`;
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
