@@ -83,18 +83,22 @@
     <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row flex-grow">
         <!-- MENU LATERAL -->
-        <aside class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col justify-between shrink-0">
-            <div>
-                <div class="p-5 border-b border-rosegold/20 flex items-center gap-3">
+        <aside id="aside-painel" class="w-full md:w-64 bg-white border-r border-rosegold/20 shadow-sm flex flex-col shrink-0 sticky top-0 z-40 md:static md:z-auto">
+                <div class="p-4 md:p-5 border-b border-rosegold/20 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full border border-rosegold overflow-hidden bg-white shadow-inner flex items-center justify-center shrink-0">
                         <img src="logohelcinho.png" alt="Logo" class="w-full h-full object-cover">
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <h1 class="font-bold text-sm tracking-tight text-marromCafe uppercase">Painel Admin</h1>
                         <p class="text-[10px] text-rosegold font-semibold">Gestão Comercial</p>
                     </div>
+                    <button type="button" id="btn-hamburguer" onclick="alternarMenuPainel()" aria-label="Abrir menu" aria-expanded="false" class="md:hidden ml-auto w-11 h-11 flex items-center justify-center text-verdePetroleo text-2xl rounded-xl hover:bg-rosegold/10 transition">
+                        <i id="icone-hamburguer" class="fa-solid fa-bars"></i>
+                    </button>
                 </div>
 
+                <!-- No celular este bloco abre e fecha pelo botão ☰; no computador fica sempre visível -->
+                <div id="menu-painel" class="hidden md:flex flex-col justify-between flex-grow absolute md:static left-0 right-0 top-full bg-white shadow-2xl md:shadow-none border-b border-rosegold/20 md:border-0 max-h-[calc(100vh-5rem)] md:max-h-none overflow-y-auto">
                 <nav class="p-3 space-y-1">
                     <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold bg-verdePetroleo text-white transition shadow-sm">
                         <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard & Atrasados
@@ -124,24 +128,21 @@
                         <i class="fa-solid fa-gear w-5 text-center text-green-600"></i> Configurações & WhatsApp
                     </button>
                 </nav>
-            </div>
 
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v10 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v11 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
                 <button type="button" id="btn-instalar" onclick="instalarApp()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-download"></i> Instalar aplicativo
                 </button>
-                <a href="index.html?de=admin" class="w-full bg-marromCafe text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-black transition">
-                    <i class="fa-solid fa-store"></i> Ver a Loja Online
-                </a>
                 <button type="button" onclick="handleLogout()" class="w-full bg-red-100 text-red-700 py-2 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-red-200 transition">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
+            </div>
             </div>
         </aside>
 
@@ -170,6 +171,12 @@
                         <span id="atrasadas-badge" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">0 parcelas</span>
                     </div>
                     <div id="atrasadas-list" class="space-y-3"></div>
+                </div>
+
+                <div class="sticky bottom-3 pt-2">
+                    <a href="index.html?de=admin" class="w-full bg-marromCafe text-white py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black transition shadow-lg">
+                        <i class="fa-solid fa-store"></i> Ver a Loja Online
+                    </a>
                 </div>
             </section>
 
@@ -935,6 +942,29 @@
         }
 
         // =====================================================================
+        // MENU RECOLHÍVEL (celular)
+        // =====================================================================
+        function menuPainelAberto() { const m = document.getElementById('menu-painel'); return m && !m.classList.contains('hidden') && window.innerWidth < 768; }
+        function fecharMenuPainel() {
+            const m = document.getElementById('menu-painel'); if (!m) return;
+            if (window.innerWidth < 768) m.classList.add('hidden');
+            const b = document.getElementById('btn-hamburguer'); if (b) b.setAttribute('aria-expanded', 'false');
+            const i = document.getElementById('icone-hamburguer'); if (i) i.className = 'fa-solid fa-bars';
+        }
+        function alternarMenuPainel() {
+            const m = document.getElementById('menu-painel');
+            const abrir = m.classList.contains('hidden');
+            m.classList.toggle('hidden', !abrir);
+            document.getElementById('btn-hamburguer').setAttribute('aria-expanded', String(abrir));
+            document.getElementById('icone-hamburguer').className = abrir ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+        document.addEventListener('click', (e) => {
+            if (menuPainelAberto() && !e.target.closest('#aside-painel')) fecharMenuPainel();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menuPainelAberto()) fecharMenuPainel(); });
+        window.addEventListener('resize', () => { if (window.innerWidth >= 768) { const m = document.getElementById('menu-painel'); if (m) m.classList.remove('hidden'); } });
+
+        // =====================================================================
         // CLIQUES NAS LISTAS (usa data-* em vez de onclick com texto, por segurança)
         // =====================================================================
         document.addEventListener('click', (e) => {
@@ -950,6 +980,7 @@
                 'del-contrato': () => deleteContrato(id),
                 'baixar': () => baixarParcela(id, Number(el.dataset.p)),
                 'cred-rm': () => credRemoverItem(Number(id)),
+                'toggle-pedido': () => alternarPedido(id),
                 'foto-rm': () => fotoRemover(Number(id)),
                 'foto-capa': () => fotoTornarCapa(Number(id)),
                 'recibo': () => enviarReciboCrediario(id),
@@ -971,6 +1002,7 @@
         // NAVEGAÇÃO
         // =====================================================================
         function switchTab(tabId) {
+            fecharMenuPainel();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition";
@@ -1262,6 +1294,18 @@
         // =====================================================================
         // PEDIDOS
         // =====================================================================
+        // guarda quais cartões o administrador abriu/fechou (sobrevive às atualizações em tempo real)
+        const pedidoAberto = {};
+        function alternarPedido(id) {
+            const card = Array.from(document.querySelectorAll('[data-pedido]')).find(c => c.dataset.pedido === id);
+            if (!card) return;
+            const corpo = card.querySelector('.corpo-pedido');
+            const abrir = corpo.classList.contains('hidden');
+            corpo.classList.toggle('hidden', !abrir);
+            card.querySelector('[data-act="toggle-pedido"] i').classList.toggle('-rotate-90', !abrir);
+            pedidoAberto[id] = abrir;
+        }
+
         async function loadPedidos() {
             const listEl = document.getElementById('pedidos-list');
             const pedidos = await fetchPedidos();
@@ -1277,7 +1321,7 @@
                 let itensHtml;
                 if (p.itensDetalhados.length > 0) {
                     itensHtml = p.itensDetalhados.map(item => `
-                        <div class="text-gray-600 ml-2">• ${esc(item.qtd || 1)}x ${esc(item.nome || 'Produto')} — ${fmtBRL(item.preco)} un</div>
+                        <div class="text-gray-600 ml-1">• ${esc(item.qtd || 1)}x ${esc(item.nome || 'Produto')} — ${fmtBRL(item.preco)} un</div>
                     `).join('');
                 } else {
                     itensHtml = `<p class="text-gray-600 font-medium mt-1">Produtos: ${esc(p.produtos || 'Não especificado')}</p>`;
@@ -1286,24 +1330,42 @@
                 const opcoes = ['Novo', 'Confirmado', 'Em separação', 'Entregue', 'Cancelado']
                     .map(s => `<option value="${s}" ${status === s ? 'selected' : ''}>${s}</option>`).join('');
 
+                const finalizado = (p.status === 'Entregue' || p.status === 'Cancelado');
+                const aberto = (p.id in pedidoAberto) ? pedidoAberto[p.id] : !finalizado;
+                const numero = String(p.id).startsWith('#') ? p.id : '#' + p.id;
+                const pedeCred = p.formaPagamento === 'Crediário' && p.status !== 'Cancelado';
+
                 return `
-                    <div class="bg-creme p-4 rounded-xl border border-rosegold/20 text-xs space-y-2">
-                        <div class="flex justify-between items-start border-b pb-2 gap-3">
-                            <div>
-                                <h4 class="font-bold uppercase text-marromCafe text-sm">Pedido #${esc(p.id)} — ${esc(p.data || 'Recente')}</h4>
-                                <p class="text-verdePetroleo font-bold text-sm mt-0.5"><i class="fa-solid fa-user mr-1"></i> Cliente: ${esc(p.cliente || 'Não informado')}</p>
-                                ${p.presente === 'Sim' ? '<p class="text-amber-700 font-semibold mt-0.5">🎁 Embalagem para presente</p>' : ''}
-                                <p class="text-gray-600 mt-0.5 flex flex-wrap items-center gap-1.5"><span><i class="fa-solid fa-wallet mr-1"></i>Pagamento: <b>${esc(p.formaPagamento || 'Não informado')}</b></span>
-                                    ${p.estoque_baixado ? '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">📦 Estoque baixado</span>' : ''}
-                                    ${p.formaPagamento === 'Crediário' && p.status !== 'Cancelado' ? '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Crediário solicitado</span>' : ''}</p>
-                                <div class="mt-1 space-y-1">${itensHtml}</div>
-                            </div>
-                            <span class="font-bold text-base text-verdePetroleo shrink-0">${fmtBRL(p.valorTotal)}</span>
+                    <div data-pedido="${esc(p.id)}" class="bg-white p-4 rounded-2xl border border-rosegold/25 shadow-sm text-xs">
+                        <div class="flex items-center justify-between gap-3">
+                            <h4 class="text-verdePetroleo font-bold text-sm min-w-0 truncate"><i class="fa-solid fa-user mr-1.5"></i> Cliente: ${esc(p.cliente || 'Não informado')}</h4>
+                            <button type="button" data-act="toggle-pedido" data-id="${esc(p.id)}" aria-label="Mostrar ou esconder detalhes" class="shrink-0 w-8 h-8 rounded-full bg-verdePetroleo/10 text-verdePetroleo flex items-center justify-center hover:bg-verdePetroleo/20 transition">
+                                <i class="fa-solid fa-chevron-down text-xs transition-transform ${aberto ? '' : '-rotate-90'}"></i>
+                            </button>
                         </div>
-                        <div class="flex justify-between items-center pt-1">
-                            <select data-act="status" data-id="${esc(p.id)}" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1 text-xs font-bold text-marromCafe">${opcoes}</select>
-                            ${p.formaPagamento === 'Crediário' && p.status !== 'Cancelado' ? `<button type="button" data-act="gerar-cred" data-id="${esc(p.id)}" class="bg-amber-100 text-amber-800 hover:bg-amber-200 px-3 py-1 rounded-lg font-semibold"><i class="fa-solid fa-credit-card mr-1"></i> Gerar crediário</button>` : ''}
-                            <button type="button" data-act="del-pedido" data-id="${esc(p.id)}" class="text-red-500 hover:text-red-700 font-semibold"><i class="fa-solid fa-trash"></i> Excluir</button>
+                        <div class="relative my-3 h-px bg-verdePetroleo/50"><span class="absolute left-1/2 -translate-x-1/2 -top-[3px] w-[7px] h-[7px] rounded-full bg-verdePetroleo"></span></div>
+                        <p class="text-center font-bold text-[13px] uppercase text-marromCafe">Pedido ${esc(numero)} - ${esc(p.data || 'Recente')}</p>
+                        <div class="corpo-pedido ${aberto ? '' : 'hidden'}">
+                            <div class="flex justify-between items-start gap-3 mt-3">
+                                <div class="min-w-0 space-y-1.5">
+                                    ${p.presente === 'Sim' ? '<p class="text-amber-700 font-semibold">🎁 Embalagem para presente</p>' : ''}
+                                    <p class="text-gray-600"><i class="fa-solid fa-wallet mr-1"></i>Pagamento: <b>${esc(p.formaPagamento || 'Não informado')}</b></p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${p.estoque_baixado ? '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">📦 Estoque baixado</span>' : ''}
+                                        ${pedeCred ? '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Crediário solicitado</span>' : ''}
+                                    </div>
+                                    <div class="space-y-1 pt-0.5">${itensHtml}</div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <p class="font-bold text-[11px] uppercase text-marromCafe">Valor</p>
+                                    <p class="font-bold text-base text-verdePetroleo">${fmtBRL(p.valorTotal)}</p>
+                                </div>
+                            </div>
+                            <div class="border-t border-rosegold/20 mt-3 pt-3 flex items-center justify-between gap-2 flex-wrap">
+                                <select data-act="status" data-id="${esc(p.id)}" class="bg-white border border-rosegold/30 rounded-lg px-2 py-1.5 text-xs font-bold text-marromCafe">${opcoes}</select>
+                                ${pedeCred ? `<button type="button" data-act="gerar-cred" data-id="${esc(p.id)}" class="bg-amber-100 text-amber-800 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-solid fa-credit-card"></i> Gerar crediário</button>` : ''}
+                                <button type="button" data-act="del-pedido" data-id="${esc(p.id)}" class="text-red-500 hover:text-red-700 font-semibold flex flex-col items-center leading-tight"><i class="fa-solid fa-trash"></i><span>Excluir</span></button>
+                            </div>
                         </div>
                     </div>
                 `;
