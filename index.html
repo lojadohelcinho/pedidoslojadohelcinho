@@ -282,13 +282,13 @@
                 <p class="text-[11px] text-gray-500 text-center mt-2">Dica: se preferir, segure o dedo na imagem para salvá-la.</p>
             </div>
             <div class="p-5 space-y-2.5">
-                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
-                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar a imagem pelo WhatsApp
+                <button onclick="abrirConversaLoja()" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar para a loja no WhatsApp
                 </button>
-                <button onclick="abrirConversaLoja()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo font-semibold py-3 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-verdePetroleo/5">
-                    <i class="fa-solid fa-paperclip"></i> Abrir a conversa da loja e anexar
+                <p class="text-[11px] text-gray-500 text-center">Vai abrir direto a conversa com a loja e a imagem do pedido será salva no seu aparelho. Toque no clipe <i class="fa-solid fa-paperclip"></i>, escolha a imagem (a mais recente) e envie.</p>
+                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-white border border-verdePetroleo/40 text-verdePetroleo font-semibold py-2 rounded-xl items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-share-nodes"></i> Outra opção: compartilhar a imagem
                 </button>
-                <p class="text-[11px] text-gray-500 text-center">A imagem é salva no seu aparelho. Na conversa da loja, toque no clipe <i class="fa-solid fa-paperclip"></i> e escolha a imagem do pedido.</p>
                 <button onclick="fecharPedidoModal()" class="w-full text-gray-500 text-xs font-semibold py-1.5">Fechar</button>
             </div>
         </div>
