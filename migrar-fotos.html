@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mover fotos dos produtos - Loja do Helcinho</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#FDF9F5;color:#3E2723;padding:16px}
+  .card{max-width:640px;margin:0 auto 16px;background:#fff;border:1px solid rgba(212,155,133,.35);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  h1{font-size:18px;margin:0 0 6px} p{font-size:14px;line-height:1.5;margin:6px 0;color:#5d4037}
+  input{width:100%;padding:10px 12px;border:1px solid rgba(212,155,133,.5);border-radius:10px;font-size:14px;margin:6px 0;background:#FDF9F5}
+  button{width:100%;padding:12px;border:0;border-radius:12px;background:#008B74;color:#fff;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+  button:disabled{opacity:.5;cursor:not-allowed} .sec{background:#fff;color:#008B74;border:1px solid #008B74}
+  .barra{height:14px;background:#eee;border-radius:99px;overflow:hidden;margin:12px 0}.barra>div{height:100%;width:0;background:#008B74;transition:width .2s}
+  #log{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#faf7f4;border-radius:10px;padding:10px;max-height:260px;overflow:auto;white-space:pre-wrap}
+  .ok{color:#047857}.erro{color:#b91c1c}.aviso{color:#b45309}.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>📦 Mover as fotos dos produtos para o Storage</h1>
+  <p>Hoje as fotos estão guardadas <b>dentro do banco de dados</b>, e todo cliente que abre a loja baixa todas elas de uma vez. Esta página leva cada foto para o Storage (uma pasta de arquivos) e deixa no produto só o link. <b>Nenhum produto é apagado</b>: só o campo da foto passa a apontar para o arquivo, e cada foto só é trocada depois de conferida.</p>
+  <p>Pode rodar de novo quantas vezes quiser: o que já foi movido é ignorado.</p>
+</div>
+
+<div class="card" id="box-login">
+  <h1>1. Entre com o e-mail do painel administrativo</h1>
+  <input id="email" type="email" placeholder="E-mail do administrador" autocomplete="username">
+  <input id="senha" type="password" placeholder="Senha" autocomplete="current-password">
+  <button id="btn-entrar">Entrar</button>
+  <p id="msg-login" class="erro"></p>
+</div>
+
+<div class="card hidden" id="box-migrar">
+  <h1>2. Mover as fotos</h1>
+  <p id="resumo">Pronto para começar.</p>
+  <div class="barra"><div id="progresso"></div></div>
+  <button id="btn-iniciar">Iniciar</button>
+  <div id="log" style="margin-top:12px"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://xslatpupelivsxxodtpg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_5mfnRVIWm0WGT4fD0Zqzhw_Ucl8zTtT';
+const BUCKET = 'produtos';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (id) => document.getElementById(id);
+const log = (t, c) => { const d = document.createElement('div'); if (c) d.className = c; d.textContent = t; $('log').appendChild(d); $('log').scrollTop = 1e9; };
+const mb = (b) => (b / 1048576).toFixed(2) + ' MB';
+const dormir = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function entrouComoAdmin() {
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) { $('box-login').classList.add('hidden'); $('box-migrar').classList.remove('hidden'); return true; }
+  return false;
+}
+$('btn-entrar').onclick = async () => {
+  $('msg-login').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('senha').value });
+  if (error) { $('msg-login').textContent = 'Não foi possível entrar: ' + error.message; return; }
+  entrouComoAdmin();
+};
+entrouComoAdmin();
+
+function extensao(tipo) { return ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' })[tipo] || 'jpg'; }
+
+async function migrar() {
+  $('btn-iniciar').disabled = true; $('log').innerHTML = '';
+  // 1) lista só id e nome (leve, sem as fotos)
+  const lista = await sb.from('produtos').select('id,nome').order('id', { ascending: true });
+  if (lista.error) { log('Erro ao listar produtos: ' + lista.error.message, 'erro'); $('btn-iniciar').disabled = false; return; }
+  const produtos = lista.data || [];
+  log(`${produtos.length} produtos encontrados.`);
+  let feitos = 0, movidos = 0, jaOk = 0, falhas = 0, antes = 0, depois = 0;
+
+  for (const p of produtos) {
+    feitos++;
+    $('progresso').style.width = Math.round(feitos / produtos.length * 100) + '%';
+    $('resumo').textContent = `Processando ${feitos} de ${produtos.length}...`;
+    try {
+      // 2) lê UMA foto por vez
+      const r = await sb.from('produtos').select('id,imagem').eq('id', p.id).maybeSingle();
+      if (r.error) throw new Error('ler foto: ' + r.error.message);
+      const img = r.data && r.data.imagem;
+      if (!img || !String(img).startsWith('data:')) { jaOk++; continue; }
+
+      const blob = await (await fetch(img)).blob();
+      if (!blob.size) throw new Error('foto vazia');
+      const caminho = `fotos/p${p.id}-${Date.now().toString(36)}.${extensao(blob.type)}`;
+
+      // 3) envia para o Storage
+      const up = await sb.storage.from(BUCKET).upload(caminho, blob, { contentType: blob.type || 'image/jpeg', cacheControl: '31536000', upsert: false });
+      if (up.error) throw new Error('enviar: ' + up.error.message);
+      const url = sb.storage.from(BUCKET).getPublicUrl(caminho).data.publicUrl;
+
+      // 4) confere que o arquivo está acessível e com o mesmo tamanho ANTES de trocar
+      const conf = await fetch(url, { cache: 'no-store' });
+      const confBlob = conf.ok ? await conf.blob() : null;
+      if (!confBlob || confBlob.size !== blob.size) throw new Error('conferência falhou (arquivo não está acessível)');
+
+      // 5) só agora troca o campo da foto pelo link
+      const up2 = await sb.from('produtos').update({ imagem: url }).eq('id', p.id);
+      if (up2.error) throw new Error('salvar link: ' + up2.error.message);
+
+      movidos++; antes += img.length; depois += url.length;
+      log(`✔ ${p.nome} (${mb(blob.size)})`, 'ok');
+    } catch (e) {
+      falhas++;
+      log(`✖ ${p.nome}: ${e.message} (a foto original foi mantida)`, 'erro');
+    }
+    await dormir(80);
+  }
+  $('progresso').style.width = '100%';
+  $('resumo').textContent = `Concluído: ${movidos} fotos movidas, ${jaOk} já estavam certas, ${falhas} com erro.`;
+  log(`\nBanco aliviado em cerca de ${mb(antes - depois)}.`, 'ok');
+  if (falhas) log('Rode novamente para tentar as que falharam. Se continuar, me envie as mensagens acima.', 'aviso');
+  $('btn-iniciar').disabled = false; $('btn-iniciar').textContent = 'Rodar novamente';
+}
+$('btn-iniciar').onclick = migrar;
+</script>
+</body>
+</html>

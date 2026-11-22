@@ -7,7 +7,7 @@
 //  - O site da loja (index.html) não é tocado por este service worker.
 //
 // Ao publicar uma versão nova do painel, basta trocar o número abaixo.
-const VERSAO = 'helcinho-admin-v8';
+const VERSAO = 'helcinho-admin-v9';
 
 const ARQUIVOS_DO_PAINEL = [
   'admin.html',

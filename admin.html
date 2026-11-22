@@ -129,7 +129,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v8 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v9 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -1450,6 +1450,22 @@
             });
         }
 
+        // Envia a foto (data URL) para o Storage e devolve o link público
+        async function enviarFotoParaStorage(dataUrl, produtoId) {
+            try {
+                const blob = await (await fetch(dataUrl)).blob();
+                const ext = blob.type === 'image/png' ? 'png' : (blob.type === 'image/webp' ? 'webp' : 'jpg');
+                const caminho = `fotos/p${produtoId}-${Date.now().toString(36)}.${ext}`;
+                const { error } = await sb.storage.from('produtos').upload(caminho, blob, { contentType: blob.type || 'image/jpeg', cacheControl: '31536000', upsert: false });
+                if (error) throw error;
+                return sb.storage.from('produtos').getPublicUrl(caminho).data.publicUrl;
+            } catch (e) {
+                console.error('Enviar foto', e);
+                aviso('Não foi possível enviar a foto (' + (e.message || e) + '). O produto NÃO foi salvo. Rode o storage-fotos.sql no Supabase.');
+                throw e;
+            }
+        }
+
         const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
         async function loadEstoque() {
@@ -1513,6 +1529,10 @@
                 ativo: true
             };
             await seguro(async () => {
+                // Foto nova: vai para o Storage (no banco fica só o link, para o site continuar leve)
+                if (String(produto.imagem).startsWith('data:')) {
+                    produto.imagem = await enviarFotoParaStorage(produto.imagem, produto.id);
+                }
                 await db(sb.from('produtos').upsert([produto]), 'Salvar produto');
                 aviso(productId ? 'Produto atualizado!' : 'Produto cadastrado!', 'ok');
                 resetProductForm();
