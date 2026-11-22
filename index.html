@@ -275,18 +275,18 @@
             <div class="px-5 pt-5 pb-3 text-center">
                 <div class="w-12 h-12 mx-auto rounded-full bg-verdePetroleo text-white flex items-center justify-center text-xl mb-2"><i class="fa-solid fa-check"></i></div>
                 <h2 id="pedido-modal-titulo" class="font-bold text-lg text-marromCafe">Pedido registrado!</h2>
-                <p class="text-xs text-gray-600 mt-1">A loja já recebeu o seu pedido no sistema. Para agilizar a confirmação, envie a imagem do pedido pelo WhatsApp.</p>
+                <p class="text-xs text-gray-600 mt-1">A loja já recebeu o seu pedido no sistema. Para agilizar a confirmação, envie o pedido pelo WhatsApp.</p>
             </div>
             <div class="px-5 overflow-y-auto flex-grow">
                 <img id="pedido-img" alt="Imagem do pedido" class="w-full rounded-2xl border border-rosegold/30 shadow-sm bg-white">
                 <p class="text-[11px] text-gray-500 text-center mt-2">Dica: se preferir, segure o dedo na imagem para salvá-la.</p>
             </div>
             <div class="p-5 flex flex-col gap-2.5">
-                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-verdePetroleo text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
-                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar a imagem pelo WhatsApp
+                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Pedido ao WhatsApp
                 </button>
-                <button id="btn-abrir-conversa" onclick="abrirConversaLoja()" class="w-full bg-verdePetroleo text-white font-semibold py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-brands fa-whatsapp text-lg"></i> <span id="txt-abrir-conversa">Abrir a conversa da loja</span>
+                <button id="btn-abrir-conversa" onclick="abrirConversaLoja()" class="hidden w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Pedido ao WhatsApp
                 </button>
                 <p id="dica-pedido" class="text-[11px] text-gray-600 text-center"></p>
                 <button onclick="fecharPedidoModal()" class="w-full text-gray-500 text-xs font-semibold py-1.5">Fechar</button>
@@ -731,13 +731,6 @@
             document.getElementById('pedido-modal-titulo').textContent = d.numero ? `Pedido ${d.numero} registrado!` : 'Pedido pronto!';
             return true;
         }
-        async function enviarImagemPedido() {
-            const nome = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.png`;
-            const envio = supabaseClient.storage.from('pedidos-img').upload(nome, pedidoBlob, { contentType: 'image/png', cacheControl: '31536000' });
-            const r = await Promise.race([envio, new Promise(res => setTimeout(() => res({ error: 'tempo esgotado' }), 12000))]);
-            if (r.error) { console.warn('Upload pedido:', r.error); return ''; }
-            return supabaseClient.storage.from('pedidos-img').getPublicUrl(nome).data.publicUrl;
-        }
         function nomeArquivoPedido() { return 'pedido-' + String(pedidoDados && pedidoDados.numero || 'loja').replace(/[^0-9A-Za-z]+/g, '') + '.png'; }
         function arquivoPedido() { return new File([pedidoBlob], nomeArquivoPedido(), { type: 'image/png' }); }
 
@@ -745,18 +738,10 @@
             let podeCompartilhar = false;
             try { podeCompartilhar = !!(navigator.canShare && navigator.canShare({ files: [arquivoPedido()] })); } catch (e) {}
             const bs = document.getElementById('btn-compartilhar-pedido'), bo = document.getElementById('btn-abrir-conversa');
-            const claro = 'bg-white border border-verdePetroleo/40 text-verdePetroleo shadow-none', forte = 'bg-verdePetroleo text-white shadow';
-            const troca = (el, ativo) => { (ativo ? claro : forte).split(' ').forEach(c => el.classList.remove(c)); (ativo ? forte : claro).split(' ').forEach(c => el.classList.add(c)); };
+            // celular: compartilhar a imagem (o cliente escolhe o contato). Computador: abre a conversa e a imagem vai copiada para colar.
             bs.classList.toggle('hidden', !podeCompartilhar); bs.classList.toggle('flex', podeCompartilhar);
-            if (podeCompartilhar) {   // celular: compartilhar a imagem é o caminho principal
-                troca(bs, true); troca(bo, false);
-                bs.style.order = 1; bo.style.order = 2;
-                document.getElementById('txt-abrir-conversa').textContent = 'Abrir só a conversa da loja';
-                document.getElementById('dica-pedido').innerHTML = 'Toque no botão verde e escolha o contato da loja no WhatsApp.';
-            } else {                  // computador: abre a conversa e a imagem vai copiada para colar
-                document.getElementById('txt-abrir-conversa').textContent = 'Abrir a conversa da loja';
-                document.getElementById('dica-pedido').innerHTML = 'Vai abrir a conversa com a loja. <b>Depois é só colar a imagem (Ctrl+V)</b> na conversa e enviar.';
-            }
+            bo.classList.toggle('hidden', podeCompartilhar); bo.classList.toggle('flex', !podeCompartilhar);
+            document.getElementById('dica-pedido').innerHTML = podeCompartilhar ? '' : 'Vai abrir a conversa com a loja. <b>Depois é só colar a imagem (Ctrl+V)</b> e enviar.';
             const m = document.getElementById('pedido-modal');
             m.classList.remove('hidden'); m.classList.add('flex');
             document.body.classList.add('travado');
@@ -810,8 +795,6 @@
             }
 
             enviando = true;
-            let janelaZap = null;
-            try { janelaZap = window.open('', '_blank'); } catch (e) {}   // abre já (antes das esperas) para o navegador não bloquear
             const btn = document.getElementById('btn-finalizar');
             btn.disabled = true;
             btn.classList.add('opacity-60');
@@ -851,7 +834,6 @@
                 }
 
                 if (!salvou && erroPedido) {
-                    if (janelaZap) janelaZap.close();
                     alert(erroPedido);
                     return;
                 }
@@ -869,21 +851,8 @@
                 toggleCart();
                 if (perfil && !document.getElementById('sec-pedidos').classList.contains('hidden')) carregarPedidos();
 
-                // envia a imagem para o armazenamento e manda o link direto para o número da loja
-                let linkImagem = '';
-                if (imagemOk) { try { linkImagem = await enviarImagemPedido(); } catch (e) { console.warn('Upload da imagem do pedido', e); } }
-
-                if (linkImagem) {
-                    const texto = `Olá! Pedido ${dadosPedido.numero || ''} - ${fmtBRL(dadosPedido.total)} (${dadosPedido.forma}).\nImagem do pedido: ${linkImagem}`;
-                    const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(texto)}`;
-                    if (janelaZap) janelaZap.location.href = url; else window.location.href = url;
-                } else if (imagemOk) {          // sem o link: usa a tela com a imagem para enviar manualmente
-                    if (janelaZap) janelaZap.close();
-                    mostrarPedidoModal();
-                } else {                        // plano B: só texto
-                    const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(textoCurtoPedido(dadosPedido))}`;
-                    if (janelaZap) janelaZap.location.href = url; else window.location.href = url;
-                }
+                if (imagemOk) mostrarPedidoModal();
+                else window.location.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent(textoCurtoPedido(dadosPedido))}`;   // plano B: só texto
                 return;
             } finally {
                 enviando = false;
