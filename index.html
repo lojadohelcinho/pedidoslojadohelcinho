@@ -604,6 +604,15 @@
             return r ? r.value : '';
         }
 
+        // "rafael eduardo manzoni" -> "Rafael Eduardo Manzoni" (só na mensagem; o nome salvo não muda)
+        function nomeBonito(n) {
+            const peq = ['de', 'da', 'do', 'das', 'dos', 'e'];
+            return String(n || '').trim().split(/\s+/).map((w, i) => {
+                const b = w.toLowerCase();
+                return (i > 0 && peq.includes(b)) ? b : b.charAt(0).toUpperCase() + b.slice(1);
+            }).join(' ');
+        }
+
         let enviando = false;
         async function checkoutWhatsApp() {
             if (enviando) return;
@@ -672,17 +681,21 @@
                     alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
                 }
 
-                let text = `*🛍️ PEDIDO ${numeroPedido || '(sem número)'} - LOJA DO HELCINHO*\n`;
-                text += `👤 *Cliente:* ${nomeCliente}\n`;
-                if (perfil) text += `🔑 *Usuário:* ${perfil.usuario}\n`;
-                text += `\n`;
+                const linha = '━━━━━━━━━━━━━━━━━━';
+                let text = `*LOJA DO HELCINHO*\n_Perfumaria & Presentes_\n\n`;
+                text += `*NOVO PEDIDO ${numeroPedido || '(sem número)'}*\n${linha}\n\n`;
+                text += `*Cliente:* ${nomeBonito(nomeCliente)}\n`;
+                if (perfil) text += `*Usuário:* ${perfil.usuario}\n`;
+                text += `*Data:* ${dataTxt}\n\n`;
+                text += `*PRODUTOS*\n`;
                 linhas.forEach(item => {
-                    text += `• ${item.qtd}x *${item.nome}* - ${fmtBRL(item.preco * item.qtd)}\n`;
+                    text += `• ${item.qtd}x ${item.nome}\n    ${fmtBRL(item.preco * item.qtd)}\n`;
                 });
-                if (isGift) text += `\n🎁 *Embalagem para Presente:* Solicitada\n`;
-                text += `\n💳 *Forma de pagamento:* ${forma}`;
-                if (forma === 'Crediário') text += ` (aguardando aprovação da loja)`;
-                text += `\n💰 *Total:* ${fmtBRL(totalFinal)}\n\nOlá, gostaria de confirmar este pedido!`;
+                if (isGift) text += `\n*Embalagem para presente:* Solicitada\n`;
+                text += `\n${linha}\n*VALOR TOTAL:* ${fmtBRL(totalFinal)}\n`;
+                text += `*Forma de pagamento:* ${forma}\n`;
+                if (forma === 'Crediário') text += `_Crediário: aguardando aprovação da loja_\n`;
+                text += `\nOlá, gostaria de confirmar este pedido!`;
 
                 const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(text)}`;
                 if (janelaZap) janelaZap.location.href = url;
