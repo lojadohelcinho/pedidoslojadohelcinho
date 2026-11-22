@@ -129,7 +129,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v9 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v10 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -237,10 +237,10 @@
                             <input type="text" id="descricao" required class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold mb-1">Imagem (Arquivo)</label>
-                            <input type="file" id="imagem-file" accept="image/*" class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
-                            <input type="hidden" id="imagem-base64">
-                            <img id="imagem-preview" class="hidden mt-2 h-20 object-contain bg-white rounded-lg border p-1" alt="">
+                            <label class="block text-xs font-semibold mb-1">Fotos do produto (até 5) <span class="font-normal text-gray-400">— a primeira é a capa da vitrine</span></label>
+                            <input type="file" id="imagem-file" accept="image/*" multiple class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
+                            <div id="fotos-lista" class="flex flex-wrap gap-2 mt-2"></div>
+                            <p class="text-[11px] text-gray-400 mt-1">Cada foto é reduzida automaticamente e guardada no Storage. Só a capa aparece na vitrine; as outras abrem quando o cliente toca na foto.</p>
                         </div>
                         <div class="sm:col-span-2 pt-2">
                             <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto na Nuvem</button>
@@ -783,14 +783,15 @@
             const fileInput = document.getElementById('imagem-file');
             if (fileInput) {
                 fileInput.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    try {
-                        const dataUrl = await redimensionarImagem(file, 800);
-                        document.getElementById('imagem-base64').value = dataUrl;
-                        const prev = document.getElementById('imagem-preview');
-                        prev.src = dataUrl; prev.classList.remove('hidden');
-                    } catch (err) { aviso('Não foi possível ler a imagem.'); }
+                    const arquivos = Array.from(e.target.files || []);
+                    e.target.value = '';
+                    const vagas = MAX_FOTOS - fotosProduto.length;
+                    if (arquivos.length > vagas) aviso(`Cada produto aceita até ${MAX_FOTOS} fotos. ${vagas > 0 ? 'Foram adicionadas só as primeiras ' + vagas + '.' : ''}`);
+                    for (const file of arquivos.slice(0, Math.max(vagas, 0))) {
+                        try { fotosProduto.push({ src: await redimensionarImagem(file, 800) }); }
+                        catch (err) { aviso('Não foi possível ler a imagem ' + file.name); }
+                    }
+                    renderFotosProduto();
                 });
             }
         });
@@ -949,6 +950,9 @@
                 'del-contrato': () => deleteContrato(id),
                 'baixar': () => baixarParcela(id, Number(el.dataset.p)),
                 'cred-rm': () => credRemoverItem(Number(id)),
+                'foto-rm': () => fotoRemover(Number(id)),
+                'foto-capa': () => fotoTornarCapa(Number(id)),
+                'recibo': () => enviarReciboCrediario(id),
                 'gerar-cred': () => gerarCrediarioDoPedido(id),
                 'reset-senha': () => redefinirSenhaLogin(id),
                 'del-login': () => excluirLogin(id),
@@ -1450,6 +1454,23 @@
             });
         }
 
+        // ----- Fotos do produto (várias) -----
+        const MAX_FOTOS = 5;
+        let fotosProduto = [];   // [{ src }]  src = link do Storage ou data URL ainda não enviada
+        function renderFotosProduto() {
+            const el = document.getElementById('fotos-lista');
+            if (!el) return;
+            el.innerHTML = fotosProduto.length === 0 ? '<span class="text-[11px] text-gray-400">Nenhuma foto escolhida.</span>' : fotosProduto.map((f, i) => `
+                <div class="relative w-20 shrink-0">
+                    <img src="${esc(f.src)}" class="w-20 h-20 object-contain bg-white rounded-lg border ${i === 0 ? 'border-verdePetroleo border-2' : 'border-rosegold/30'} p-1">
+                    ${i === 0 ? '<span class="absolute -top-2 left-1 bg-verdePetroleo text-white text-[9px] font-bold px-1.5 py-0.5 rounded">CAPA</span>'
+                              : `<button type="button" data-act="foto-capa" data-id="${i}" class="absolute -top-2 left-1 bg-white border border-verdePetroleo text-verdePetroleo text-[9px] font-bold px-1.5 py-0.5 rounded">Tornar capa</button>`}
+                    <button type="button" data-act="foto-rm" data-id="${i}" title="Remover foto" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+                </div>`).join('');
+        }
+        function fotoRemover(i) { fotosProduto.splice(i, 1); renderFotosProduto(); }
+        function fotoTornarCapa(i) { const [f] = fotosProduto.splice(i, 1); fotosProduto.unshift(f); renderFotosProduto(); }
+
         // Envia a foto (data URL) para o Storage e devolve o link público
         async function enviarFotoParaStorage(dataUrl, produtoId) {
             try {
@@ -1525,14 +1546,17 @@
                 preco: parseFloat(document.getElementById('preco').value),
                 custo: isNaN(custo) ? null : custo,
                 preco_antigo: isNaN(antigo) ? null : antigo,
-                imagem: document.getElementById('imagem-base64').value || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
+                imagem: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500',
+                imagens: [],
                 ativo: true
             };
             await seguro(async () => {
                 // Foto nova: vai para o Storage (no banco fica só o link, para o site continuar leve)
-                if (String(produto.imagem).startsWith('data:')) {
-                    produto.imagem = await enviarFotoParaStorage(produto.imagem, produto.id);
+                const links = [];
+                for (const f of fotosProduto) {
+                    links.push(String(f.src).startsWith('data:') ? await enviarFotoParaStorage(f.src, produto.id) : f.src);
                 }
+                if (links.length) { produto.imagem = links[0]; produto.imagens = links; }
                 await db(sb.from('produtos').upsert([produto]), 'Salvar produto');
                 aviso(productId ? 'Produto atualizado!' : 'Produto cadastrado!', 'ok');
                 resetProductForm();
@@ -1555,9 +1579,9 @@
             document.getElementById('preco').value = p.preco ?? '';
             document.getElementById('custo').value = p.custo ?? '';
             document.getElementById('preco_antigo').value = p.preco_antigo ?? '';
-            document.getElementById('imagem-base64').value = p.imagem || '';
-            const prev = document.getElementById('imagem-preview');
-            if (p.imagem) { prev.src = p.imagem; prev.classList.remove('hidden'); } else { prev.classList.add('hidden'); }
+            const lista = (Array.isArray(p.imagens) && p.imagens.length) ? p.imagens : (p.imagem && !String(p.imagem).includes('unsplash.com') ? [p.imagem] : []);
+            fotosProduto = lista.map(src => ({ src }));
+            renderFotosProduto();
             document.getElementById('form-title').textContent = 'Editar Produto (' + p.nome + ')';
             document.getElementById('product-btn-submit').textContent = 'Atualizar Produto';
         }
@@ -1571,9 +1595,8 @@
         function resetProductForm() {
             document.getElementById('product-form').reset();
             document.getElementById('product-id').value = '';
-            document.getElementById('imagem-base64').value = '';
-            const prev = document.getElementById('imagem-preview');
-            prev.classList.add('hidden'); prev.removeAttribute('src');
+            fotosProduto = [];
+            renderFotosProduto();
             document.getElementById('form-title').textContent = 'Cadastrar / Editar Produto';
             document.getElementById('product-btn-submit').textContent = 'Salvar Produto na Nuvem';
             seguro(loadCategoriesSelect);
@@ -1701,6 +1724,9 @@
                 await loadDashboard();
                 await loadEstoque();
                 await credPreencherPedidos();
+                if (await confirmar('Venda registrada! Deseja enviar o recibo por WhatsApp para o cliente agora?')) {
+                    await enviarReciboCrediario(venda.id, venda);
+                }
             });
         }
 
@@ -1713,7 +1739,10 @@
                 <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
                     <div class="flex justify-between items-center font-bold border-b pb-1 gap-2">
                         <span>${esc(venda.cliente)} — ${fmtBRL(venda.valorTotal)} (${esc(venda.produtos)})</span>
-                        <button type="button" data-act="del-contrato" data-id="${esc(venda.id)}" class="text-red-500 hover:text-red-700 shrink-0">Excluir Venda</button>
+                        <span class="flex items-center gap-3 shrink-0">
+                            <button type="button" data-act="recibo" data-id="${esc(venda.id)}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Enviar recibo</button>
+                            <button type="button" data-act="del-contrato" data-id="${esc(venda.id)}" class="text-red-500 hover:text-red-700">Excluir Venda</button>
+                        </span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         ${venda.parcelas.map((p, pIndex) => {
@@ -1734,6 +1763,55 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // =====================================================================
+        // RECIBO DO CREDIÁRIO POR WHATSAPP
+        // =====================================================================
+        async function enviarReciboCrediario(vendaId, vendaLocal) {
+            let venda = vendaLocal ? normCred(vendaLocal) : null;
+            if (!venda) {
+                const row = await db(sb.from('crediario').select('*').eq('id', vendaId).maybeSingle(), 'Carregar contrato');
+                if (!row) return aviso('Contrato não encontrado.');
+                venda = normCred(row);
+            }
+            const clientes = await fetchClientes();
+            const cli = clientes.find(c => (venda.cliente_id && c.id === venda.cliente_id) || c.nome === venda.cliente);
+            let numero = String((cli && cli.whatsapp) || '').replace(/\D/g, '');
+            if (!numero) return aviso('Este cliente não tem WhatsApp cadastrado. Edite-o na aba "Cartilha de Clientes".');
+            if (numero.length <= 11) numero = '55' + numero;
+
+            const dataCompra = venda.criado_em ? new Date(venda.criado_em) : new Date();
+            const dataTxt = dataCompra.toLocaleDateString('pt-BR');
+            const itens = Array.isArray(venda.itens) ? venda.itens : [];
+            const linhasProdutos = itens.length
+                ? itens.map(i => `• ${i.qtd}x ${i.nome} — ${fmtBRL(Number(i.preco || 0) * Number(i.qtd || 1))}`).join('\n')
+                : `• ${venda.produtos || 'Produtos da compra'}`;
+            const parcelas = venda.parcelas || [];
+            const linhasParcelas = parcelas.map(p => `${p.numero} — vence em ${fmtDataISO(p.vencimento)} — ${fmtBRL(p.valorOriginal)}`).join('\n');
+            const siteLoja = location.href.replace(/admin\.html.*$/, '') + 'index.html';
+
+            const msg =
+`*🧾 RECIBO DE COMPRA NO CREDIÁRIO*
+*LOJA DO HELCINHO* — Perfumaria & Presentes
+
+👤 *Cliente:* ${venda.cliente}
+📅 *Data da compra:* ${dataTxt}
+
+*🛍️ Produtos:*
+${linhasProdutos}
+
+💰 *Valor total:* ${fmtBRL(venda.valorTotal)}
+💳 *Parcelamento:* ${parcelas.length}x
+
+*📆 Parcelas:*
+${linhasParcelas}
+
+Acompanhe suas parcelas pelo site, no menu ☰ › Crediário em aberto:
+${siteLoja}
+
+Obrigado pela preferência! 💚`;
+            window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         async function baixarParcela(vendaId, pIndex) {

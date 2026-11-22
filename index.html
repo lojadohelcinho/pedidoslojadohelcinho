@@ -261,12 +261,15 @@
 
     <!-- Foto ampliada -->
     <div id="lightbox" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/85 p-4" onclick="fecharZoom()">
-        <button onclick="event.stopPropagation(); fecharZoom()" aria-label="Fechar foto" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-marromCafe shadow-lg flex items-center justify-center transition">
+        <button onclick="event.stopPropagation(); fecharZoom()" aria-label="Fechar foto" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-marromCafe shadow-lg flex items-center justify-center transition">
             <i class="fa-solid fa-xmark text-lg"></i>
         </button>
-        <figure class="max-w-3xl w-full flex flex-col items-center gap-3" onclick="event.stopPropagation()">
-            <img id="lightbox-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain rounded-2xl bg-white shadow-2xl">
+        <button id="zoom-prev" onclick="event.stopPropagation(); zoomIr(-1)" aria-label="Foto anterior" class="hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-marromCafe shadow-lg items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+        <button id="zoom-next" onclick="event.stopPropagation(); zoomIr(1)" aria-label="Próxima foto" class="hidden absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-marromCafe shadow-lg items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
+        <figure id="zoom-fig" class="max-w-3xl w-full flex flex-col items-center gap-3" onclick="event.stopPropagation()">
+            <img id="lightbox-img" src="" alt="" class="max-h-[78vh] max-w-full object-contain rounded-2xl bg-white shadow-2xl">
             <figcaption id="lightbox-legenda" class="text-white text-sm font-semibold uppercase tracking-wide text-center"></figcaption>
+            <div id="zoom-pontos" class="flex items-center gap-2"></div>
         </figure>
     </div>
 
@@ -399,7 +402,7 @@
             const btn = e.target.closest('[data-cat]');
             if (btn) setCategory(btn.dataset.cat);
             const zoom = e.target.closest('[data-zoom]');
-            if (zoom) abrirZoom(zoom.dataset.zoom, zoom.dataset.legenda);
+            if (zoom) abrirZoom(zoom.dataset.zoom);
         });
 
         function renderProducts() {
@@ -421,9 +424,9 @@
             document.getElementById('empty-state').classList.add('hidden');
             grid.innerHTML = filtered.map(p => `
                 <div class="bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-                    <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48 cursor-zoom-in" data-zoom="${esc(p.imagem || IMG_PADRAO)}" data-legenda="${esc(p.nome)}" title="Toque para ampliar">
+                    <div class="relative bg-gray-50 p-4 flex items-center justify-center h-48 cursor-zoom-in" data-zoom="${esc(p.id)}" title="Toque para ampliar">
                         ${p.preco_antigo ? `<span class="absolute top-2 left-2 bg-emerald-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">Promoção</span>` : ''}
-                        <span class="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 text-gray-500 shadow flex items-center justify-center text-[11px] pointer-events-none"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                        <span class="absolute bottom-2 right-2 h-7 min-w-7 px-1.5 gap-1 rounded-full bg-white/90 text-gray-500 shadow flex items-center justify-center text-[11px] pointer-events-none"><i class="fa-solid fa-magnifying-glass-plus"></i>${fotosDoProduto(p).length > 1 ? `<b class="text-[10px]">${fotosDoProduto(p).length}</b>` : ''}</span>
                         <img src="${esc(p.imagem || IMG_PADRAO)}" alt="${esc(p.nome)}" class="h-full object-contain" loading="lazy">
                     </div>
                     <div class="p-3 flex flex-col flex-grow justify-between">
@@ -453,14 +456,36 @@
         }
         function filterProducts() { renderProducts(); }
 
-        // ---------- foto ampliada ----------
-        function abrirZoom(src, legenda) {
+        // ---------- foto ampliada (galeria) ----------
+        // Só a capa aparece na vitrine; as outras fotos só são baixadas quando o cliente as abre.
+        function fotosDoProduto(p) {
+            const lista = (Array.isArray(p.imagens) && p.imagens.length) ? p.imagens : [p.imagem || IMG_PADRAO];
+            return lista.filter(Boolean);
+        }
+        let zoomFotos = [], zoomIdx = 0, zoomNome = '';
+        function abrirZoom(id) {
+            const p = products.find(x => String(x.id) === String(id));
+            if (!p) return;
+            zoomFotos = fotosDoProduto(p); zoomIdx = 0; zoomNome = p.nome || '';
             const box = document.getElementById('lightbox');
-            document.getElementById('lightbox-img').src = src;
-            document.getElementById('lightbox-img').alt = legenda || '';
-            document.getElementById('lightbox-legenda').textContent = legenda || '';
             box.classList.remove('hidden'); box.classList.add('flex');
             document.body.classList.add('travado');
+            mostrarZoom();
+        }
+        function mostrarZoom() {
+            const img = document.getElementById('lightbox-img');
+            img.src = zoomFotos[zoomIdx]; img.alt = zoomNome;
+            document.getElementById('lightbox-legenda').textContent = zoomNome;
+            const varias = zoomFotos.length > 1;
+            ['zoom-prev', 'zoom-next'].forEach(i => { const b = document.getElementById(i); b.classList.toggle('hidden', !varias); b.classList.toggle('flex', varias); });
+            document.getElementById('zoom-pontos').innerHTML = varias
+                ? zoomFotos.map((_, i) => `<button onclick="zoomIdx=${i}; mostrarZoom()" aria-label="Foto ${i + 1}" class="w-2.5 h-2.5 rounded-full ${i === zoomIdx ? 'bg-white' : 'bg-white/40'}"></button>`).join('')
+                : '';
+        }
+        function zoomIr(d) {
+            if (zoomFotos.length < 2) return;
+            zoomIdx = (zoomIdx + d + zoomFotos.length) % zoomFotos.length;
+            mostrarZoom();
         }
         function fecharZoom() {
             const box = document.getElementById('lightbox');
@@ -469,10 +494,20 @@
             document.body.classList.remove('travado');
         }
         document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            if (!document.getElementById('lightbox').classList.contains('hidden')) fecharZoom();
-            else if (!document.getElementById('menu-drawer').classList.contains('hidden')) fecharMenu();
+            const aberto = !document.getElementById('lightbox').classList.contains('hidden');
+            if (aberto && e.key === 'ArrowLeft') zoomIr(-1);
+            else if (aberto && e.key === 'ArrowRight') zoomIr(1);
+            else if (e.key === 'Escape') {
+                if (aberto) fecharZoom();
+                else if (!document.getElementById('menu-drawer').classList.contains('hidden')) fecharMenu();
+            }
         });
+        // deslizar o dedo para trocar de foto
+        (function () {
+            let x0 = null; const box = document.getElementById('lightbox');
+            box.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+            box.addEventListener('touchend', (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) zoomIr(dx < 0 ? 1 : -1); }, { passive: true });
+        })();
 
         // ---------- sacola ----------
         function toggleCart() { document.getElementById('cart-drawer').classList.toggle('hidden'); renderCartItems(); }
