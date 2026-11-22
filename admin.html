@@ -132,7 +132,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v15 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v16 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -986,6 +986,7 @@
                 'foto-rm': () => fotoRemover(Number(id)),
                 'foto-capa': () => fotoTornarCapa(Number(id)),
                 'recibo': () => enviarReciboCrediario(id),
+                'recibo-img': () => enviarReciboImagem(id),
                 'gerar-cred': () => gerarCrediarioDoPedido(id),
                 'reset-senha': () => redefinirSenhaLogin(id),
                 'del-login': () => excluirLogin(id),
@@ -1788,8 +1789,8 @@
                 await loadDashboard();
                 await loadEstoque();
                 await credPreencherPedidos();
-                if (await confirmar('Venda registrada! Deseja enviar o recibo por WhatsApp para o cliente agora?')) {
-                    await enviarReciboCrediario(venda.id, venda);
+                if (await confirmar('Venda registrada! Deseja enviar o recibo (imagem com a logo da loja) por WhatsApp agora?')) {
+                    await enviarReciboImagem(venda.id, venda);
                 }
             });
         }
@@ -1830,7 +1831,10 @@
                             ${linhasProdutos}
                         </div>
                         <div class="flex items-center justify-between gap-3 flex-wrap">
-                            <button type="button" data-act="recibo" data-id="${esc(venda.id)}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Enviar recibo</button>
+                            <span class="flex items-center gap-2 flex-wrap">
+                                <button type="button" data-act="recibo-img" data-id="${esc(venda.id)}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Enviar recibo</button>
+                                <button type="button" data-act="recibo" data-id="${esc(venda.id)}" class="bg-white border border-green-600 text-green-700 px-3 py-1.5 rounded-lg font-semibold" title="Enviar como mensagem de texto">Só texto</button>
+                            </span>
                             <button type="button" data-act="del-contrato" data-id="${esc(venda.id)}" class="text-red-500 hover:text-red-700 font-semibold">Excluir Venda</button>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1911,6 +1915,143 @@ ${siteLoja}
 
 Obrigado pela preferência!`;
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // ---------- RECIBO EM IMAGEM (com o logotipo da loja) ----------
+        async function dadosParaRecibo(vendaId, vendaLocal) {
+            let venda = vendaLocal ? normCred(vendaLocal) : null;
+            if (!venda) {
+                const row = await db(sb.from('crediario').select('*').eq('id', vendaId).maybeSingle(), 'Carregar contrato');
+                if (!row) { aviso('Contrato não encontrado.'); return null; }
+                venda = normCred(row);
+            }
+            const clientes = await fetchClientes();
+            const cli = clientes.find(c => (venda.cliente_id && c.id === venda.cliente_id) || c.nome === venda.cliente);
+            let numero = String((cli && cli.whatsapp) || '').replace(/\D/g, '');
+            if (numero && numero.length <= 11) numero = '55' + numero;
+            return { venda, numero };
+        }
+
+        function carregarImagem(src) {
+            return new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = src; });
+        }
+
+        async function gerarReciboPNG(venda) {
+            try { await document.fonts.load('700 30px "Plus Jakarta Sans"'); await document.fonts.load('400 30px "Plus Jakarta Sans"'); } catch (e) {}
+            const FONTE = '"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif';
+            const W = 1080, M = 70, VERDE = '#008B74', MARROM = '#3E2723', ROSE = '#D49B85', CREME = '#FDF9F5';
+            const cv = document.createElement('canvas'); cv.width = W; cv.height = 4200;
+            const c = cv.getContext('2d');
+            c.fillStyle = CREME; c.fillRect(0, 0, W, cv.height);
+
+            const quebra = (txt, max, font) => {
+                c.font = font; const palavras = String(txt).split(' '); const linhas = []; let atual = '';
+                for (const p of palavras) { const t = atual ? atual + ' ' + p : p; if (c.measureText(t).width > max && atual) { linhas.push(atual); atual = p; } else atual = t; }
+                if (atual) linhas.push(atual); return linhas;
+            };
+            const texto = (t, x, y, font, cor, alinhar = 'left') => { c.font = font; c.fillStyle = cor; c.textAlign = alinhar; c.fillText(t, x, y); };
+            const linhaH = (y) => { c.strokeStyle = 'rgba(212,155,133,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(M, y); c.lineTo(W - M, y); c.stroke(); };
+
+            // cabeçalho com logotipo
+            let y = 70;
+            const logo = await carregarImagem('logo-512.png');
+            const L = 250;   // logotipo quadrado (não corta o nome da loja)
+            if (logo) {
+                c.save(); c.beginPath(); c.roundRect(W / 2 - L / 2, y, L, L, 36); c.clip();
+                c.drawImage(logo, W / 2 - L / 2, y, L, L); c.restore();
+                c.strokeStyle = ROSE; c.lineWidth = 3; c.beginPath(); c.roundRect(W / 2 - L / 2, y, L, L, 36); c.stroke();
+                y += L + 70;
+            } else y += 20;
+            texto('LOJA DO HELCINHO', W / 2, y, `800 46px ${FONTE}`, MARROM, 'center'); y += 40;
+            texto('PERFUMARIA & PRESENTES', W / 2, y, `600 22px ${FONTE}`, ROSE, 'center'); y += 80;
+
+            // título
+            c.fillStyle = VERDE; const faixa = 74; c.beginPath(); c.roundRect(M, y - 48, W - M * 2, faixa, 16); c.fill();
+            texto('RECIBO DE COMPRA NO CREDIÁRIO', W / 2, y, `700 32px ${FONTE}`, '#ffffff', 'center'); y += 80;
+
+            // cliente e data
+            const dataCompra = venda.criado_em ? new Date(venda.criado_em) : new Date();
+            texto('CLIENTE', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
+            texto(venda.cliente || '', M, y, `700 36px ${FONTE}`, MARROM); y += 54;
+            texto('DATA DA COMPRA', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
+            texto(dataCompra.toLocaleDateString('pt-BR'), M, y, `600 32px ${FONTE}`, MARROM); y += 50;
+            linhaH(y); y += 55;
+
+            // produtos
+            texto('PRODUTOS', M, y, `700 20px ${FONTE}`, ROSE); y += 20;
+            const itens = Array.isArray(venda.itens) && venda.itens.length ? venda.itens : null;
+            const lista = itens ? itens.map(i => ({ nome: `${i.qtd}x ${i.nome}`, valor: fmtBRL(Number(i.preco || 0) * Number(i.qtd || 1)) }))
+                                : [{ nome: venda.produtos || 'Produtos da compra', valor: '' }];
+            for (const it of lista) {
+                const ls = quebra(it.nome, W - M * 2 - 230, `600 30px ${FONTE}`);
+                y += 46;
+                ls.forEach((l, k) => { texto(l, M, y + k * 40, `600 30px ${FONTE}`, MARROM); });
+                if (it.valor) texto(it.valor, W - M, y, `700 30px ${FONTE}`, MARROM, 'right');
+                y += (ls.length - 1) * 40 + 10;
+            }
+            y += 30; linhaH(y); y += 70;
+
+            // total
+            texto('VALOR TOTAL', M, y, `700 28px ${FONTE}`, MARROM);
+            texto(fmtBRL(venda.valorTotal), W - M, y, `800 46px ${FONTE}`, VERDE, 'right'); y += 52;
+            const parcelas = venda.parcelas || [];
+            texto('Parcelamento', M, y, `500 26px ${FONTE}`, '#6b5a55');
+            texto(`${parcelas.length}x`, W - M, y, `700 28px ${FONTE}`, MARROM, 'right'); y += 55;
+
+            // parcelas
+            c.fillStyle = '#ffffff'; c.strokeStyle = 'rgba(212,155,133,.45)'; c.lineWidth = 2;
+            const altTab = 64 + parcelas.length * 66 + 10;
+            c.beginPath(); c.roundRect(M, y, W - M * 2, altTab, 18); c.fill(); c.stroke();
+            c.fillStyle = 'rgba(0,139,116,.10)'; c.beginPath(); c.roundRect(M, y, W - M * 2, 60, [18, 18, 0, 0]); c.fill();
+            texto('PARCELA', M + 30, y + 40, `700 20px ${FONTE}`, VERDE);
+            texto('VENCIMENTO', W / 2, y + 40, `700 20px ${FONTE}`, VERDE, 'center');
+            texto('VALOR', W - M - 30, y + 40, `700 20px ${FONTE}`, VERDE, 'right');
+            parcelas.forEach((p, k) => {
+                const yy = y + 60 + (k + 1) * 66 - 20;
+                if (k > 0) { c.strokeStyle = 'rgba(212,155,133,.25)'; c.beginPath(); c.moveTo(M + 20, yy - 46); c.lineTo(W - M - 20, yy - 46); c.stroke(); }
+                texto(String(p.numero), M + 30, yy, `700 30px ${FONTE}`, MARROM);
+                texto(fmtDataISO(p.vencimento), W / 2, yy, `600 30px ${FONTE}`, MARROM, 'center');
+                texto(fmtBRL(p.valorOriginal), W - M - 30, yy, `700 30px ${FONTE}`, MARROM, 'right');
+            });
+            y += altTab + 60;
+
+            // rodapé
+            const rod = quebra('Acompanhe suas parcelas no site da loja, pelo menu ☰ › Crediário em aberto.', W - M * 2, `500 24px ${FONTE}`);
+            rod.forEach((l, k) => texto(l, W / 2, y + k * 34, `500 24px ${FONTE}`, '#6b5a55', 'center'));
+            y += rod.length * 34 + 20;
+            texto('Obrigado pela preferência!', W / 2, y + 20, `700 30px ${FONTE}`, VERDE, 'center'); y += 85;
+
+            // recorta na altura exata
+            const out = document.createElement('canvas'); out.width = W; out.height = y;
+            out.getContext('2d').drawImage(cv, 0, 0, W, y, 0, 0, W, y);
+            return await new Promise(res => out.toBlob(res, 'image/png'));
+        }
+
+        async function enviarReciboImagem(vendaId, vendaLocal) {
+            const d = await dadosParaRecibo(vendaId, vendaLocal);
+            if (!d) return;
+            const { venda, numero } = d;
+            const blob = await gerarReciboPNG(venda);
+            if (!blob) return aviso('Não foi possível gerar a imagem do recibo.');
+            const nomeArq = 'recibo-' + String(venda.cliente || 'cliente').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+            const arquivo = new File([blob], nomeArq, { type: 'image/png' });
+
+            // Celular: abre a tela de compartilhar (escolha o WhatsApp e o cliente)
+            if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                try {
+                    await navigator.share({ files: [arquivo], title: 'Recibo - Loja do Helcinho' });
+                    return;
+                } catch (e) {
+                    if (e && e.name === 'AbortError') return;   // você fechou a tela de compartilhar
+                    console.error('Compartilhar recibo', e);
+                }
+            }
+            // Computador: baixa a imagem e abre a conversa do cliente para você anexar
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = nomeArq; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+            if (numero) window.open(`https://wa.me/${numero}`, '_blank');
+            aviso(`Imagem "${nomeArq}" salva em Downloads. No WhatsApp que abriu, toque no clipe e anexe a imagem.` + (numero ? '' : ' (Este cliente não tem WhatsApp cadastrado.)'), 'ok');
         }
 
         async function baixarParcela(vendaId, pIndex) {
