@@ -281,14 +281,14 @@
                 <img id="pedido-img" alt="Imagem do pedido" class="w-full rounded-2xl border border-rosegold/30 shadow-sm bg-white">
                 <p class="text-[11px] text-gray-500 text-center mt-2">Dica: se preferir, segure o dedo na imagem para salvá-la.</p>
             </div>
-            <div class="p-5 space-y-2.5">
-                <button onclick="abrirConversaLoja()" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar para a loja no WhatsApp
+            <div class="p-5 flex flex-col gap-2.5">
+                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-verdePetroleo text-white font-semibold py-3 rounded-xl shadow items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar a imagem pelo WhatsApp
                 </button>
-                <p class="text-[11px] text-gray-500 text-center">Vai abrir direto a conversa com a loja e a imagem do pedido será salva no seu aparelho. Toque no clipe <i class="fa-solid fa-paperclip"></i>, escolha a imagem (a mais recente) e envie.</p>
-                <button id="btn-compartilhar-pedido" onclick="compartilharPedido()" class="hidden w-full bg-white border border-verdePetroleo/40 text-verdePetroleo font-semibold py-2 rounded-xl items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-share-nodes"></i> Outra opção: compartilhar a imagem
+                <button id="btn-abrir-conversa" onclick="abrirConversaLoja()" class="w-full bg-verdePetroleo text-white font-semibold py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> <span id="txt-abrir-conversa">Abrir a conversa da loja</span>
                 </button>
+                <p id="dica-pedido" class="text-[11px] text-gray-600 text-center"></p>
                 <button onclick="fecharPedidoModal()" class="w-full text-gray-500 text-xs font-semibold py-1.5">Fechar</button>
             </div>
         </div>
@@ -737,8 +737,19 @@
         function mostrarPedidoModal() {
             let podeCompartilhar = false;
             try { podeCompartilhar = !!(navigator.canShare && navigator.canShare({ files: [arquivoPedido()] })); } catch (e) {}
-            const b = document.getElementById('btn-compartilhar-pedido');
-            b.classList.toggle('hidden', !podeCompartilhar); b.classList.toggle('flex', podeCompartilhar);
+            const bs = document.getElementById('btn-compartilhar-pedido'), bo = document.getElementById('btn-abrir-conversa');
+            const claro = 'bg-white border border-verdePetroleo/40 text-verdePetroleo shadow-none', forte = 'bg-verdePetroleo text-white shadow';
+            const troca = (el, ativo) => { (ativo ? claro : forte).split(' ').forEach(c => el.classList.remove(c)); (ativo ? forte : claro).split(' ').forEach(c => el.classList.add(c)); };
+            bs.classList.toggle('hidden', !podeCompartilhar); bs.classList.toggle('flex', podeCompartilhar);
+            if (podeCompartilhar) {   // celular: compartilhar a imagem é o caminho principal
+                troca(bs, true); troca(bo, false);
+                bs.style.order = 1; bo.style.order = 2;
+                document.getElementById('txt-abrir-conversa').textContent = 'Abrir só a conversa da loja';
+                document.getElementById('dica-pedido').innerHTML = 'Toque no botão verde e escolha o contato da loja no WhatsApp.';
+            } else {                  // computador: abre a conversa e a imagem vai copiada para colar
+                document.getElementById('txt-abrir-conversa').textContent = 'Abrir a conversa da loja';
+                document.getElementById('dica-pedido').innerHTML = 'Vai abrir a conversa com a loja. <b>Depois é só colar a imagem (Ctrl+V)</b> na conversa e enviar.';
+            }
             const m = document.getElementById('pedido-modal');
             m.classList.remove('hidden'); m.classList.add('flex');
             document.body.classList.add('travado');
@@ -752,12 +763,25 @@
             try { await navigator.share({ files: [arquivoPedido()], title: 'Pedido - Loja do Helcinho' }); }
             catch (e) { if (!e || e.name !== 'AbortError') console.error('Compartilhar pedido', e); }
         }
-        function abrirConversaLoja() {
-            // salva a imagem no aparelho e abre a conversa da loja (o cliente anexa pelo clipe)
-            const a = document.createElement('a'); a.href = pedidoUrl; a.download = nomeArquivoPedido();
-            document.body.appendChild(a); a.click(); a.remove();
-            const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(textoCurtoPedido(pedidoDados))}`;
-            setTimeout(() => { window.open(url, '_blank') || (window.location.href = url); }, 500);
+        async function abrirConversaLoja() {
+            // copia a imagem (para colar com Ctrl+V) e também salva no aparelho; depois abre a conversa da loja
+            let copiou = false;
+            try {
+                if (navigator.clipboard && window.ClipboardItem) {
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': pedidoBlob })]);
+                    copiou = true;
+                }
+            } catch (e) { console.warn('Copiar imagem', e); }
+            if (!copiou) {
+                const a = document.createElement('a'); a.href = pedidoUrl; a.download = nomeArquivoPedido();
+                document.body.appendChild(a); a.click(); a.remove();
+            }
+            document.getElementById('dica-pedido').innerHTML = copiou
+                ? '<b>Imagem copiada!</b> Na conversa da loja, clique na caixa de mensagem e cole com <b>Ctrl+V</b> (no celular: segure o dedo na caixa e toque em Colar), depois envie.'
+                : '<b>Imagem salva no aparelho.</b> Na conversa da loja, toque no clipe e escolha a imagem do pedido (a mais recente), depois envie.';
+            const texto = `Olá! Pedido ${pedidoDados.numero || ''} - ${fmtBRL(pedidoDados.total)} (${pedidoDados.forma}). Segue a imagem do pedido:`;
+            const url = `https://wa.me/${zapLoja}?text=${encodeURIComponent(texto)}`;
+            setTimeout(() => { window.open(url, '_blank') || (window.location.href = url); }, 400);
         }
 
         let enviando = false;
