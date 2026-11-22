@@ -132,7 +132,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v11 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v12 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -149,7 +149,7 @@
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="flex-grow p-4 md:p-8 overflow-y-auto max-w-6xl">
             <!-- DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content space-y-6">
+            <section id="tab-dashboard" class="tab-content space-y-6 pb-20 md:pb-0">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-rosegold/20 shadow-sm">
                         <p class="text-xs text-gray-500 uppercase font-semibold">Total em Aberto (Crediário)</p>
@@ -173,7 +173,8 @@
                     <div id="atrasadas-list" class="space-y-3"></div>
                 </div>
 
-                <div class="sticky bottom-3 pt-2">
+                <!-- Celular: fixo na base da tela. Computador: ao fim do conteúdo. -->
+                <div class="fixed left-4 right-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 md:static md:sticky md:bottom-3 md:pt-2">
                     <a href="index.html?de=admin" class="w-full bg-marromCafe text-white py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black transition shadow-lg">
                         <i class="fa-solid fa-store"></i> Ver a Loja Online
                     </a>
