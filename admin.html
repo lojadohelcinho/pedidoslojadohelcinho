@@ -132,7 +132,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v12 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v13 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -341,7 +341,7 @@
                     </form>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
-                    <h2 class="font-bold text-base text-marromCafe">💳 Contratos e Parcelas Ativas</h2>
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-credit-card text-blue-500 mr-2"></i>Contratos e Parcelas Ativas</h2>
                     <div id="crediario-list" class="space-y-4"></div>
                 </div>
             </section>
@@ -982,6 +982,7 @@
                 'baixar': () => baixarParcela(id, Number(el.dataset.p)),
                 'cred-rm': () => credRemoverItem(Number(id)),
                 'toggle-pedido': () => alternarPedido(id),
+                'toggle-cred': () => alternarContrato(id),
                 'foto-rm': () => fotoRemover(Number(id)),
                 'foto-capa': () => fotoTornarCapa(Number(id)),
                 'recibo': () => enviarReciboCrediario(id),
@@ -1793,39 +1794,65 @@
             });
         }
 
+        // contratos abertos/fechados na lista (continua assim quando a tela atualiza)
+        const credAberto = {};
+        function alternarContrato(id) {
+            const card = Array.from(document.querySelectorAll('[data-cred]')).find(c => c.dataset.cred === id);
+            if (!card) return;
+            const corpo = card.querySelector('.corpo-cred');
+            const abrir = corpo.classList.contains('hidden');
+            corpo.classList.toggle('hidden', !abrir);
+            const ic = card.querySelector('[data-act="toggle-cred"] i');
+            ic.classList.toggle('fa-chevron-right', abrir); ic.classList.toggle('fa-chevron-down', !abrir);
+            credAberto[id] = abrir;
+        }
+
         async function loadCrediario() {
             const list = document.getElementById('crediario-list');
             const credList = await fetchCred();
             const hoje = hojeISO();
 
-            list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>' : credList.map(venda => `
-                <div class="bg-creme p-4 rounded-xl border border-rosegold/20 space-y-3 text-xs">
-                    <div class="flex justify-between items-center font-bold border-b pb-1 gap-2">
-                        <span>${esc(venda.cliente)} — ${fmtBRL(venda.valorTotal)} (${esc(venda.produtos)})</span>
-                        <span class="flex items-center gap-3 shrink-0">
-                            <button type="button" data-act="recibo" data-id="${esc(venda.id)}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Enviar recibo</button>
-                            <button type="button" data-act="del-contrato" data-id="${esc(venda.id)}" class="text-red-500 hover:text-red-700">Excluir Venda</button>
-                        </span>
+            list.innerHTML = credList.length === 0 ? '<p class="text-xs text-gray-400">Nenhum contrato ativo.</p>' : credList.map(venda => {
+                const aberto = !!credAberto[venda.id];
+                const itens = Array.isArray(venda.itens) ? venda.itens : [];
+                const linhasProdutos = itens.length
+                    ? itens.map(i => `<p>${esc(i.qtd)} x ${esc(i.nome)}</p>`).join('')
+                    : `<p>${esc(venda.produtos || '')}</p>`;
+                return `
+                <div data-cred="${esc(venda.id)}" class="bg-creme rounded-xl border border-rosegold/20 text-xs">
+                    <button type="button" data-act="toggle-cred" data-id="${esc(venda.id)}" class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <span class="text-verdePetroleo font-bold text-sm min-w-0 truncate"><i class="fa-solid fa-user mr-2"></i>Cliente: ${esc(venda.cliente)}</span>
+                        <span class="shrink-0 w-6 h-6 rounded-full bg-verdePetroleo text-white flex items-center justify-center"><i class="fa-solid ${aberto ? 'fa-chevron-right' : 'fa-chevron-down'} text-[10px]"></i></span>
+                    </button>
+                    <div class="corpo-cred ${aberto ? '' : 'hidden'} px-4 pb-4 space-y-3">
+                        <div class="font-bold text-marromCafe space-y-0.5">
+                            <p>${fmtBRL(venda.valorTotal)}</p>
+                            ${linhasProdutos}
+                        </div>
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                            <button type="button" data-act="recibo" data-id="${esc(venda.id)}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Enviar recibo</button>
+                            <button type="button" data-act="del-contrato" data-id="${esc(venda.id)}" class="text-red-500 hover:text-red-700 font-semibold">Excluir Venda</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            ${venda.parcelas.map((p, pIndex) => {
+                                const saldo = Number(p.valorOriginal || 0) - Number(p.valorPago || 0);
+                                let statusTxt = p.status;
+                                if (saldo <= 0) statusTxt = 'Paga';
+                                else if (p.vencimento < hoje) statusTxt = 'ATRASADA';
+                                return `
+                                    <div class="p-2 rounded border bg-white flex flex-col justify-between">
+                                        <div>
+                                            <b>Parc ${esc(p.numero)}</b> | ${fmtBRL(saldo)}<br>
+                                            Venc: ${fmtDataISO(p.vencimento)}<br>
+                                            Status: <span class="${statusTxt === 'ATRASADA' ? 'text-red-600 font-bold' : ''}">${esc(statusTxt)}</span>
+                                        </div>
+                                        ${saldo > 0 ? `<button type="button" data-act="baixar" data-id="${esc(venda.id)}" data-p="${pIndex}" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
+                                    </div>`;
+                            }).join('')}
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        ${venda.parcelas.map((p, pIndex) => {
-                            const saldo = Number(p.valorOriginal || 0) - Number(p.valorPago || 0);
-                            let statusTxt = p.status;
-                            if (saldo <= 0) statusTxt = 'Paga';
-                            else if (p.vencimento < hoje) statusTxt = 'ATRASADA';
-                            return `
-                                <div class="p-2 rounded border bg-white flex flex-col justify-between">
-                                    <div>
-                                        <b>Parc ${esc(p.numero)}</b> | ${fmtBRL(saldo)}<br>
-                                        Venc: ${fmtDataISO(p.vencimento)}<br>
-                                        Status: <span class="${statusTxt === 'ATRASADA' ? 'text-red-600 font-bold' : ''}">${esc(statusTxt)}</span>
-                                    </div>
-                                    ${saldo > 0 ? `<button type="button" data-act="baixar" data-id="${esc(venda.id)}" data-p="${pIndex}" class="mt-2 bg-verdePetroleo text-white py-1 rounded text-[10px] font-semibold">Baixar</button>` : ''}
-                                </div>`;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // =====================================================================
