@@ -146,19 +146,23 @@
                             </div>
 
                             <form id="form-login" onsubmit="entrar(event)" class="space-y-2.5">
-                                <input id="login-usuario" class="campo" placeholder="Usuário" autocomplete="username" autocapitalize="none" required>
-                                <input id="login-senha" type="password" class="campo" placeholder="Senha" autocomplete="current-password" required>
-                                <button id="btn-login" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl text-sm font-semibold shadow transition">Entrar</button>
-                                <p class="text-[11px] text-gray-500 text-center">Esqueceu a senha? <a id="link-esqueci" href="#" target="_blank" class="text-verdePetroleo font-bold underline">Peça uma nova à loja pelo WhatsApp</a></p>
+                                <label class="block text-xs font-bold text-marromCafe">Seu WhatsApp (com DDD)</label>
+                                <input id="login-usuario" class="campo" placeholder="Ex.: 16 99999-9999" inputmode="tel" autocomplete="tel" autocapitalize="none" required>
+                                <label class="block text-xs font-bold text-marromCafe">Seu PIN (4 números)</label>
+                                <input id="login-senha" type="password" class="campo" placeholder="PIN" inputmode="numeric" autocomplete="current-password" required>
+                                <button id="btn-login" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl text-sm font-semibold shadow transition">Entrar</button>
+                                <p class="text-[11px] text-gray-500 text-center">Esqueceu o PIN? <a id="link-esqueci" href="#" target="_blank" class="text-verdePetroleo font-bold underline">Peça um novo à loja pelo WhatsApp</a></p>
+                                <p class="text-[11px] text-gray-400 text-center">Já tinha conta com usuário e senha? Digite o usuário no lugar do WhatsApp.</p>
                             </form>
 
                             <form id="form-cadastro" onsubmit="cadastrar(event)" class="space-y-2.5 hidden">
-                                <input id="cad-nome" class="campo" placeholder="Seu nome completo" autocomplete="name" required>
-                                <input id="cad-telefone" class="campo" placeholder="WhatsApp (com DDD)" inputmode="tel" autocomplete="tel">
-                                <input id="cad-usuario" class="campo" placeholder="Escolha um usuário (sem espaços)" autocomplete="username" autocapitalize="none" required>
-                                <input id="cad-senha" type="password" class="campo" placeholder="Crie uma senha (mín. 6 caracteres)" autocomplete="new-password" required>
-                                <button id="btn-cadastro" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl text-sm font-semibold shadow transition">Criar minha conta</button>
-                                <p class="text-[11px] text-gray-500 text-center">Anote seu usuário e senha. Se esquecer, a loja cria uma senha nova para você.</p>
+                                <label class="block text-xs font-bold text-marromCafe">Seu WhatsApp (com DDD)</label>
+                                <input id="cad-whatsapp" class="campo" placeholder="Ex.: 16 99999-9999" inputmode="tel" autocomplete="tel" required>
+                                <label class="block text-xs font-bold text-marromCafe">Crie um PIN de 4 números</label>
+                                <input id="cad-pin" type="password" class="campo" placeholder="Ex.: 1234" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="new-password" required>
+                                <label class="flex items-center gap-2 text-[11px] text-gray-500"><input type="checkbox" onchange="document.getElementById('cad-pin').type = this.checked ? 'tel' : 'password'" class="accent-verdePetroleo"> Mostrar o PIN</label>
+                                <button id="btn-cadastro" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-3 rounded-xl text-sm font-semibold shadow transition">Criar minha conta</button>
+                                <p class="text-[11px] text-gray-500 text-center">Pronto! Depois você completa seu nome e endereço em <b>Meus dados</b>. Anote o PIN: se esquecer, a loja cria outro.</p>
                             </form>
                             <p id="conta-msg" class="hidden text-xs font-semibold text-center rounded-lg px-3 py-2"></p>
                         </div>
@@ -175,6 +179,37 @@
                                 <i class="fa-solid fa-right-from-bracket"></i> Sair da conta
                             </button>
                         </div>
+                    </div>
+                </section>
+
+                <!-- Seção: meus dados -->
+                <section id="sec-dados-box" class="hidden bg-white rounded-2xl border border-rosegold/20 shadow-sm overflow-hidden">
+                    <button onclick="toggleSecao('dados')" class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <span class="flex items-center gap-3 text-sm font-bold">
+                            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center"><i class="fa-solid fa-id-card"></i></span>
+                            <span>Meus dados</span>
+                        </span>
+                        <i id="chev-dados" class="fa-solid fa-chevron-down text-xs text-gray-400 transition"></i>
+                    </button>
+                    <div id="sec-dados" class="hidden px-4 pb-4 border-t border-gray-100 pt-3 space-y-2.5">
+                        <form id="form-dados" onsubmit="salvarDados(event)" class="space-y-2.5">
+                            <label class="block text-xs font-bold text-marromCafe">Nome completo</label>
+                            <input id="dados-nome" class="campo" placeholder="Seu nome" autocomplete="name" required>
+                            <label class="block text-xs font-bold text-marromCafe">WhatsApp (com DDD)</label>
+                            <input id="dados-whatsapp" class="campo" placeholder="Ex.: 16 99999-9999" inputmode="tel" autocomplete="tel">
+                            <label class="block text-xs font-bold text-marromCafe">Endereço</label>
+                            <textarea id="dados-endereco" rows="2" class="campo" placeholder="Rua, número, bairro, cidade" autocomplete="street-address"></textarea>
+                            <button id="btn-dados" type="submit" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white py-2.5 rounded-xl text-sm font-semibold shadow transition">Salvar meus dados</button>
+                        </form>
+                        <details class="text-xs">
+                            <summary class="cursor-pointer font-bold text-marromCafe py-1">Trocar meu PIN</summary>
+                            <form onsubmit="trocarPin(event)" class="space-y-2 pt-2">
+                                <input id="pin-atual" type="password" class="campo" placeholder="PIN atual" inputmode="numeric" required>
+                                <input id="pin-novo" type="password" class="campo" placeholder="Novo PIN (4 números)" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required>
+                                <button type="submit" class="w-full border border-verdePetroleo text-verdePetroleo py-2 rounded-xl text-xs font-semibold">Trocar PIN</button>
+                            </form>
+                        </details>
+                        <p id="dados-msg" class="hidden text-xs font-semibold text-center rounded-lg px-3 py-2"></p>
                     </div>
                 </section>
 
@@ -208,7 +243,7 @@
             </div>
 
             <div class="p-3 text-center text-[10px] text-gray-400 bg-white border-t border-rosegold/10">
-                <i class="fa-solid fa-lock mr-1"></i> Sua senha é guardada criptografada.
+                <i class="fa-solid fa-lock mr-1"></i> Seu PIN é guardado criptografado.
             </div>
         </aside>
     </div>
@@ -263,6 +298,9 @@
                     <button id="btn-finalizar" onclick="checkoutWhatsApp()" class="w-full bg-verdePetroleo hover:bg-verdeHover text-white font-semibold py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
                         <i class="fa-brands fa-whatsapp text-lg"></i>
                         Finalizar Pedido via WhatsApp
+                    </button>
+                    <button type="button" onclick="toggleCart()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo hover:bg-verdePetroleo/5 font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Continuar comprando
                     </button>
                 </div>
             </div>
@@ -359,7 +397,7 @@
         let currentCategory = 'todos';
         let zapLoja = ZAP_PADRAO;
         let token = null;      // sessão do cliente (login da loja)
-        let perfil = null;     // { nome, usuario, vinculado }
+        let perfil = null;     // { nome, usuario, whatsapp, endereco, vinculado }
 
         // ---------- utilidades ----------
         function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -390,7 +428,7 @@
                 if (!error && data && data.valor) zapLoja = String(data.valor).replace(/\D/g, '') || ZAP_PADRAO;
             } catch (e) { console.error('WhatsApp da loja:', e); }
             const link = document.getElementById('link-esqueci');
-            if (link) link.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent('Olá! Esqueci minha senha da loja online. Pode criar uma nova para mim?')}`;
+            if (link) link.href = `https://wa.me/${zapLoja}?text=${encodeURIComponent('Olá! Esqueci meu PIN da loja online. Pode criar um novo para mim?')}`;
         }
 
         // A barra "Voltar ao painel" só aparece quando o administrador chega aqui pelo botão
@@ -686,7 +724,8 @@
             // cliente / usuário / data
             texto('CLIENTE', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
             texto(d.cliente || '', M, y, `700 36px ${FONTE}`, MARROM); y += 54;
-            if (d.usuario) { texto('USUÁRIO', M, y, `700 20px ${FONTE}`, ROSE); y += 36; texto('@' + d.usuario, M, y, `600 32px ${FONTE}`, MARROM); y += 54; }
+            if (d.whatsapp) { texto('WHATSAPP DO CLIENTE', M, y, `700 20px ${FONTE}`, ROSE); y += 36; texto(fmtZap(d.whatsapp), M, y, `600 32px ${FONTE}`, MARROM); y += 54; }
+            else if (d.usuario) { texto('USUÁRIO', M, y, `700 20px ${FONTE}`, ROSE); y += 36; texto('@' + d.usuario, M, y, `600 32px ${FONTE}`, MARROM); y += 54; }
             texto('DATA DO PEDIDO', M, y, `700 20px ${FONTE}`, ROSE); y += 36;
             texto(d.data || '', M, y, `600 32px ${FONTE}`, MARROM); y += 50;
             linhaH(y); y += 55;
@@ -841,7 +880,7 @@
                     alert('Não conseguimos registrar o pedido no sistema agora, mas você ainda pode enviá-lo pelo WhatsApp.');
                 }
 
-                const dadosPedido = { numero: numeroPedido, cliente: nomeBonito(nomeCliente), usuario: perfil ? perfil.usuario : '', data: dataTxt, linhas, presente: isGift, total: totalFinal, forma };
+                const dadosPedido = { numero: numeroPedido, cliente: nomeBonito(nomeCliente), whatsapp: perfil ? perfil.whatsapp : '', usuario: perfil && !perfil.whatsapp ? perfil.usuario : '', data: dataTxt, linhas, presente: isGift, total: totalFinal, forma };
                 let imagemOk = false;
                 try { imagemOk = await prepararPedidoImagem(dadosPedido); } catch (e) { console.error('Imagem do pedido', e); }
 
@@ -879,13 +918,17 @@
             document.getElementById('conta-logado').classList.toggle('hidden', !logado);
             document.getElementById('menu-ponto').classList.toggle('hidden', !logado);
             document.getElementById('conta-titulo').textContent = logado ? 'Minha conta' : 'Entrar / Criar conta';
-            document.getElementById('menu-sub').textContent = logado ? `Olá, ${perfil.nome.split(' ')[0]}!` : 'Entre para acompanhar seus pedidos';
+            document.getElementById('sec-dados-box').classList.toggle('hidden', !logado);
+            document.getElementById('menu-sub').textContent = logado ? (perfil.nome ? `Olá, ${perfil.nome.split(' ')[0]}!` : 'Olá! Complete seus dados em Meus dados') : 'Entre para acompanhar seus pedidos';
             if (logado) {
-                document.getElementById('perfil-nome').textContent = perfil.nome;
-                document.getElementById('perfil-usuario').textContent = '@' + perfil.usuario;
-                document.getElementById('perfil-inicial').textContent = (perfil.nome || '?').trim().charAt(0).toUpperCase();
+                document.getElementById('perfil-nome').textContent = perfil.nome || 'Cliente';
+                document.getElementById('perfil-usuario').textContent = perfil.whatsapp ? fmtZap(perfil.whatsapp) : '@' + perfil.usuario;
+                document.getElementById('perfil-inicial').textContent = (perfil.nome || 'C').trim().charAt(0).toUpperCase();
                 const campo = document.getElementById('cliente-nome');
-                if (!campo.value) campo.value = perfil.nome;
+                if (!campo.value && perfil.nome) campo.value = perfil.nome;
+                document.getElementById('dados-nome').value = perfil.nome || '';
+                document.getElementById('dados-whatsapp').value = perfil.whatsapp ? fmtZap(perfil.whatsapp) : '';
+                document.getElementById('dados-endereco').value = perfil.endereco || '';
             }
             // Crediário só para quem está logado
             const radio = document.querySelector('#forma-crediario input');
@@ -906,6 +949,45 @@
             aplicarConta();
         }
 
+        function fmtZap(n) {
+            const d = String(n || '').replace(/\D/g, '');
+            if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+            if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+            return d;
+        }
+        function msgDados(texto, ok) {
+            const el = document.getElementById('dados-msg');
+            if (!texto) { el.classList.add('hidden'); return; }
+            el.className = 'text-xs font-semibold text-center rounded-lg px-3 py-2 ' + (ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700');
+            el.textContent = texto;
+        }
+        async function salvarDados(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-dados'); btn.disabled = true; btn.classList.add('opacity-60');
+            const r = await rpc('loja_atualizar_dados', {
+                p_token: token,
+                p_nome: document.getElementById('dados-nome').value,
+                p_whatsapp: document.getElementById('dados-whatsapp').value,
+                p_endereco: document.getElementById('dados-endereco').value
+            });
+            btn.disabled = false; btn.classList.remove('opacity-60');
+            if (r.ok) {
+                perfil.nome = r.nome; perfil.whatsapp = r.whatsapp || ''; perfil.endereco = r.endereco || '';
+                const campo = document.getElementById('cliente-nome'); campo.value = r.nome;
+                aplicarConta();
+                msgDados('Dados salvos!', true);
+            } else {
+                if (/expirad/i.test(r.erro || '')) { sair(); return; }
+                msgDados(r.erro || 'Não foi possível salvar.', false);
+            }
+        }
+        async function trocarPin(e) {
+            e.preventDefault();
+            const r = await rpc('loja_alterar_pin', { p_token: token, p_atual: document.getElementById('pin-atual').value, p_novo: document.getElementById('pin-novo').value });
+            if (r.ok) { document.getElementById('pin-atual').value = ''; document.getElementById('pin-novo').value = ''; msgDados('PIN trocado com sucesso!', true); }
+            else msgDados(r.erro || 'Não foi possível trocar o PIN.', false);
+        }
+
         function msgConta(texto, ok) {
             const el = document.getElementById('conta-msg');
             if (!texto) { el.classList.add('hidden'); return; }
@@ -924,9 +1006,9 @@
 
         async function finalizarLogin(r) {
             token = r.token; lsSet(TOKEN_KEY, token);
-            perfil = { nome: r.nome, usuario: r.usuario, vinculado: !!r.vinculado };
+            perfil = { nome: r.nome || '', usuario: r.usuario, whatsapp: r.whatsapp || '', endereco: r.endereco || '', vinculado: !!r.vinculado };
             document.getElementById('login-senha').value = '';
-            document.getElementById('cad-senha').value = '';
+            document.getElementById('cad-pin').value = '';
             msgConta('');
             aplicarConta();
         }
@@ -944,14 +1026,18 @@
             e.preventDefault();
             const btn = document.getElementById('btn-cadastro');
             btn.disabled = true; btn.classList.add('opacity-60');
-            const r = await rpc('loja_cadastrar', {
-                p_usuario: document.getElementById('cad-usuario').value,
-                p_senha: document.getElementById('cad-senha').value,
-                p_nome: document.getElementById('cad-nome').value,
-                p_telefone: document.getElementById('cad-telefone').value
+            const r = await rpc('loja_cadastrar_whatsapp', {
+                p_whatsapp: document.getElementById('cad-whatsapp').value,
+                p_pin: document.getElementById('cad-pin').value
             });
             btn.disabled = false; btn.classList.remove('opacity-60');
-            if (r.ok) finalizarLogin(r); else msgConta(r.erro || 'Não foi possível criar a conta.', false);
+            if (r.ok) {
+                await finalizarLogin(r);
+                // abre "Meus dados" para a pessoa completar o cadastro
+                const corpo = document.getElementById('sec-dados');
+                if (corpo.classList.contains('hidden')) toggleSecao('dados');
+                msgDados('Conta criada! Agora preencha seu nome e endereço.', true);
+            } else msgConta(r.erro || 'Não foi possível criar a conta.', false);
         }
 
         async function sair() {
