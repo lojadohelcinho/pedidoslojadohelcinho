@@ -127,12 +127,15 @@
                     <button type="button" onclick="switchTab('config')" id="btn-config" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
                         <i class="fa-solid fa-gear w-5 text-center text-green-600"></i> Configurações & WhatsApp
                     </button>
+                    <button type="button" onclick="switchTab('backup')" id="btn-backup" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-marromCafe hover:bg-rosegold/10 transition">
+                        <i class="fa-solid fa-cloud-arrow-up w-5 text-center"></i> Backup
+                    </button>
                 </nav>
 
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v18 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v19 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -545,6 +548,42 @@
             </section>
 
             <!-- CONFIGURAÇÕES & WHATSAPP -->
+            <!-- BACKUP (Google Planilhas) -->
+            <section id="tab-backup" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-5">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-cloud-arrow-up text-verdePetroleo mr-2"></i> Backup no Google Planilhas</h2>
+                    <p class="text-xs text-gray-500">Todo dia, por volta das 3h da manhã, a planilha copia sozinha os pedidos, o crediário, os clientes e o estoque. Aos domingos ela também guarda uma cópia datada no seu Google Drive. A planilha é só uma cópia de segurança: editar nela não altera a loja.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-creme rounded-xl p-4 border border-rosegold/20">
+                            <p class="text-[11px] font-semibold text-rosegold uppercase">Último backup</p>
+                            <p id="backup-ultimo" class="font-bold text-sm mt-1">Carregando...</p>
+                        </div>
+                        <div class="bg-creme rounded-xl p-4 border border-rosegold/20">
+                            <p class="text-[11px] font-semibold text-rosegold uppercase">Situação</p>
+                            <p id="backup-situacao" class="font-bold text-sm mt-1">—</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="backupAgora()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition"><i class="fa-solid fa-rotate mr-1"></i> Fazer backup agora</button>
+                        <button type="button" onclick="abrirPlanilhaBackup()" class="bg-white border border-verdePetroleo text-verdePetroleo px-5 py-2.5 rounded-xl font-semibold text-xs transition"><i class="fa-solid fa-table mr-1"></i> Abrir planilha</button>
+                        <button type="button" onclick="baixarCopiaLocal()" class="bg-white border border-rosegold text-marromCafe px-5 py-2.5 rounded-xl font-semibold text-xs transition"><i class="fa-solid fa-download mr-1"></i> Baixar cópia no aparelho</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h3 class="font-bold text-sm text-marromCafe"><i class="fa-solid fa-link text-verdePetroleo mr-2"></i> Ligar o painel à planilha (só uma vez)</h3>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-marromCafe">Link da planilha de backup (começa com https://docs.google.com/spreadsheets/)</label>
+                        <input type="url" id="backup-planilha-url" placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-marromCafe">Endereço do App da Web do backup (começa com https://script.google.com/)</label>
+                        <input type="url" id="backup-webapp-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-verdePetroleo">
+                    </div>
+                    <button type="button" onclick="salvarConfigBackup()" class="bg-verdePetroleo hover:bg-verdeHover text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar links do backup</button>
+                </div>
+            </section>
+
             <section id="tab-config" class="tab-content hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-6">
                     <h2 class="font-bold text-base text-marromCafe"><i class="fa-solid fa-gear text-verdePetroleo mr-2"></i> Configurações do Sistema</h2>
@@ -1004,6 +1043,80 @@
         // =====================================================================
         // NAVEGAÇÃO
         // =====================================================================
+        // =====================================================================
+        // BACKUP (Google Planilhas)
+        // =====================================================================
+        async function loadBackup() {
+            const [planilhaUrl, webappUrl] = await Promise.all([getConfig('backup_planilha_url'), getConfig('backup_webapp_url')]);
+            document.getElementById('backup-planilha-url').value = planilhaUrl || '';
+            document.getElementById('backup-webapp-url').value = webappUrl || '';
+
+            const ultimoEl = document.getElementById('backup-ultimo');
+            const sitEl = document.getElementById('backup-situacao');
+            const { data, error } = await sb.rpc('backup_loja_status');
+            if (error) {
+                console.error('Status do backup', error);
+                ultimoEl.textContent = 'Não foi possível ler';
+                sitEl.innerHTML = '<span class="text-amber-600">Confira se o código do backup foi rodado no Supabase.</span>';
+                return;
+            }
+            if (!data) {
+                ultimoEl.textContent = 'Nenhum backup feito ainda';
+                sitEl.innerHTML = '<span class="text-amber-600">Faça o primeiro backup pela planilha.</span>';
+                return;
+            }
+            const quando = new Date(data);
+            ultimoEl.textContent = quando.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            const horas = (Date.now() - quando.getTime()) / 36e5;
+            sitEl.innerHTML = horas <= 36
+                ? '<span class="text-green-600"><i class="fa-solid fa-circle-check mr-1"></i> Em dia</span>'
+                : '<span class="text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Atrasado: o backup automático não rodou</span>';
+        }
+
+        async function salvarConfigBackup() {
+            const planilhaUrl = document.getElementById('backup-planilha-url').value.trim();
+            const webappUrl = document.getElementById('backup-webapp-url').value.trim();
+            if (planilhaUrl && !planilhaUrl.startsWith('https://docs.google.com/spreadsheets/')) return aviso('O link da planilha deve começar com https://docs.google.com/spreadsheets/');
+            if (webappUrl && !webappUrl.startsWith('https://script.google.com/')) return aviso('O endereço do App da Web deve começar com https://script.google.com/');
+            await seguro(async () => {
+                await setConfig('backup_planilha_url', planilhaUrl);
+                await setConfig('backup_webapp_url', webappUrl);
+                aviso('Links do backup salvos!', 'ok');
+            });
+        }
+
+        function abrirPlanilhaBackup() {
+            const url = document.getElementById('backup-planilha-url').value.trim();
+            if (!url) return aviso('Cole primeiro o link da planilha (aqui embaixo) e clique em Salvar.');
+            window.open(url, '_blank');
+        }
+
+        function backupAgora() {
+            const url = document.getElementById('backup-webapp-url').value.trim();
+            if (!url) return aviso('Cole primeiro o endereço do App da Web (aqui embaixo) e clique em Salvar. Enquanto isso, use o menu Backup > Atualizar agora dentro da planilha.');
+            window.open(url, '_blank');
+            aviso('O backup abriu em outra aba. Espere aparecer "Backup concluído" (leva uns segundos).', 'ok');
+            setTimeout(() => seguro(loadBackup), 30000);
+        }
+
+        // Cópia de segurança extra, em arquivo, direto no celular ou computador (não precisa do Google)
+        async function baixarCopiaLocal() {
+            await seguro(async () => {
+                aviso('Preparando a cópia...', 'ok');
+                const tabelas = ['pedidos', 'crediario', 'clientes', 'produtos', 'categorias', 'configuracoes'];
+                const copia = { loja: 'Loja do Helcinho', gerado_em: new Date().toISOString() };
+                for (const t of tabelas) {
+                    copia[t] = await db(sb.from(t).select('*'), 'Copiar ' + t) || [];
+                }
+                const blob = new Blob([JSON.stringify(copia, null, 2)], { type: 'application/json' });
+                const nomeArq = `backup-loja-helcinho-${new Date().toISOString().slice(0, 10)}.json`;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = nomeArq; document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                aviso(`Cópia "${nomeArq}" salva em Downloads. Guarde esse arquivo em um lugar seguro.`, 'ok');
+            });
+        }
+
         function switchTab(tabId) {
             fecharMenuPainel();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -1023,6 +1136,7 @@
             if (tabId === 'crediario') { seguro(loadCrediario); seguro(loadClientesSelect); seguro(credPreencherPedidos); credPreencherProdutos(); credRenderItens(); }
             if (tabId === 'calculadora') seguro(loadCalcSelect);
             if (tabId === 'relatorios') seguro(loadRelatorios);
+            if (tabId === 'backup') seguro(loadBackup);
             if (tabId === 'config') seguro(loadConfigs);
         }
 
