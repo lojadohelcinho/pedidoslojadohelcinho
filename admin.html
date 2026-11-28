@@ -163,7 +163,7 @@
             <div class="p-4 border-t border-rosegold/20 space-y-2">
                 <p id="sync-status" class="text-[11px] text-center font-semibold text-gray-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectando...</p>
                 <p id="offline-status" class="hidden text-[11px] text-center font-semibold text-amber-600"><i class="fa-solid fa-wifi mr-1"></i> Sem internet: os dados não atualizam</p>
-                <p class="text-[10px] text-center text-gray-400">Versão v21 (aplicativo PWA)</p>
+                <p class="text-[10px] text-center text-gray-400">Versão v22 (aplicativo PWA)</p>
                 <button type="button" id="btn-alertas" onclick="alternarAlertas()" class="w-full bg-white border border-verdePetroleo text-verdePetroleo py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bell"></i> <span id="btn-alertas-txt">Ativar alertas de pedido</span>
                 </button>
@@ -279,7 +279,7 @@
                             <label class="block text-xs font-semibold mb-1">Fotos do produto (até 5) <span class="font-normal text-gray-400">— a primeira é a capa da vitrine</span></label>
                             <input type="file" id="imagem-file" accept="image/*" multiple class="w-full bg-creme border border-rosegold/30 rounded-xl px-3 py-1.5 text-xs">
                             <div id="fotos-lista" class="flex flex-wrap gap-2 mt-2"></div>
-                            <p class="text-[11px] text-gray-400 mt-1">Cada foto é reduzida automaticamente e guardada no Storage. Só a capa aparece na vitrine; as outras abrem quando o cliente toca na foto.</p>
+                            <p class="text-[11px] text-gray-400 mt-1">Cada foto é reduzida automaticamente e guardada no GitHub (pasta fotos). Depois de salvar, a foto leva 1 a 2 minutos para aparecer na loja. Só a capa aparece na vitrine; as outras abrem quando o cliente toca na foto.</p>
                         </div>
                         <div class="sm:col-span-2 pt-2">
                             <button type="submit" id="product-btn-submit" class="w-full bg-verdePetroleo text-white py-3 rounded-xl font-semibold text-sm">Salvar Produto na Nuvem</button>
@@ -636,6 +636,21 @@
                         </p>
                         <textarea id="template-cobranca" rows="5" class="w-full bg-creme border border-rosegold/30 rounded-xl p-3 text-xs focus:outline-none focus:border-verdePetroleo"></textarea>
                         <button type="button" onclick="saveTemplateCobrar()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar Modelo na Nuvem</button>
+                    </div>
+                </div>
+
+                <!-- FOTOS NO GITHUB -->
+                <div class="bg-white p-6 rounded-2xl border border-rosegold/20 shadow-sm space-y-4">
+                    <h2 class="font-bold text-base text-marromCafe"><i class="fa-brands fa-github text-verdePetroleo mr-2"></i> Fotos no GitHub</h2>
+                    <p class="text-xs text-gray-500">As fotos dos produtos ficam guardadas no GitHub, junto com o site, para não gastar o limite de tráfego do Supabase. Para o admin conseguir gravar as fotos, cole aqui a chave do GitHub (começa com <code class="bg-gray-100 px-1 rounded">github_pat_</code>). A chave fica guardada <b>só neste aparelho</b>: faça isso no computador e no celular que você usa para cadastrar produtos.</p>
+                    <p id="gh-status" class="text-[11px] font-semibold text-amber-600"></p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off" class="flex-grow bg-creme border border-rosegold/30 rounded-xl px-4 py-2 text-sm">
+                        <button type="button" onclick="salvarTokenGitHub()" class="bg-verdePetroleo text-white px-6 py-2 rounded-xl font-semibold text-xs">Salvar chave neste aparelho</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="testarTokenSalvo()" class="bg-white border border-verdePetroleo text-verdePetroleo px-4 py-2 rounded-xl font-semibold text-xs">Testar chave</button>
+                        <button type="button" onclick="removerTokenGitHub()" class="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-semibold text-xs">Apagar chave deste aparelho</button>
                     </div>
                 </div>
 
@@ -1292,7 +1307,7 @@
             if (tabId === 'calculadora') seguro(loadCalcSelect);
             if (tabId === 'relatorios') seguro(loadRelatorios);
             if (tabId === 'backup') seguro(loadBackup);
-            if (tabId === 'config') { seguro(loadConfigs); seguro(loadAcesso); }
+            if (tabId === 'config') { seguro(loadConfigs); seguro(loadAcesso); loadGitHubConfig(); }
         }
 
         function switchSubTab(subId) {
@@ -1806,19 +1821,92 @@
         function fotoTornarCapa(i) { const [f] = fotosProduto.splice(i, 1); fotosProduto.unshift(f); renderFotosProduto(); }
 
         // Envia a foto (data URL) para o Storage e devolve o link público
-        async function enviarFotoParaStorage(dataUrl, produtoId) {
-            try {
-                const blob = await (await fetch(dataUrl)).blob();
-                const ext = blob.type === 'image/png' ? 'png' : (blob.type === 'image/webp' ? 'webp' : 'jpg');
-                const caminho = `fotos/p${produtoId}-${Date.now().toString(36)}.${ext}`;
-                const { error } = await sb.storage.from('produtos').upload(caminho, blob, { contentType: blob.type || 'image/jpeg', cacheControl: '31536000', upsert: false });
-                if (error) throw error;
-                return sb.storage.from('produtos').getPublicUrl(caminho).data.publicUrl;
-            } catch (e) {
-                console.error('Enviar foto', e);
-                aviso('Não foi possível enviar a foto (' + (e.message || e) + '). O produto NÃO foi salvo. Rode o storage-fotos.sql no Supabase.');
-                throw e;
+        // =====================================================================
+        // FOTOS NO GITHUB (não gastam o limite de tráfego do Supabase)
+        // A chave do GitHub fica guardada só neste aparelho (nunca no código do site).
+        // =====================================================================
+        const GH_DONO = 'lojadohelcinho';
+        const GH_REPO = 'pedidoslojadohelcinho';
+        const GH_RAMO = 'main';
+        const GH_SITE = 'https://lojadohelcinho.github.io/pedidoslojadohelcinho/';
+        const GH_CHAVE_LOCAL = 'gh_token_fotos';
+
+        function lerTokenGitHub() { try { return localStorage.getItem(GH_CHAVE_LOCAL) || ''; } catch (e) { return ''; } }
+        function cabecalhosGitHub(token) {
+            return { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+        }
+
+        async function enviarFotoParaGitHub(dataUrl, produtoId) {
+            const token = lerTokenGitHub();
+            if (!token) {
+                const msg = 'Para salvar fotos, cadastre a chave do GitHub neste aparelho: Configurações & WhatsApp › Fotos no GitHub. O produto NÃO foi salvo.';
+                aviso(msg);
+                throw new Error(msg);
             }
+            const tipo = (dataUrl.match(/^data:([^;]+);/) || [])[1] || 'image/jpeg';
+            const ext = tipo === 'image/png' ? 'png' : (tipo === 'image/webp' ? 'webp' : 'jpg');
+            const caminho = `fotos/p${produtoId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}.${ext}`;
+            const corpo = JSON.stringify({ message: `Foto do produto ${produtoId}`, content: dataUrl.split(',')[1], branch: GH_RAMO });
+            for (let tentativa = 1; tentativa <= 3; tentativa++) {
+                const r = await fetch(`https://api.github.com/repos/${GH_DONO}/${GH_REPO}/contents/${caminho}`, {
+                    method: 'PUT', headers: cabecalhosGitHub(token), body: corpo
+                });
+                if (r.ok) return GH_SITE + caminho;
+                if ((r.status === 409 || r.status >= 500) && tentativa < 3) { await new Promise(ok => setTimeout(ok, 1500 * tentativa)); continue; }
+                let motivo = 'erro ' + r.status;
+                if (r.status === 401) motivo = 'a chave do GitHub está errada ou venceu (gere outra em Configurações › Fotos no GitHub)';
+                else if (r.status === 403 || r.status === 404) motivo = 'a chave do GitHub não tem permissão de gravar no repositório ' + GH_REPO;
+                else if (r.status === 422) motivo = 'o GitHub recusou o arquivo';
+                const msg = 'Não foi possível enviar a foto: ' + motivo + '. O produto NÃO foi salvo.';
+                aviso(msg);
+                throw new Error(msg);
+            }
+        }
+
+        async function testarTokenGitHub(token) {
+            const r = await fetch(`https://api.github.com/repos/${GH_DONO}/${GH_REPO}`, { headers: cabecalhosGitHub(token) });
+            if (r.status === 401) return { ok: false, msg: 'Chave inválida ou vencida.' };
+            if (!r.ok) return { ok: false, msg: 'A chave não enxerga o repositório ' + GH_REPO + ' (erro ' + r.status + ').' };
+            const d = await r.json();
+            if (!d.permissions || !d.permissions.push) return { ok: false, msg: 'A chave só tem leitura. Ela precisa de "Contents: Read and write".' };
+            return { ok: true, msg: 'Chave funcionando: o admin consegue gravar fotos no GitHub.' };
+        }
+
+        function atualizarStatusGitHub(texto, ok) {
+            const el = document.getElementById('gh-status');
+            if (!el) return;
+            el.className = 'text-[11px] font-semibold ' + (ok === true ? 'text-green-600' : ok === false ? 'text-red-600' : 'text-amber-600');
+            el.textContent = texto;
+        }
+        function loadGitHubConfig() {
+            atualizarStatusGitHub(lerTokenGitHub() ? 'Chave cadastrada neste aparelho.' : 'Nenhuma chave neste aparelho: não dá para salvar fotos por aqui.', lerTokenGitHub() ? true : null);
+        }
+        async function salvarTokenGitHub() {
+            const el = document.getElementById('gh-token');
+            const token = el.value.trim();
+            if (!token) return aviso('Cole a chave do GitHub (começa com github_pat_).');
+            atualizarStatusGitHub('Testando a chave...', null);
+            let res;
+            try { res = await testarTokenGitHub(token); } catch (e) { res = { ok: false, msg: 'Sem conexão com o GitHub. Tente de novo.' }; }
+            if (!res.ok) { atualizarStatusGitHub(res.msg, false); return aviso(res.msg); }
+            try { localStorage.setItem(GH_CHAVE_LOCAL, token); } catch (e) { return aviso('Este navegador não deixou guardar a chave.'); }
+            el.value = '';
+            atualizarStatusGitHub(res.msg, true);
+            aviso('Chave do GitHub salva neste aparelho!', 'ok');
+        }
+        async function testarTokenSalvo() {
+            const token = lerTokenGitHub();
+            if (!token) return aviso('Nenhuma chave cadastrada neste aparelho.');
+            atualizarStatusGitHub('Testando a chave...', null);
+            let res;
+            try { res = await testarTokenGitHub(token); } catch (e) { res = { ok: false, msg: 'Sem conexão com o GitHub. Tente de novo.' }; }
+            atualizarStatusGitHub(res.msg, res.ok);
+        }
+        async function removerTokenGitHub() {
+            if (!(await confirmar('Apagar a chave do GitHub deste aparelho?\nDepois disso, este aparelho não consegue mais salvar fotos.'))) return;
+            try { localStorage.removeItem(GH_CHAVE_LOCAL); } catch (e) {}
+            loadGitHubConfig();
+            aviso('Chave apagada deste aparelho.', 'ok');
         }
 
         const semAcento = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -1888,7 +1976,7 @@
                 // Foto nova: vai para o Storage (no banco fica só o link, para o site continuar leve)
                 const links = [];
                 for (const f of fotosProduto) {
-                    links.push(String(f.src).startsWith('data:') ? await enviarFotoParaStorage(f.src, produto.id) : f.src);
+                    links.push(String(f.src).startsWith('data:') ? await enviarFotoParaGitHub(f.src, produto.id) : f.src);
                 }
                 if (links.length) { produto.imagem = links[0]; produto.imagens = links; }
                 await db(sb.from('produtos').upsert([produto]), 'Salvar produto');
